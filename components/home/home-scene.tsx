@@ -2,28 +2,37 @@
 
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Sphere, Torus } from "@react-three/drei";
+import { Sphere, Torus } from "@react-three/drei";
 import { Group } from "three";
 
 function SignalCluster({ progress }: { progress: number }) {
   const groupRef = useRef<Group>(null);
+  const floatRef = useRef<Group>(null);
+  const elapsedRef = useRef(0);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    if (!groupRef.current) return;
-    groupRef.current.rotation.y = t * 0.14 + progress * 2.2;
-    groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.08 + progress * 0.12;
-    groupRef.current.position.y = Math.sin(t * 0.45) * 0.18;
+  useFrame((_, delta) => {
+    elapsedRef.current += delta;
+    const t = elapsedRef.current;
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.14 + progress * 2.2;
+      groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.08 + progress * 0.12;
+      groupRef.current.position.y = Math.sin(t * 0.45) * 0.18;
+    }
+    if (floatRef.current) {
+      floatRef.current.rotation.x = Math.sin(t * 1.1) * 0.25;
+      floatRef.current.rotation.z = Math.cos(t * 0.9) * 0.2;
+      floatRef.current.position.y = Math.sin(t * 1.6) * 0.06;
+    }
   });
 
   return (
     <group ref={groupRef}>
-      <Float speed={1.1} rotationIntensity={0.25} floatIntensity={0.5}>
+      <group ref={floatRef}>
         <mesh>
           <icosahedronGeometry args={[1.2, 1]} />
           <meshStandardMaterial color="#58C7B8" metalness={0.2} roughness={0.2} />
         </mesh>
-      </Float>
+      </group>
       <Torus args={[2.4, 0.04, 32, 160]} rotation-x={Math.PI / 2}>
         <meshStandardMaterial color="#F6F1E8" transparent opacity={0.6} />
       </Torus>
@@ -53,9 +62,12 @@ function DataNodes({ progress }: { progress: number }) {
     [],
   );
 
-  useFrame((state) => {
+  const elapsedRef = useRef(0);
+
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
-    const t = state.clock.getElapsedTime();
+    elapsedRef.current += delta;
+    const t = elapsedRef.current;
     groupRef.current.rotation.y = -t * 0.08 - progress * 1.5;
     groupRef.current.rotation.z = Math.sin(t * 0.22) * 0.08;
   });
@@ -84,7 +96,7 @@ function DataNodes({ progress }: { progress: number }) {
 export function HomeScene({ progress }: { progress: number }) {
   return (
     <div className="absolute inset-0">
-      <Canvas camera={{ position: [0, 0, 11], fov: 42 }}>
+      <Canvas camera={{ position: [0, 0, 11], fov: 42 }} className="relative h-full w-full">
         <color attach="background" args={["#06172A"]} />
         <fog attach="fog" args={["#06172A", 8, 22]} />
         <ambientLight intensity={1.2} />

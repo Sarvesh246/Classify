@@ -6,8 +6,6 @@ import {
   getCatalogOfferings,
   getCatalogSchoolBySlug,
   getCatalogSchools,
-  getCourseGroupsForSchool,
-  getDepartmentAggregatesForSchool,
   getHiddenGemsForSchool,
   getSchoolTrendSpotlight,
 } from "@/lib/catalog";
@@ -17,6 +15,64 @@ import type {
   SearchHitType,
   School,
 } from "@/lib/types";
+import {
+  computeCatalogSearchScoreParts,
+  scoreMatch,
+  type CatalogHitSearchContext,
+} from "@/lib/search-scoring";
+import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
+
+type ScoredSearchRow = {
+  hit: SearchHit;
+  score: number;
+  parts?: ReturnType<typeof computeCatalogSearchScoreParts>;
+  offering?: ProfessorCourseSummary;
+};
+
+function finalizeSearchHit(
+  hit: SearchHit,
+  schoolsWithCatalogRows: Set<string>,
+  row: Pick<ScoredSearchRow, "parts" | "offering">,
+  query: string,
+): SearchHit {
+  const active = query.trim().length > 0;
+
+  if (hit.type === "school") {
+    if (!active) {
+      return hit;
+    }
+    const rankHints = schoolsWithCatalogRows.has(hit.slug)
+      ? ["Grade data in app catalog"]
+      : ["Directory listing — add adapter for course rows"];
+    return { ...hit, rankHints };
+  }
+
+  const { parts, offering } = row;
+  if (!offering || !parts || !active) {
+    return hit;
+  }
+
+  const rankHints: string[] = [];
+  if (parts.courseBoost >= 55) rankHints.push("Course code match");
+  if (parts.fuzzyMatched) rankHints.push("Close spelling match");
+  if (
+    hit.dataCompleteness === "institutional_full" ||
+    hit.dataCompleteness === "institutional_partial"
+  ) {
+    rankHints.push("Institutional grade data");
+  }
+  if (offering.sampleSize < SMALL_SAMPLE_THRESHOLD) {
+    rankHints.push("Small sample");
+  }
+
+  const secondaryMetrics = [
+    ...hit.secondaryMetrics,
+    `n≈${offering.sampleSize}`,
+    offering.latestTerm,
+  ];
+
+  return { ...hit, rankHints, secondaryMetrics };
+}
 
 interface DirectorySchoolRecord {
   school_id: number;
@@ -153,21 +209,6 @@ export function getDirectorySchools() {
   return [...merged.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
-function scoreMatch(query: string, target: string, aliases: string[] = []) {
-  const normalized = query.toLowerCase().trim();
-  if (!normalized) return 1;
-
-  const haystack = [target, ...aliases].join(" ").toLowerCase();
-  if (haystack.startsWith(normalized)) return 100;
-  if (haystack.includes(` ${normalized}`)) return 88;
-  if (haystack.includes(normalized)) return 72;
-
-  return normalized
-    .split(/\s+/)
-    .filter(Boolean)
-    .reduce((score, token) => score + (haystack.includes(token) ? 18 : 0), 0);
-}
-
 function dataCompletenessBoost(hit: SearchHit) {
   switch (hit.dataCompleteness) {
     case "institutional_full":
@@ -250,7 +291,12 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
 }
 
 function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
-  return allSchools.map((school) => ({
+  return allSchools.map((school) => {
+    const catalogSchool = getCatalogSchoolBySlug(school.slug);
+    const coverageLine = catalogSchool
+      ? "Grade data in app catalog"
+      : "Directory listing only (no local course rows yet)";
+    return {
     type: "school",
     id: school.id,
     label: school.shortName,
@@ -260,6 +306,7 @@ function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
     coverageTier: school.coverageTier,
     highlight: school.descriptor,
     secondaryMetrics: [
+      coverageLine,
       school.sourceStatus.primary,
       school.sourceStatus.freshness,
       school.coverageTier === "rmp_only"
@@ -280,7 +327,8 @@ function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
       contextLabel: `${school.city}, ${school.state}`,
       searchScope: "directory" as const,
     },
-  }));
+  };
+  });
 }
 
 function buildCatalogSearchHits(schoolSlug?: string): SearchHit[] {
@@ -369,8 +417,12 @@ export async function searchDirectory(
   const courseLookup = new Map(
     catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
   );
+  const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
+  const schoolHits = buildSchoolSearchHits(allSchools).filter(
+    (hit) => !schoolSlug || hit.slug === schoolSlug,
+  );
   const hits = [
-    ...(type === "all" || type === "school" ? buildSchoolSearchHits(allSchools) : []),
+    ...(type === "all" || type === "school" ? schoolHits : []),
     ...(type === "all" || type === "course" || type === "professor"
       ? buildCatalogSearchHits(schoolSlug).filter(
           (hit) => type === "all" || hit.type === type,
@@ -382,23 +434,53 @@ export async function searchDirectory(
     /\d/.test(query) || query.trim().length >= 4 || /\s/.test(query.trim());
 
   return hits
-    .map((hit) => {
+    .map((hit): ScoredSearchRow => {
       const school =
         hit.type === "school"
           ? allSchools.find((item) => item.slug === hit.slug)
           : schoolLookup.get(hit.context.schoolSlug);
 
+      const aliasList = [
+        ...(school?.aliases ?? []),
+        hit.school,
+        hit.highlight,
+        hit.context.contextLabel,
+      ];
+
+      if (hit.type === "school") {
+        return {
+          hit,
+          score:
+            scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
+            qualityBoost(hit, offeringLookup, courseLookup) +
+            schoolMatchBoost(query, hit, school),
+        };
+      }
+
+      const offering =
+        hit.type === "course"
+          ? courseLookup.get(hit.id)
+          : offeringLookup.get(hit.id);
+      if (!offering) {
+        return { hit, score: 0 };
+      }
+
+      const ctx: CatalogHitSearchContext =
+        hit.type === "course"
+          ? { type: "course", offering, courseSlug: hit.slug }
+          : { type: "professor", offering };
+
+      const parts = computeCatalogSearchScoreParts(query, ctx, aliasList, offering);
+
       return {
         hit,
+        parts,
+        offering,
         score:
-          scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, [
-            ...(school?.aliases ?? []),
-            hit.school,
-            hit.highlight,
-            hit.context.contextLabel,
-          ]) +
-          qualityBoost(hit, offeringLookup, courseLookup) +
-          schoolMatchBoost(query, hit, school),
+          parts.base +
+          parts.courseBoost +
+          parts.fuzzyBonus +
+          qualityBoost(hit, offeringLookup, courseLookup),
       };
     })
     .filter((item) => item.score > 0)
@@ -419,7 +501,7 @@ export async function searchDirectory(
       return left.hit.label.localeCompare(right.hit.label);
     })
     .slice(0, limit)
-    .map((item) => item.hit);
+    .map((row) => finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, query));
 }
 
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
@@ -438,16 +520,18 @@ export async function getSchoolHub(slug: string) {
       trending: [],
       departments: [],
       hiddenGems: [],
-    };
+      };
   }
 
   const schoolOfferings = getCatalogOfferings().filter((item) => item.schoolSlug === slug);
+  const spotlight = getSchoolTrendSpotlight(slug);
+
   return {
     school,
     offerings: schoolOfferings,
-    courses: getCourseGroupsForSchool(slug),
-    trending: getSchoolTrendSpotlight(slug)?.trending ?? [],
-    departments: getDepartmentAggregatesForSchool(slug),
+    courses: spotlight?.courses ?? [],
+    trending: spotlight?.trending ?? [],
+    departments: spotlight?.departments ?? [],
     hiddenGems: getHiddenGemsForSchool(slug),
   };
 }

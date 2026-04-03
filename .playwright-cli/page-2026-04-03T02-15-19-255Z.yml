@@ -1,0 +1,127 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "Classify home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]:
+          - img [ref=e8]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Classify
+            - generic [ref=e15]: Course Intelligence
+      - navigation [ref=e16]:
+        - link "Search" [ref=e17] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e18] [cursor=pointer]:
+          - /url: /compare
+        - link "Methodology" [ref=e19] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e20] [cursor=pointer]:
+          - /url: /search?q=UT
+      - generic [ref=e21]:
+        - link "Search" [ref=e22] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e23]
+          - text: Search
+        - generic [ref=e26]: No login required
+    - generic [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: Compare builder
+          - paragraph [ref=e33]: Pick a school, then search only that campus. The comparison stays front and center.
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - paragraph [ref=e36]: School
+            - generic [ref=e38]:
+              - img [ref=e40]
+              - combobox "Search a school like Texas A&M" [ref=e43]: Texas A&M
+              - button "Add" [ref=e44] [cursor=pointer]
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: Professor or course
+            - generic [ref=e258]:
+              - img [ref=e260]
+              - combobox "Search Texas A&M University" [expanded] [ref=e263]: Lupoli
+              - button "Add" [ref=e264] [cursor=pointer]
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - img [ref=e50]
+            - generic [ref=e55]:
+              - paragraph [ref=e56]: Active school
+              - paragraph [ref=e57]: Texas A&M University
+          - button "Clear school" [ref=e265] [cursor=pointer]
+      - generic [ref=e58]:
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e59] [cursor=pointer]:
+          - img [ref=e61]
+          - paragraph [ref=e62]: Add a professor
+          - paragraph [ref=e63]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e64] [cursor=pointer]:
+          - img [ref=e66]
+          - paragraph [ref=e67]: Add a professor
+          - paragraph [ref=e68]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e69] [cursor=pointer]:
+          - img [ref=e71]
+          - paragraph [ref=e72]: Add a professor
+          - paragraph [ref=e73]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e74] [cursor=pointer]:
+          - img [ref=e76]
+          - paragraph [ref=e77]: Add a professor
+          - paragraph [ref=e78]: Browse the active school catalog to fill the remaining compare slots.
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - paragraph [ref=e82]: Catalog
+          - heading "Texas A&M University" [level=3] [ref=e266]
+        - generic [ref=e84]:
+          - generic [ref=e267]: Institutional + RMP
+          - button "Browse Texas A&M University catalog" [ref=e268] [cursor=pointer]:
+            - text: Browse Texas A&M University catalog
+            - img [ref=e86]
+  - button "Open Next.js Dev Tools" [ref=e93] [cursor=pointer]:
+    - img [ref=e94]
+  - alert [ref=e97]
+  - listbox [ref=e269]:
+    - generic [ref=e272]:
+      - generic [ref=e273]: Professors
+      - generic [ref=e274]:
+        - button "S. Lupoli Institutional + RMP Texas A&M CSCE 222 - Discrete Structures for Computing Classify 85 Expected GPA 3.85" [active] [ref=e275] [cursor=pointer]:
+          - img [ref=e277]
+          - generic [ref=e280]:
+            - generic [ref=e281]:
+              - generic [ref=e282]: S. Lupoli
+              - generic [ref=e283]: Institutional + RMP
+            - paragraph [ref=e284]: Texas A&M
+            - paragraph [ref=e285]: CSCE 222 - Discrete Structures for Computing
+            - generic [ref=e286]:
+              - generic [ref=e287]: Classify 85
+              - generic [ref=e288]: Expected GPA 3.85
+        - button "R. Elms Institutional + RMP Texas A&M ENGR 102 - Engineering Lab I - Computation Classify 68 Expected GPA 3.46" [ref=e289] [cursor=pointer]:
+          - img [ref=e291]
+          - generic [ref=e294]:
+            - generic [ref=e295]:
+              - generic [ref=e296]: R. Elms
+              - generic [ref=e297]: Institutional + RMP
+            - paragraph [ref=e298]: Texas A&M
+            - paragraph [ref=e299]: ENGR 102 - Engineering Lab I - Computation
+            - generic [ref=e300]:
+              - generic [ref=e301]: Classify 68
+              - generic [ref=e302]: Expected GPA 3.46
+        - button "C. Spears Institutional + RMP Texas A&M ENGR 102 - Engineering Lab I - Computation Classify 58 Expected GPA 3.24" [ref=e303] [cursor=pointer]:
+          - img [ref=e305]
+          - generic [ref=e308]:
+            - generic [ref=e309]:
+              - generic [ref=e310]: C. Spears
+              - generic [ref=e311]: Institutional + RMP
+            - paragraph [ref=e312]: Texas A&M
+            - paragraph [ref=e313]: ENGR 102 - Engineering Lab I - Computation
+            - generic [ref=e314]:
+              - generic [ref=e315]: Classify 58
+              - generic [ref=e316]: Expected GPA 3.24
+        - button "A. Cahill Institutional + RMP Texas A&M ENGR 102 - Engineering Lab I - Computation Classify 70 Expected GPA 3.50" [ref=e317] [cursor=pointer]:
+          - img [ref=e319]
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - generic [ref=e324]: A. Cahill
+              - generic [ref=e325]: Institutional + RMP
+            - paragraph [ref=e326]: Texas A&M
+            - paragraph [ref=e327]: ENGR 102 - Engineering Lab I - Computation
+            - generic [ref=e328]:
+              - generic [ref=e329]: Classify 70
+              - generic [ref=e330]: Expected GPA 3.50

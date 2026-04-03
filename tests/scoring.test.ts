@@ -29,4 +29,18 @@ describe("computeClassifyScore", () => {
 
     expect(score).toBeCloseTo(53.3, 0);
   });
+
+  it("caps institutional-only scores so grade-only rows cannot hit 100", () => {
+    const score = computeClassifyScore({
+      avgGpa: 4.0,
+      aPct: 100,
+      rmpDifficulty: null,
+      rmpRating: null,
+      coverageTier: "institutional_only",
+      sampleSize: 50,
+      termCount: 1,
+    });
+
+    expect(score).toBe(70);
+  });
 });

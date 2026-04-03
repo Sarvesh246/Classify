@@ -6,7 +6,7 @@ import {
   getCatalogSchools,
   getDepartmentAggregate,
   getDepartmentAggregatesForSchool,
-  getCatalogOfferingsForSchool,
+  getDepartmentOfferingsForSchool,
 } from "@/lib/catalog";
 import {
   formatGpa,
@@ -21,14 +21,17 @@ type DepartmentPageProps = {
 };
 
 const sorters = {
-  classify: (item: ReturnType<typeof getCatalogOfferingsForSchool>[number]) =>
+  classify: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
     item.classifyScore ?? -1,
-  gpa: (item: ReturnType<typeof getCatalogOfferingsForSchool>[number]) =>
+  gpa: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
     item.expectedGpa ?? -1,
-  arate: (item: ReturnType<typeof getCatalogOfferingsForSchool>[number]) =>
+  arate: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
     item.aRate ?? -1,
-  trend: (item: ReturnType<typeof getCatalogOfferingsForSchool>[number]) =>
+  trend: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
     item.trendDelta ?? -999,
+  /** Lower (more negative)-grade ease delta sorts first — “toughest” recent trend. */
+  trend_hard: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
+    item.trendDelta == null ? -99999 : -item.trendDelta,
 };
 
 export async function generateStaticParams() {
@@ -53,8 +56,7 @@ export default async function DepartmentPage({
   }
 
   const sortKey = sort in sorters ? (sort as keyof typeof sorters) : "classify";
-  const offerings = getCatalogOfferingsForSchool(slug)
-    .filter((item) => item.department === department.department)
+  const offerings = getDepartmentOfferingsForSchool(slug, departmentSlug)
     .sort((left, right) => sorters[sortKey](right) - sorters[sortKey](left));
 
   return (
@@ -87,12 +89,29 @@ export default async function DepartmentPage({
             />
           </div>
 
+          <div className="mt-6 flex flex-wrap gap-2 text-sm">
+            <span className="self-center text-muted">Quick sort:</span>
+            <Link
+              href={`/schools/${slug}/departments/${departmentSlug}?sort=gpa`}
+              className="rounded-full border border-border bg-white/72 px-3 py-1.5 font-medium text-ink hover:bg-white"
+            >
+              Easiest GPA
+            </Link>
+            <Link
+              href={`/schools/${slug}/departments/${departmentSlug}?sort=trend_hard`}
+              className="rounded-full border border-border bg-white/72 px-3 py-1.5 font-medium text-ink hover:bg-white"
+            >
+              Toughest trend
+            </Link>
+          </div>
+
           <div className="mt-8 flex flex-wrap gap-2">
             {[
               ["classify", "Best overall"],
               ["gpa", "Highest GPA"],
               ["arate", "Most A's"],
               ["trend", "Easiest trend lately"],
+              ["trend_hard", "Hardest trend lately"],
             ].map(([value, label]) => (
               <Link
                 key={value}

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DataTrustBanner } from "@/components/data-trust-banner";
+import { ProfessorCoursesList } from "@/components/professor/professor-courses-list";
 import { ProfessorGradeTabs } from "@/components/professor/professor-grade-tabs";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
 import { CoverageBadge } from "@/components/coverage-badge";
@@ -54,6 +56,8 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <CoverageBadge tier={primary.coverageTier} />
           </div>
 
+          <DataTrustBanner offering={primary} className="mt-6" />
+
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label="Classify score"
@@ -73,7 +77,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <StatCard
               label="Data quality"
               value={confidenceToLabel(primary.confidence)}
-              meta={`confidence: ${primary.confidence}`}
+              meta="Based on sample size, term coverage, and source mix"
             />
           </div>
         </section>
@@ -116,7 +120,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                 Sample size {primary.sampleSize}
               </span>
               <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                RMP {formatRating(primary.rmpRating)} · diff {formatRating(primary.rmpDifficulty)}
+                RMP {formatRating(primary.rmpRating)} / diff {formatRating(primary.rmpDifficulty)}
               </span>
             </div>
           </div>
@@ -153,40 +157,17 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
 
         <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
           <p className="eyebrow">Courses taught</p>
-          <div className="mt-5 grid gap-3 lg:grid-cols-2">
-            {profile.offerings.map((item) => (
-              <Link
-                key={item.id}
-                href={`/schools/${slug}/courses/${item.courseSlug}`}
-                className="rounded-[24px] border border-border/70 bg-white/72 p-4"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-semibold text-ink">
-                      {item.courseCode} - {item.courseName}
-                    </p>
-                    <p className="text-sm text-muted">{item.summary}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-ink">
-                      {scoreToLabel(item.classifyScore)}
-                    </p>
-                    <p className="text-xs text-muted">score {formatScore(item.classifyScore)}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <ProfessorCoursesList offerings={profile.offerings} schoolSlug={slug} />
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href={`/compare?ids=${primary.id}&school=${primary.schoolSlug}`}
-              className="rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
+              className="inline-flex min-w-[8.75rem] items-center justify-center whitespace-nowrap rounded-full bg-deep-ink px-5 py-3 text-center text-sm font-medium !text-ivory"
             >
               Add to compare
             </Link>
             <Link
               href={`/schools/${slug}`}
-              className="rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
+              className="inline-flex min-w-[8.75rem] items-center justify-center whitespace-nowrap rounded-full border border-border px-5 py-3 text-center text-sm font-medium !text-ink"
             >
               Back to school hub
             </Link>

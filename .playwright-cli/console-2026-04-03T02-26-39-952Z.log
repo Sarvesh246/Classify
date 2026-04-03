@@ -1,0 +1,45 @@
+[    2726ms] [WARNING] Mixed Content: The page at 'https://www.google.com/search?q=rate+my+professor&oq=rate+my+professor&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCDE4MjdqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8&sei=XyXPac64I6SnqtsPo--CgQI' was loaded over HTTPS, but requested an insecure element 'http://img.youtube.com/vi/5wAcQ0lMsJw/hqdefault.jpg'. This request was automatically upgraded to HTTPS, For more information see https://blog.chromium.org/2019/10/no-more-mixed-messages-about-https.html @ https://www.google.com/search?q=rate+my+professor&oq=rate+my+professor&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCDE4MjdqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8&sei=XyXPac64I6SnqtsPo--CgQI:0
+[    5447ms] [ERROR] Access to fetch at 'https://api.rlcdn.com/api/identity/envelope?pid=1258' from origin 'https://www.ratemyprofessors.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ about:srcdoc:0
+[    5447ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://api.rlcdn.com/api/identity/envelope?pid=1258:0
+[    5520ms] [WARNING] [Audigent] cannot find __gpp framework @ https://a.ad.gt/api/v1/u/matches/675?_it=amazon:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    6241ms] [LOG] Visibility threshold pct=80, Visibility threshold ms = 0 @ https://tag.durationmedia.net/sites/12095/dm.js:0
+[    6406ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://resources.infolinks.com/js/2025.037-4.011/in_search.js:0
+[    6419ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:srcdoc:0
+[    6420ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ https://cpm.vistarsagency.com/user-sync?zone=326176&t=image&r=https%3A%2F%2Frouter.infolinks.com%2Fdyn%2Fvis-usync%3Fuid%3D%7BUID%7D:0
+[    7162ms] [WARNING] Unable to get WebChoices Preferences TIME OUT @ https://s.ntv.io/serve/load.js:1
+[    7232ms] [WARNING] Unable to get WebChoices Preferences TIME OUT @ https://s.ntv.io/serve/load.js:1
+[    7335ms] [WARNING] Unable to get WebChoices Preferences TIME OUT @ https://s.ntv.io/serve/load.js:1
+[    7487ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://id5-sync.com/k/264.gif?puid=e8eeb7e8-9ebc-4286-85e9-477ed6b0cac2&ttl=%%TTL%%:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7574ms] [WARNING] [Audigent] script has already been initialised. Skip further execution @ https://a.ad.gt/api/v1/u/matches/788?_it=tag:0
+[    7747ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7766ms] [TIMEEND] a: 0.0078125 ms @ https://static.adsafeprotected.com/sca.17.6.4.js:31
+[    7817ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7822ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7831ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7982ms] [LOG] [GST Toyota] 728x90 DCO4 - Studio Initialized - 01/02/2026 | connection @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=DtftwOW0Fz&t=1&renderingType=2&ev=01_262:677
+[    7982ms] [LOG] [loaded: studio] [time: 0.057s] @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=DtftwOW0Fz&t=1&renderingType=2&ev=01_262:678
+[    8176ms] [WARNING] [Audigent] cannot find __gpp framework @ https://a.ad.gt/api/v1/u/matches/788?url=https%3A%2F%2Fwww.ratemyprofessors.com%2F&ref=https%3A%2F%2Fwww.google.com%2F:0
+[    8433ms] [LOG] [loaded: all - init page ] [time : 0.508s] @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=DtftwOW0Fz&t=1&renderingType=2&ev=01_262:901
+[    8438ms] [LOG] 108.46065850830078 @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=DtftwOW0Fz&t=1&renderingType=2&ev=01_262:1383
+[    9346ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ https://match.prod.bidr.io/cookie-sync/ox?gdpr=0&gdpr_consent=%5BGDPR_CONSENT%5D:0
+[    9485ms] [ERROR] Failed to load resource: the server responded with a status of 424 (Failed Dependency) @ https://t.adx.opera.com/pub/sync?pubid=pub10101531197440&gdpr=1&gdpr_consent=:0
+[   21921ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://resources.infolinks.com/js/2025.037-4.011/in_search.js:0
+[   21936ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:srcdoc:0
+[   22040ms] [WARNING] Failed to execute 'write' on 'Document': It isn't possible to write into a document from an asynchronously-loaded external script unless it is explicitly opened. @ https://pixel.adsafeprotected.com/jload?anId=929356&adsafe_par&uId=&advId=3461206&campId=34834259&pubId=1427454&chanId=630461648&placementId=436627000:0
+[    5845ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7747ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7817ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7822ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7831ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   22088ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   22132ms] [LOG] [GST Toyota] 728x90 DCO4 - Studio Initialized - 01/02/2026 | connection @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=GsmINSnS94&t=1&renderingType=2&ev=01_262:677
+[   22132ms] [LOG] [loaded: studio] [time: 0.026s] @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=GsmINSnS94&t=1&renderingType=2&ev=01_262:678
+[   22452ms] [TIMEEND] a: 0.001953125 ms @ https://static.adsafeprotected.com/sca.17.6.4.js:31
+[   22498ms] [LOG] [loaded: all - init page ] [time : 0.391s] @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=GsmINSnS94&t=1&renderingType=2&ev=01_262:901
+[   22500ms] [LOG] 108.46065850830078 @ https://s0.2mdn.net/sadbundle/10818830752984067467/index.html?e=69&leftOffset=0&topOffset=0&c=GsmINSnS94&t=1&renderingType=2&ev=01_262:1383
+[   27527ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://sync.colossusssp.com/ebfa23da174faa55634171c5e49d0152.gif?puid=AU1D-0100-001775183205-305EXN9S-G4D9&redir=http%3A%2F%2Fids.ad.gt%2Fapi%2Fv1%2Fcolossus%3Fcls_id%3D%5BUID%5D%26id%3DAU1D-0100-001775183205-305EXN9S-G4D9:0

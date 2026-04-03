@@ -51,7 +51,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 {course.courseCode} - {course.courseName}
               </h1>
               <p className="app-lead mt-4">
-                {course.summary} This is the exact question RMP cannot answer well:
+                {course.summary}{" "}
+                This is the exact question RMP cannot answer well:
                 who teaches this required course and gives the most A&apos;s?
               </p>
             </div>
@@ -64,7 +65,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
             <MetricTrendChart trend={courseTrend} metric="aPct" />
             <MetricTrendChart trend={courseTrend} metric="avgGpa" />
           </div>
-          <GradeDistributionPanel series={gradeSeries} />
+          <div className="space-y-3">
+            <p className="text-sm leading-relaxed text-muted">
+              Stacked grade bars are modeled from each term&apos;s reported GPA and A-rate when
+              full A–F counts are not in the catalog—they are a visual companion to the headline
+              stats, not a separate official breakdown.
+            </p>
+            <GradeDistributionPanel series={gradeSeries} />
+          </div>
         </section>
 
         <CourseProfessorList offerings={offerings} schoolSlug={slug} />

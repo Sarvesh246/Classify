@@ -40,6 +40,8 @@ interface SearchComboboxProps {
   emptyMessage?: string;
   clearOnSelect?: boolean;
   onSelect?: (item: SearchHit) => void;
+  /** When true, Explore submits to `/search` with q, school, and type (page uses `school`; API still uses schoolSlug). */
+  syncSearchUrl?: boolean;
 }
 
 const iconMap = {
@@ -59,6 +61,7 @@ export function SearchCombobox({
   emptyMessage = "No matches yet. Try a school like UT Austin, a course like CS 312, or a professor.",
   clearOnSelect = false,
   onSelect,
+  syncSearchUrl = false,
 }: SearchComboboxProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
@@ -66,6 +69,9 @@ export function SearchCombobox({
   const [results, setResults] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [fetchError, setFetchError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<Array<HTMLElement | null>>([]);
 
@@ -111,7 +117,6 @@ export function SearchCombobox({
     },
     [refs],
   );
-
   const dismiss = useDismiss(context, { outsidePressEvent: "mousedown" });
   const role = useRole(context, { role: "listbox" });
   const listNavigation = useListNavigation(context, {
@@ -144,24 +149,40 @@ export function SearchCombobox({
 
     const endpoint = `/api/search?${params.toString()}`;
 
+    setIsLoading(true);
+    setFetchError(false);
+
     fetch(endpoint)
-      .then((response) => response.json())
-      .then((payload: { results: SearchHit[] }) => {
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`search ${response.status}`);
+        }
+        return response.json() as Promise<{ results?: SearchHit[] }>;
+      })
+      .then((payload) => {
         if (ignore) return;
-        setResults(payload.results);
-        setActiveIndex(payload.results.length ? 0 : null);
+        const next = Array.isArray(payload.results) ? payload.results : [];
+        setResults(next);
+        setActiveIndex(next.length ? 0 : null);
+        setFetchError(false);
       })
       .catch(() => {
         if (!ignore) {
           setResults([]);
           setActiveIndex(null);
+          setFetchError(true);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
         }
       });
 
     return () => {
       ignore = true;
     };
-  }, [deferredQuery, limit, schoolSlug, searchType]);
+  }, [deferredQuery, limit, schoolSlug, searchType, retryNonce]);
 
   const groupedSections = useMemo(() => {
     if (searchType !== "all") {
@@ -225,8 +246,27 @@ export function SearchCombobox({
       return;
     }
 
+    if (fetchError) {
+      setRetryNonce((n) => n + 1);
+      setOpen(true);
+      return;
+    }
+
     startTransition(() => {
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      if (syncSearchUrl) {
+        const p = new URLSearchParams();
+        if (query.trim()) p.set("q", query.trim());
+        if (schoolSlug?.trim()) p.set("school", schoolSlug.trim());
+        if (searchType !== "all") p.set("type", searchType);
+        const qs = p.toString();
+        router.push(qs ? `/search?${qs}` : "/search");
+      } else {
+        router.push(
+          query.trim()
+            ? `/search?q=${encodeURIComponent(query.trim())}`
+            : "/search",
+        );
+      }
       setOpen(false);
     });
   }
@@ -258,6 +298,10 @@ export function SearchCombobox({
             }
           }}
           placeholder={placeholder}
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-busy={isLoading}
+          aria-invalid={fetchError}
           className={cn(
             "h-12 flex-1 bg-transparent pr-2 text-base text-ink outline-none placeholder:text-muted/75 sm:text-lg",
             inputClassName,
@@ -268,7 +312,13 @@ export function SearchCombobox({
           type="submit"
           className="rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237]"
         >
-          {isPending ? "Searching..." : onSelect ? "Add" : "Explore"}
+          {isPending || isLoading
+            ? "Searching..."
+            : fetchError
+              ? "Retry"
+              : onSelect
+                ? "Add"
+                : "Explore"}
         </button>
       </form>
 
@@ -309,9 +359,9 @@ export function SearchCombobox({
                                 "group flex w-full items-start gap-3 rounded-[22px] px-3 py-3 text-left transition",
                                 active ? "bg-white" : "hover:bg-white/78",
                               )}
-                              onClick={() => handleSelect(item)}
                               {...getItemProps({
                                 onMouseEnter: () => setActiveIndex(index),
+                                onClick: () => handleSelect(item),
                               })}
                             >
                               <ResultContent item={item} Icon={Icon} />
@@ -327,9 +377,9 @@ export function SearchCombobox({
                                 "group flex items-start gap-3 rounded-[22px] px-3 py-3 transition",
                                 active ? "bg-white" : "hover:bg-white/78",
                               )}
-                              onClick={() => setOpen(false)}
                               {...getItemProps({
                                 onMouseEnter: () => setActiveIndex(index),
+                                onClick: () => setOpen(false),
                               })}
                             >
                               <ResultContent item={item} Icon={Icon} />
@@ -340,7 +390,11 @@ export function SearchCombobox({
                     </div>
                   ) : null,
                 )}
-                {!results.length ? (
+                {fetchError ? (
+                  <div className="rounded-[24px] border border-copper/40 bg-copper/10 px-4 py-6 text-center text-sm text-ink">
+                    Couldn&apos;t load suggestions. Check your connection and try again.
+                  </div>
+                ) : !results.length ? (
                   <div className="rounded-[24px] border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
                     {emptyMessage}
                   </div>
@@ -373,6 +427,18 @@ function ResultContent({
         </div>
         <p className="mt-1 text-sm text-muted">{item.school}</p>
         <p className="mt-1 line-clamp-1 text-sm text-ink/78">{item.highlight}</p>
+        {item.rankHints?.length ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {item.rankHints.map((hint) => (
+              <span
+                key={hint}
+                className="rounded-full border border-border/70 bg-deep-ink/[0.06] px-2 py-0.5 text-[0.65rem] text-muted"
+              >
+                {hint}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
           {item.secondaryMetrics.map((metric) => (
             <span

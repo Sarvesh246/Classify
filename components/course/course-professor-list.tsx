@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { dataTrustSummaryLine, isSmallSample } from "@/lib/data-trust";
+import { offeringSortLabels, offeringSorters, type OfferingSortKey } from "@/lib/offering-sort";
 import { type ProfessorCourseSummary } from "@/lib/types";
 import {
   formatGpa,
@@ -12,24 +14,6 @@ import {
   scoreToLabel,
 } from "@/lib/utils";
 
-type SortKey = "classify" | "gpa" | "arate" | "trend" | "rating";
-
-const sorters: Record<SortKey, (item: ProfessorCourseSummary) => number> = {
-  classify: (item) => item.classifyScore ?? -1,
-  gpa: (item) => item.expectedGpa ?? -1,
-  arate: (item) => item.aRate ?? -1,
-  trend: (item) => item.trendDelta ?? -999,
-  rating: (item) => item.rmpRating ?? -1,
-};
-
-const sortLabels: Array<{ key: SortKey; label: string }> = [
-  { key: "classify", label: "Best overall" },
-  { key: "gpa", label: "Highest GPA" },
-  { key: "arate", label: "Most A's" },
-  { key: "trend", label: "Easiest trend lately" },
-  { key: "rating", label: "Best rated" },
-];
-
 export function CourseProfessorList({
   offerings,
   schoolSlug,
@@ -37,12 +21,12 @@ export function CourseProfessorList({
   offerings: ProfessorCourseSummary[];
   schoolSlug: string;
 }) {
-  const [sortKey, setSortKey] = useState<SortKey>("classify");
+  const [sortKey, setSortKey] = useState<OfferingSortKey>("classify");
 
   const sorted = useMemo(
     () =>
       [...offerings].sort(
-        (left, right) => sorters[sortKey](right) - sorters[sortKey](left),
+        (left, right) => offeringSorters[sortKey](right) - offeringSorters[sortKey](left),
       ),
     [offerings, sortKey],
   );
@@ -50,7 +34,7 @@ export function CourseProfessorList({
   return (
     <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
       <div className="sticky top-24 z-10 -mx-2 mb-5 flex flex-wrap gap-2 rounded-[24px] border border-border/70 bg-background/92 p-3 backdrop-blur sm:mx-0">
-        {sortLabels.map((item) => (
+        {offeringSortLabels.map((item) => (
           <button
             key={item.key}
             type="button"
@@ -80,6 +64,10 @@ export function CourseProfessorList({
               <p className="mt-1 text-sm text-muted">
                 {item.courseCode} - {item.courseName}
               </p>
+              <p className="mt-2 text-xs leading-relaxed text-muted">{dataTrustSummaryLine(item)}</p>
+              {isSmallSample(item.sampleSize) ? (
+                <p className="mt-2 text-xs font-medium text-copper">Small sample — use as a hint, not a guarantee.</p>
+              ) : null}
               <p className="mt-3 text-sm text-ink/78">{item.professorSummary}</p>
             </div>
 
@@ -101,13 +89,13 @@ export function CourseProfessorList({
             <div className="flex flex-col gap-2 lg:items-end">
               <Link
                 href={`/schools/${schoolSlug}/professors/${item.professorSlug}`}
-                className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory"
+                className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory"
               >
                 Open profile
               </Link>
               <Link
                 href={`/compare?ids=${item.id}&school=${item.schoolSlug}`}
-                className="rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                className="rounded-full border border-border px-4 py-2 text-sm font-medium !text-ink"
               >
                 Compare selected
               </Link>

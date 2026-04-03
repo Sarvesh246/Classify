@@ -1,0 +1,136 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "Classify home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]:
+          - img [ref=e8]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Classify
+            - generic [ref=e15]: Course Intelligence
+      - navigation [ref=e16]:
+        - link "Search" [ref=e17] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e18] [cursor=pointer]:
+          - /url: /compare
+        - link "Methodology" [ref=e19] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e20] [cursor=pointer]:
+          - /url: /search?q=UT
+      - generic [ref=e21]:
+        - link "Search" [ref=e22] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e23]
+          - text: Search
+        - generic [ref=e26]: No login required
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - paragraph [ref=e31]: UT Austin
+            - heading "Priya Venkataraman" [level=1] [ref=e32]
+            - paragraph [ref=e33]: Senior Lecturer
+            - paragraph [ref=e34]: Fast, clear, and unusually stable across terms.
+          - generic [ref=e35]: Institutional + RMP
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - paragraph [ref=e38]: Classify score
+            - paragraph [ref=e39]: Easy
+            - paragraph [ref=e40]: "(score: 81)"
+          - generic [ref=e41]:
+            - paragraph [ref=e42]: Expected GPA
+            - paragraph [ref=e43]: "3.71"
+            - paragraph [ref=e44]: +0.51 vs dept avg
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: A-rate
+            - paragraph [ref=e47]: 76%
+            - paragraph [ref=e48]: dept avg ~38%
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Data quality
+            - paragraph [ref=e51]: High
+            - paragraph [ref=e52]: Based on sample size, term coverage, and source mix
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - paragraph [ref=e57]: Grade distribution
+            - heading "Approximate letter outcomes by course" [level=2] [ref=e58]
+          - button "M 408D" [ref=e60] [cursor=pointer]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - paragraph [ref=e63]: M 408D - Calculus I
+            - paragraph [ref=e64]: Fast, clear, and unusually stable across terms.
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - generic [ref=e67]: A
+              - generic [ref=e70]: 76%
+            - generic [ref=e71]:
+              - generic [ref=e72]: B
+              - generic [ref=e75]: 19%
+            - generic [ref=e76]:
+              - generic [ref=e77]: C
+              - generic [ref=e80]: 0%
+            - generic [ref=e81]:
+              - generic [ref=e82]: D
+              - generic [ref=e85]: 5%
+            - generic [ref=e86]:
+              - generic [ref=e87]: F
+              - generic [ref=e90]: 0%
+          - generic [ref=e91]:
+            - generic [ref=e92]: Sample size 208
+            - generic [ref=e93]: Date range Fall 2023 to Spring 2026
+      - generic [ref=e94]:
+        - paragraph [ref=e95]: Student notes from RMP reviews
+        - generic [ref=e96]:
+          - generic [ref=e97]: Clear reviews
+          - generic [ref=e98]: Predictable exams
+          - generic [ref=e99]: Fast pace
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - paragraph [ref=e102]: A% trend
+          - heading "How the A-rate has moved over time" [level=2] [ref=e103]
+          - img "Trend sparkline" [ref=e104]
+          - generic [ref=e112]:
+            - generic [ref=e113]: Freshness Spring 2026
+            - generic [ref=e114]: Latest term Spring 2026
+            - generic [ref=e115]: Sample size 208
+            - generic [ref=e116]: RMP 4.8 / diff 1.9
+        - generic [ref=e117]:
+          - paragraph [ref=e118]: Year-by-year A%
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]: Fall 2023
+              - generic [ref=e124]: 67%
+            - generic [ref=e125]:
+              - generic [ref=e126]: Spring 2024
+              - generic [ref=e129]: 70%
+            - generic [ref=e130]:
+              - generic [ref=e131]: Fall 2024
+              - generic [ref=e134]: 73%
+            - generic [ref=e135]:
+              - generic [ref=e136]: Spring 2025
+              - generic [ref=e139]: 74%
+            - generic [ref=e140]:
+              - generic [ref=e141]: Fall 2025
+              - generic [ref=e144]: 75%
+            - generic [ref=e145]:
+              - generic [ref=e146]: Spring 2026
+              - generic [ref=e149]: 76%
+      - generic [ref=e150]:
+        - paragraph [ref=e151]: Courses taught
+        - link "M 408D - Calculus I The strongest seeded Calculus I profile. Easy score 81" [ref=e153] [cursor=pointer]:
+          - /url: /schools/ut-austin/courses/m-408d-calculus-i
+          - generic [ref=e154]:
+            - generic [ref=e155]:
+              - paragraph [ref=e156]: M 408D - Calculus I
+              - paragraph [ref=e157]: The strongest seeded Calculus I profile.
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: Easy
+              - paragraph [ref=e160]: score 81
+        - generic [ref=e161]:
+          - link "Add to compare" [ref=e162] [cursor=pointer]:
+            - /url: /compare?ids=ut-m408d-priya-venkataraman&school=ut-austin
+          - link "Back to school hub" [ref=e163] [cursor=pointer]:
+            - /url: /schools/ut-austin
+  - button "Open Next.js Dev Tools" [ref=e169] [cursor=pointer]:
+    - img [ref=e170]
+  - alert [ref=e173]

@@ -40,7 +40,13 @@ type EnrichableSummary = Omit<
   trend: RawTrendPoint[];
 };
 
-export function getScoreBreakdown(input: Omit<ScoreInput, "coverageTier" | "sampleSize" | "termCount">) {
+export function getScoreBreakdown(
+  input: Omit<ScoreInput, "sampleSize" | "termCount"> & { coverageTier?: CoverageTier },
+) {
+  const tier = input.coverageTier ?? "institutional_plus_rmp";
+  /** Institutional-only rows have no RMP: do not re-scale grade weights to fill 0–100 (that falsely reads as "easy"). */
+  const renormalizeMissing = tier !== "institutional_only";
+
   const rows: ScoreBreakdownRow[] = [
     {
       key: "avgGpa",
@@ -90,6 +96,14 @@ export function getScoreBreakdown(input: Omit<ScoreInput, "coverageTier" | "samp
       return row;
     }
 
+    if (!renormalizeMissing) {
+      return {
+        ...row,
+        effectiveWeight: row.baseWeight,
+        contribution: round(row.normalized * row.baseWeight * 100, 1),
+      };
+    }
+
     const effectiveWeight = row.baseWeight / availableWeight;
     return {
       ...row,
@@ -100,7 +114,13 @@ export function getScoreBreakdown(input: Omit<ScoreInput, "coverageTier" | "samp
 }
 
 export function computeClassifyScore(input: ScoreInput) {
-  const breakdown = getScoreBreakdown(input);
+  const breakdown = getScoreBreakdown({
+    avgGpa: input.avgGpa,
+    aPct: input.aPct,
+    rmpDifficulty: input.rmpDifficulty,
+    rmpRating: input.rmpRating,
+    coverageTier: input.coverageTier,
+  });
   const available = breakdown.filter((row) => row.normalized != null);
 
   if (available.length === 0) {

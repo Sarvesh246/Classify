@@ -2,20 +2,39 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SearchCombobox } from "@/components/search/search-combobox";
+import { SearchScopeChips } from "@/components/search/search-scope-chips";
 import { SiteHeader } from "@/components/site-header";
-import { getFeaturedOfferings } from "@/lib/catalog";
+import { getCatalogSchoolBySlug, getFeaturedOfferings } from "@/lib/catalog";
 import { searchDirectory } from "@/lib/server-directory";
-import { type SearchHit } from "@/lib/types";
+import { type SearchHit, type SearchHitType } from "@/lib/types";
 import { formatScore, scoreToLabel } from "@/lib/utils";
 
 type SearchPageProps = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; school?: string; type?: string }>;
 };
+
+function parseFilterType(raw: string | undefined): SearchHitType | "all" {
+  if (raw === "school" || raw === "course" || raw === "professor") return raw;
+  return "all";
+}
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const results = query ? await searchDirectory(query, { limit: 30 }) : [];
+  const schoolParam = params.school?.trim() || undefined;
+  const filterType = parseFilterType(params.type?.trim());
+  const catalogSchool = schoolParam ? getCatalogSchoolBySlug(schoolParam) : undefined;
+  const schoolShortName = catalogSchool?.shortName;
+
+  const shouldSearch =
+    query.length > 0 || Boolean(schoolParam) || filterType !== "all";
+  const results = shouldSearch
+    ? await searchDirectory(query, {
+        limit: 30,
+        schoolSlug: schoolParam,
+        type: filterType,
+      })
+    : [];
   const featured = getFeaturedOfferings();
   const grouped = {
     school: results.filter((item) => item.type === "school"),
@@ -38,12 +57,51 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             RMP cannot organize.
           </p>
           <div className="mt-8">
-            <SearchCombobox initialQuery={query} />
+            <SearchCombobox
+              initialQuery={query}
+              searchType={filterType}
+              schoolSlug={schoolParam}
+              syncSearchUrl
+            />
+            <SearchScopeChips
+              query={query}
+              schoolSlug={schoolParam}
+              filterType={filterType}
+              schoolShortName={schoolShortName}
+            />
           </div>
         </section>
 
-        {query ? (
+        {shouldSearch ? (
           <section className="mt-8 space-y-8">
+            {!results.length ? (
+              <div className="soft-panel rounded-[30px] p-8 text-ink">
+                <p className="text-center text-lg font-semibold">No matches for this search</p>
+                <p className="mx-auto mt-2 max-w-lg text-center text-sm text-muted">
+                  Try a shorter query, a course code with or without a space (
+                  <code className="rounded bg-background px-1">CSCE 221</code> or{" "}
+                  <code className="rounded bg-background px-1">CSCE221</code>
+                  ), or widen scope.
+                </p>
+                <ul className="mx-auto mt-6 max-w-md list-disc space-y-2 pl-5 text-sm text-muted">
+                  <li>
+                    <Link href="/search" className="text-ink underline underline-offset-2">
+                      Clear filters and open full search
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/methodology" className="text-ink underline underline-offset-2">
+                      Read how we score and source data
+                    </Link>
+                  </li>
+                  <li>
+                    Browse a school hub from the homepage, then use{" "}
+                    <strong className="text-ink">Search within this school</strong>.
+                  </li>
+                </ul>
+              </div>
+            ) : null}
+
             {grouped.school.length ? (
               <div className="soft-panel rounded-[30px] p-5 sm:p-6">
                 <div className="flex items-center gap-3">
@@ -71,6 +129,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </div>
                         <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
                       </div>
+                      {item.rankHints?.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {item.rankHints.map((hint) => (
+                            <RankHintPill key={hint} text={hint} />
+                          ))}
+                        </div>
+                      ) : null}
                       <div className="flex flex-wrap gap-2 text-xs text-muted">
                         {item.secondaryMetrics.map((metric) => (
                           <MetricPill key={metric} metric={metric} />
@@ -114,6 +179,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                               className="flex flex-col gap-2 rounded-[24px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white"
                             >
                               <h3 className="text-lg font-semibold text-ink">{item.label}</h3>
+                              {item.rankHints?.length ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {item.rankHints.map((hint) => (
+                                    <RankHintPill key={hint} text={hint} />
+                                  ))}
+                                </div>
+                              ) : null}
                               <div className="flex flex-wrap gap-2 text-xs text-muted">
                                 {item.secondaryMetrics.map((metric) => (
                                   <MetricPill key={metric} metric={metric} />
@@ -197,11 +269,26 @@ function groupBySchool(items: SearchHit[]) {
   return [...groups.entries()];
 }
 
+function RankHintPill({ text }: { text: string }) {
+  return (
+    <span className="rounded-full border border-border/70 bg-deep-ink/[0.06] px-3 py-1 text-xs text-muted">
+      {text}
+    </span>
+  );
+}
+
 function MetricPill({ metric }: { metric: string }) {
   const match = metric.match(/(?:Top )?Classify\s+(\d+)/i);
 
   if (match) {
     const score = Number(match[1]);
+    if (!Number.isFinite(score)) {
+      return (
+        <span className="rounded-full border border-border bg-background px-3 py-1.5">
+          {metric}
+        </span>
+      );
+    }
     return (
       <span className="rounded-full border border-border bg-background px-3 py-1.5">
         {scoreToLabel(score)} <span className="text-muted">({formatScore(score)})</span>

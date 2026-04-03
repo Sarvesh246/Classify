@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { estimatedChartCaption } from "@/lib/data-trust";
+import { estimatedMixForOfferingSummary } from "@/lib/grade-distribution-estimate";
 import { type ProfessorCourseSummary } from "@/lib/types";
 
 const gradeColors = {
@@ -10,30 +12,6 @@ const gradeColors = {
   D: "#F0997B",
   F: "#E24B4A",
 } as const;
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function round(value: number) {
-  return Math.round(value * 10) / 10;
-}
-
-function buildDistribution(item: ProfessorCourseSummary) {
-  const aPct = clamp(item.aRate ?? 0, 0, 100);
-  const bPct = clamp(((item.expectedGpa ?? 0) - 2.0) * 15, 0, 35);
-  const dPct = 5;
-  const fPct = clamp(100 - aPct - bPct - dPct, 0, 3);
-  const cPct = clamp(100 - aPct - bPct - dPct - fPct, 0, 100);
-
-  return [
-    { grade: "A", pct: round(aPct) },
-    { grade: "B", pct: round(bPct) },
-    { grade: "C", pct: round(cPct) },
-    { grade: "D", pct: round(dPct) },
-    { grade: "F", pct: round(fPct) },
-  ] as const;
-}
 
 export function ProfessorGradeTabs({
   offerings,
@@ -51,7 +29,11 @@ export function ProfessorGradeTabs({
     return null;
   }
 
-  const distribution = buildDistribution(active);
+  const distribution = estimatedMixForOfferingSummary({
+    sampleSize: active.sampleSize,
+    expectedGpa: active.expectedGpa,
+    aRate: active.aRate,
+  });
   const dateRange =
     active.trend.length > 1
       ? `${active.trend[0]?.term} to ${active.trend.at(-1)?.term}`
@@ -63,8 +45,11 @@ export function ProfessorGradeTabs({
         <div>
           <p className="eyebrow">Grade distribution</p>
           <h2 className="mt-2 text-2xl font-semibold text-ink">
-            Approximate letter outcomes by course
+            Estimated letter mix (matches GPA and A-rate above)
           </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+            {estimatedChartCaption()}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {offerings.map((item) => (
@@ -100,7 +85,7 @@ export function ProfessorGradeTabs({
                 <div
                   className="h-full rounded-full"
                   style={{
-                    width: `${Math.max(entry.pct, 2)}%`,
+                    width: `${entry.pct <= 0 ? 0 : Math.max(entry.pct, 2)}%`,
                     backgroundColor: gradeColors[entry.grade],
                   }}
                 />

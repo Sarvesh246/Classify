@@ -39,13 +39,13 @@ export function formatRating(value: number | null) {
 export function formatCoverageTier(tier: string) {
   switch (tier) {
     case "institutional_plus_rmp":
-      return "Institutional + RMP";
+      return "Grades + reviews";
     case "institutional_only":
-      return "Institutional Only";
+      return "Grades (official)";
     case "rmp_only":
-      return "RMP Only";
+      return "Reviews only";
     default:
-      return tier;
+      return tier.replace(/_/g, " ");
   }
 }
 

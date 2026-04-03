@@ -16,6 +16,19 @@ describe("catalog aggregates", () => {
     expect(departments.some((item) => item.department === "Computer Science")).toBe(true);
   });
 
+  it("adds a General Engineering department for first-year engineering offerings", () => {
+    const {
+      getDepartmentAggregate,
+      getDepartmentOfferingsForSchool,
+    } = catalog;
+    const department = getDepartmentAggregate("texas-am", "general-engineering");
+    const offerings = getDepartmentOfferingsForSchool("texas-am", "general-engineering");
+
+    expect(department?.department).toBe("General Engineering");
+    expect(offerings.length).toBeGreaterThan(0);
+    expect(offerings.every((item) => item.courseCode.startsWith("ENGR 1"))).toBe(true);
+  });
+
   it("attaches department deltas to professor profiles", () => {
     const { getProfessorProfile } = catalog;
     const profile = getProfessorProfile("texas-am", "s-lupoli");

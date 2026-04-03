@@ -42,6 +42,8 @@ python -m pip install -r etl/requirements.txt
 - `/schools/[slug]` school hub
 - `/schools/[slug]/departments/[departmentSlug]` department rankings
 - `/schools/[slug]/courses/[courseSlug]` course leaderboard
+- `/schools/[slug]/instructors` full instructor directory (sort, filter, pagination)
+- `/schools/[slug]/my-courses` planner: multi-course list with shared sort and shareable `?courses=` links
 - `/schools/[slug]/professors/[profSlug]` professor profile
 - `/compare` comparison workspace
 - `/methodology` scoring and coverage explanation
@@ -75,6 +77,35 @@ Set `COLLEGE_SCORECARD_API_KEY` in `.env` before using the school importer.
 The app automatically reads `etl/output/college_scorecard_schools.json` for
 nationwide school search and fallback school pages when that file exists.
 Set `RMP_GRAPHQL_ENDPOINT` before using the RMP sync script.
+
+### Texas A&M batch catalog (ingest → app snapshot)
+
+Run in order. Raw artifacts are written under `etl/output/raw/tamu/`; combined records and
+offerings use `etl/output/tamu_records.json` and `etl/output/tamu_offerings.json`. The app
+reads `etl/output/published_catalog.json` when present (often gitignored in fresh clones).
+
+1. **Batch fetch** (live HTTP). Use `--fixture` for offline tests against saved fixtures.
+
+   ```bash
+   python -m etl.scripts.fetch_tamu_batch
+   ```
+
+2. **Aggregate** professor–course rows into catalog-shaped offerings:
+
+   ```bash
+   python -m etl.scripts.aggregate_tamu_records
+   ```
+
+3. **Merge** TAMU offerings into the published snapshot (replaces all `texas-am` seed offerings;
+   exits successfully if `tamu_offerings.json` is missing):
+
+   ```bash
+   npm run catalog:merge
+   ```
+
+4. **Build** or **dev** so Next.js picks up `published_catalog.json`.
+
+College codes for batch runs live in `etl/fixtures/tamu_college_codes.json`.
 
 ```bash
 python -m etl.scripts.import_school_directory --output etl/output/college_scorecard_schools.json

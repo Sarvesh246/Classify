@@ -45,7 +45,7 @@ export function GradeDistributionPanel({
           <p className="eyebrow">Grade distribution</p>
           <p className="mt-2 text-sm text-muted">
             {selected.estimated
-              ? "Current seed uses published term averages to estimate the A/B/C/D/F mix until official section buckets are exported."
+              ? "Bars are approximated from each term’s reported average GPA and A-rate (we do not store full A–F counts in the catalog yet). When those stats show near-all A’s, we do not invent extra letter grades."
               : "Official section-bucket mix from published grade distributions."}
           </p>
         </div>
@@ -76,7 +76,10 @@ export function GradeDistributionPanel({
                 "flex h-full items-center justify-center text-[0.7rem] font-semibold text-deep-ink",
                 gradeColors[bucket.grade],
               )}
-              style={{ width: `${Math.max(bucket.pct, 3)}%` }}
+              style={{
+                width: bucket.pct <= 0 ? 0 : `${Math.max(bucket.pct, 2)}%`,
+                minWidth: bucket.pct > 0 ? 2 : 0,
+              }}
               title={`${bucket.grade}: ${bucket.pct}%`}
             >
               {bucket.grade}

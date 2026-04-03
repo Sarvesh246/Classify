@@ -32,6 +32,8 @@ export interface SearchHit {
   sourceLabels: string[];
   dataCompleteness: DataCompleteness;
   context: SearchHitContext;
+  /** Short labels explaining match quality (search ranking). */
+  rankHints?: string[];
 }
 
 export interface TrendPoint {

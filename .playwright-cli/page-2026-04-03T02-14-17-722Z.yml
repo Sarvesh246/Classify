@@ -1,0 +1,189 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "Classify home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]:
+          - img [ref=e8]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Classify
+            - generic [ref=e15]: Course Intelligence
+      - navigation [ref=e16]:
+        - link "Search" [ref=e17] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e18] [cursor=pointer]:
+          - /url: /compare
+        - link "Methodology" [ref=e19] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e20] [cursor=pointer]:
+          - /url: /search?q=UT
+      - generic [ref=e21]:
+        - link "Search" [ref=e22] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e23]
+          - text: Search
+        - generic [ref=e26]: No login required
+    - generic [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: Compare builder
+          - paragraph [ref=e33]: Pick a school, then search only that campus. The comparison stays front and center.
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - paragraph [ref=e36]: School
+            - generic [ref=e38]:
+              - img [ref=e40]
+              - combobox "Search a school like Texas A&M" [expanded] [ref=e43]: Texas A&M
+              - button "Add" [ref=e44] [cursor=pointer]
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: Professor or course
+            - generic:
+              - generic:
+                - generic:
+                  - img
+                - combobox "Select a school first"
+                - button "Add"
+        - generic [ref=e48]:
+          - img [ref=e50]
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: Active school
+            - paragraph [ref=e57]: Choose a school
+      - generic [ref=e58]:
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e59] [cursor=pointer]:
+          - img [ref=e61]
+          - paragraph [ref=e62]: Add a professor
+          - paragraph [ref=e63]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e64] [cursor=pointer]:
+          - img [ref=e66]
+          - paragraph [ref=e67]: Add a professor
+          - paragraph [ref=e68]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e69] [cursor=pointer]:
+          - img [ref=e71]
+          - paragraph [ref=e72]: Add a professor
+          - paragraph [ref=e73]: Browse the active school catalog to fill the remaining compare slots.
+        - button "Add a professor Browse the active school catalog to fill the remaining compare slots." [ref=e74] [cursor=pointer]:
+          - img [ref=e76]
+          - paragraph [ref=e77]: Add a professor
+          - paragraph [ref=e78]: Browse the active school catalog to fill the remaining compare slots.
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - paragraph [ref=e82]: Catalog
+          - heading "Choose a school to browse the compare catalog" [level=3] [ref=e83]
+        - button "Browse school catalog" [ref=e85] [cursor=pointer]:
+          - text: Browse school catalog
+          - img [ref=e86]
+  - button "Open Next.js Dev Tools" [ref=e93] [cursor=pointer]:
+    - img [ref=e94]
+  - alert [ref=e97]
+  - listbox [ref=e98]:
+    - generic [ref=e101]:
+      - generic [ref=e102]: Schools
+      - generic [ref=e103]:
+        - button "Texas A&M Institutional + RMP College Station, TX Native Texas A&M engineering coverage sourced from official registrar reports. Official registrar grade distribution PDFs Fall 2025 and Fall 2024 468+ searchable professors" [active] [ref=e172] [cursor=pointer]:
+          - img [ref=e174]
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - generic [ref=e181]: Texas A&M
+              - generic [ref=e182]: Institutional + RMP
+            - paragraph [ref=e183]: College Station, TX
+            - paragraph [ref=e184]: Native Texas A&M engineering coverage sourced from official registrar reports.
+            - generic [ref=e185]:
+              - generic [ref=e186]: Official registrar grade distribution PDFs
+              - generic [ref=e187]: Fall 2025 and Fall 2024
+              - generic [ref=e188]: 468+ searchable professors
+        - button "UT Austin Institutional + RMP Austin, TX Launch school with full course intelligence. Official grade dashboard Spring 2026 524+ searchable professors" [ref=e138] [cursor=pointer]:
+          - img [ref=e140]
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]: UT Austin
+              - generic [ref=e148]: Institutional + RMP
+            - paragraph [ref=e149]: Austin, TX
+            - paragraph [ref=e150]: Launch school with full course intelligence.
+            - generic [ref=e151]:
+              - generic [ref=e152]: Official grade dashboard
+              - generic [ref=e153]: Spring 2026
+              - generic [ref=e154]: 524+ searchable professors
+        - button "Georgia Tech Institutional + RMP Atlanta, GA Engineering-heavy school with enough history to show difficulty shifts. Institutional export adapter Spring 2026 401+ searchable professors" [ref=e104] [cursor=pointer]:
+          - img [ref=e106]
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - generic [ref=e113]: Georgia Tech
+              - generic [ref=e114]: Institutional + RMP
+            - paragraph [ref=e115]: Atlanta, GA
+            - paragraph [ref=e116]: Engineering-heavy school with enough history to show difficulty shifts.
+            - generic [ref=e117]:
+              - generic [ref=e118]: Institutional export adapter
+              - generic [ref=e119]: Spring 2026
+              - generic [ref=e120]: 401+ searchable professors
+        - button "UC Berkeley Institutional + RMP Berkeley, CA Data science flagship view with strong trend contrast. Academic analytics export Spring 2026 392+ searchable professors" [ref=e121] [cursor=pointer]:
+          - img [ref=e123]
+          - generic [ref=e128]:
+            - generic [ref=e129]:
+              - generic [ref=e130]: UC Berkeley
+              - generic [ref=e131]: Institutional + RMP
+            - paragraph [ref=e132]: Berkeley, CA
+            - paragraph [ref=e133]: Data science flagship view with strong trend contrast.
+            - generic [ref=e134]:
+              - generic [ref=e135]: Academic analytics export
+              - generic [ref=e136]: Spring 2026
+              - generic [ref=e137]: 392+ searchable professors
+        - button "UW-Madison Institutional + RMP Madison, WI Wide-enrollment economics and stats coverage with trends. Public data extract Spring 2026 448+ searchable professors" [ref=e155] [cursor=pointer]:
+          - img [ref=e157]
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - generic [ref=e164]: UW-Madison
+              - generic [ref=e165]: Institutional + RMP
+            - paragraph [ref=e166]: Madison, WI
+            - paragraph [ref=e167]: Wide-enrollment economics and stats coverage with trends.
+            - generic [ref=e168]:
+              - generic [ref=e169]: Public data extract
+              - generic [ref=e170]: Spring 2026
+              - generic [ref=e171]: 448+ searchable professors
+        - button "Ohio State RMP Only Columbus, OH Fallback-only campus that still supports search and compare. School directory only RMP snapshot RMP fallback enabled" [ref=e189] [cursor=pointer]:
+          - img [ref=e191]
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - generic [ref=e198]: Ohio State
+              - generic [ref=e199]: RMP Only
+            - paragraph [ref=e200]: Columbus, OH
+            - paragraph [ref=e201]: Fallback-only campus that still supports search and compare.
+            - generic [ref=e202]:
+              - generic [ref=e203]: School directory only
+              - generic [ref=e204]: RMP snapshot
+              - generic [ref=e205]: RMP fallback enabled
+        - button "UIUC RMP Only Urbana-Champaign, IL Searchable now with transparent fallback labeling. School directory only RMP snapshot RMP fallback enabled" [ref=e206] [cursor=pointer]:
+          - img [ref=e208]
+          - generic [ref=e213]:
+            - generic [ref=e214]:
+              - generic [ref=e215]: UIUC
+              - generic [ref=e216]: RMP Only
+            - paragraph [ref=e217]: Urbana-Champaign, IL
+            - paragraph [ref=e218]: Searchable now with transparent fallback labeling.
+            - generic [ref=e219]:
+              - generic [ref=e220]: School directory only
+              - generic [ref=e221]: RMP snapshot
+              - generic [ref=e222]: RMP fallback enabled
+        - button "UNC RMP Only Chapel Hill, NC Represents the nationwide fallback footprint. School directory only RMP snapshot RMP fallback enabled" [ref=e223] [cursor=pointer]:
+          - img [ref=e225]
+          - generic [ref=e230]:
+            - generic [ref=e231]:
+              - generic [ref=e232]: UNC
+              - generic [ref=e233]: RMP Only
+            - paragraph [ref=e234]: Chapel Hill, NC
+            - paragraph [ref=e235]: Represents the nationwide fallback footprint.
+            - generic [ref=e236]:
+              - generic [ref=e237]: School directory only
+              - generic [ref=e238]: RMP snapshot
+              - generic [ref=e239]: RMP fallback enabled
+        - button "University of Washington RMP Only Seattle, WA A live directory entry with transparent fallback mode. School directory only RMP snapshot RMP fallback enabled" [ref=e240] [cursor=pointer]:
+          - img [ref=e242]
+          - generic [ref=e247]:
+            - generic [ref=e248]:
+              - generic [ref=e249]: University of Washington
+              - generic [ref=e250]: RMP Only
+            - paragraph [ref=e251]: Seattle, WA
+            - paragraph [ref=e252]: A live directory entry with transparent fallback mode.
+            - generic [ref=e253]:
+              - generic [ref=e254]: School directory only
+              - generic [ref=e255]: RMP snapshot
+              - generic [ref=e256]: RMP fallback enabled

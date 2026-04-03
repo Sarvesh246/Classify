@@ -10,6 +10,7 @@ export default function MethodologyPage() {
     aPct: example.aRate,
     rmpDifficulty: example.rmpDifficulty,
     rmpRating: example.rmpRating,
+    coverageTier: example.coverageTier,
   });
 
   return (
@@ -23,9 +24,10 @@ export default function MethodologyPage() {
           </h1>
           <p className="app-lead mt-4">
             Objective grade outcomes do most of the work. RMP still matters, but
-            only as enrichment. When grade data is missing, Classify renormalizes
-            the weights across the available signals instead of pretending missing
-            data equals bad data.
+            only as enrichment. When a signal is missing, Classify renormalizes the
+            remaining weights so scores stay comparable—except for purely
+            institutional coverage (no RMP), where grade weights are fixed so a
+            strong GPA cannot mathematically max out the full 0–100 scale alone.
           </p>
         </section>
 

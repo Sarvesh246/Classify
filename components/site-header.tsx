@@ -50,16 +50,17 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
             <Search className="h-4 w-4" />
             Search
           </Link>
-          <span
+          <Link
+            href="/login"
             className={cn(
-              "inline-flex items-center rounded-full px-4 py-2 text-sm font-medium",
+              "inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition",
               isHome
-                ? "bg-ivory text-deep-ink"
-                : "bg-deep-ink text-ivory",
+                ? "bg-ivory !text-deep-ink hover:bg-white"
+                : "border border-border bg-white/80 !text-ink hover:bg-white",
             )}
           >
-            No login required
-          </span>
+            Log in
+          </Link>
         </div>
       </div>
     </header>

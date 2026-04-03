@@ -1,3 +1,7 @@
+/**
+ * Catalog is loaded from published JSON (+ seed fallback). For very large row counts,
+ * consider SQLite/Postgres with indexes and optional search_documents — see product roadmap.
+ */
 import "server-only";
 
 import fs from "node:fs";
@@ -10,7 +14,6 @@ import {
 import type {
   CourseGroup,
   DepartmentAggregate,
-  GradeDistributionBucket,
   GradeDistributionSeries,
   ProfessorCourseSummary,
   ProfessorDelta,
@@ -19,7 +22,11 @@ import type {
   School,
   TrendPoint,
 } from "@/lib/types";
+import { estimateGradeBuckets } from "@/lib/grade-distribution-estimate";
+import { formatProfessorDisplayName } from "@/lib/professor-display";
+import { serverLog } from "@/lib/server-logger";
 import { slugify } from "@/lib/utils";
+import { enrichSummary } from "@/lib/scoring";
 
 const PUBLISHED_CATALOG_PATH = path.join(
   process.cwd(),
@@ -28,9 +35,10 @@ const PUBLISHED_CATALOG_PATH = path.join(
   "published_catalog.json",
 );
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max);
-}
+const GENERAL_ENGINEERING_DEPARTMENT = "General Engineering";
+const GENERAL_ENGINEERING_DEPARTMENT_SLUG = slugify(
+  GENERAL_ENGINEERING_DEPARTMENT,
+);
 
 function round(value: number, digits = 1) {
   const factor = 10 ** digits;
@@ -68,49 +76,6 @@ function pickCoverageTier(offerings: ProfessorCourseSummary[]): School["coverage
   );
 }
 
-function estimateBuckets(
-  sampleSize: number,
-  avgGpa: number | null,
-  aRate: number | null,
-): GradeDistributionBucket[] {
-  const safeSample = Math.max(sampleSize, 12);
-  const aPct = clamp(aRate ?? 0, 8, 96);
-  const remaining = clamp(100 - aPct, 4, 92);
-  const rigor = avgGpa == null ? 0.65 : clamp((4 - avgGpa) / 2.8, 0.15, 1);
-
-  const rawB = remaining * clamp(0.54 - rigor * 0.16, 0.18, 0.62);
-  const rawC = remaining * clamp(0.28 + rigor * 0.08, 0.16, 0.42);
-  const rawD = remaining * clamp(0.11 + rigor * 0.04, 0.06, 0.2);
-  const rawF = Math.max(remaining - rawB - rawC - rawD, remaining * 0.04);
-  const rawTotal = aPct + rawB + rawC + rawD + rawF;
-
-  const normalized = {
-    A: (aPct / rawTotal) * 100,
-    B: (rawB / rawTotal) * 100,
-    C: (rawC / rawTotal) * 100,
-    D: (rawD / rawTotal) * 100,
-    F: (rawF / rawTotal) * 100,
-  };
-
-  const grades = ["A", "B", "C", "D", "F"] as const;
-  let assigned = 0;
-
-  return grades.map((grade, index) => {
-    const pct = round(normalized[grade], 1);
-    const count =
-      index === grades.length - 1
-        ? Math.max(safeSample - assigned, 0)
-        : Math.round((pct / 100) * safeSample);
-    assigned += count;
-
-    return {
-      grade,
-      count,
-      pct,
-    };
-  });
-}
-
 function deriveGradeDistributionSeries(
   offerings: ProfessorCourseSummary[],
 ): GradeDistributionSeries[] {
@@ -133,9 +98,79 @@ function deriveGradeDistributionSeries(
         avgGpa: point.avgGpa,
         sourceLabel: offering.sourceLabels[0] ?? "Published aggregate",
         estimated: true,
-        buckets: estimateBuckets(termWeight, point.avgGpa, point.aPct),
+        buckets: estimateGradeBuckets(termWeight, point.avgGpa, point.aPct),
       }));
   });
+}
+
+function isGeneralEngineeringOffering(offering: ProfessorCourseSummary) {
+  const courseCode = offering.courseCode.toUpperCase();
+  const courseSlug = offering.courseSlug.toLowerCase();
+  const courseName = offering.courseName.toLowerCase();
+  const isEngineeringDepartment = /engineering/i.test(offering.department);
+  const isFirstYearEngineeringCode =
+    /^ENGR\s*1\d{2}\b/i.test(courseCode) || courseSlug.startsWith("engr-1");
+  const isGatewayEngineeringCourse =
+    /engineering lab i|engineering lab 1|introduction to engineering|intro to engineering|engineering foundations|first-year engineering|general engineering/i.test(
+      courseName,
+    );
+
+  return isEngineeringDepartment && (isFirstYearEngineeringCode || isGatewayEngineeringCourse);
+}
+
+function buildDepartmentAggregate(
+  schools: School[],
+  schoolSlug: string,
+  department: string,
+  items: ProfessorCourseSummary[],
+): DepartmentAggregate {
+  const school = schools.find((entry) => entry.slug === schoolSlug);
+  const gpaValues = items
+    .filter((item) => item.expectedGpa != null)
+    .map((item) => item.expectedGpa as number);
+  const gpaWeights = items
+    .filter((item) => item.expectedGpa != null)
+    .map((item) => Math.max(item.sampleSize, 1));
+  const aValues = items
+    .filter((item) => item.aRate != null)
+    .map((item) => item.aRate as number);
+  const aWeights = items
+    .filter((item) => item.aRate != null)
+    .map((item) => Math.max(item.sampleSize, 1));
+  const scoreValues = items
+    .filter((item) => item.classifyScore != null)
+    .map((item) => item.classifyScore as number);
+  const scoreWeights = items
+    .filter((item) => item.classifyScore != null)
+    .map((item) => Math.max(item.sampleSize, 1));
+  const ranked = [...items].sort(
+    (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
+  );
+
+  return {
+    schoolSlug,
+    schoolName: school?.name ?? schoolSlug,
+    department,
+    departmentSlug: slugify(department),
+    professorCount: new Set(items.map((item) => item.professorSlug)).size,
+    courseCount: new Set(items.map((item) => item.courseSlug)).size,
+    coverageTier: pickCoverageTier(items),
+    avgClassifyScore:
+      scoreValues.length && scoreWeights.length
+        ? round(weightedAverage(scoreValues, scoreWeights) ?? 0, 1)
+        : null,
+    avgExpectedGpa:
+      gpaValues.length && gpaWeights.length
+        ? round(weightedAverage(gpaValues, gpaWeights) ?? 0, 2)
+        : null,
+    avgARate:
+      aValues.length && aWeights.length
+        ? round(weightedAverage(aValues, aWeights) ?? 0, 1)
+        : null,
+    sampleSize: items.reduce((sum, item) => sum + item.sampleSize, 0),
+    latestFreshness: ranked[0]?.freshness ?? school?.sourceStatus.freshness ?? "Unknown",
+    topProfessorName: ranked[0]?.professorName ?? "Unavailable",
+  };
 }
 
 function deriveDepartmentAggregates(
@@ -149,56 +184,22 @@ function deriveDepartmentAggregates(
     groups.set(key, [...(groups.get(key) ?? []), offering]);
   }
 
+  for (const school of schools) {
+    const generalEngineeringOfferings = offerings.filter(
+      (item) => item.schoolSlug === school.slug && isGeneralEngineeringOffering(item),
+    );
+    if (generalEngineeringOfferings.length > 0) {
+      groups.set(
+        `${school.slug}:${GENERAL_ENGINEERING_DEPARTMENT}`,
+        generalEngineeringOfferings,
+      );
+    }
+  }
+
   return [...groups.entries()]
     .map(([key, items]) => {
       const [schoolSlug, department] = key.split(":");
-      const school = schools.find((entry) => entry.slug === schoolSlug);
-      const gpaValues = items
-        .filter((item) => item.expectedGpa != null)
-        .map((item) => item.expectedGpa as number);
-      const gpaWeights = items
-        .filter((item) => item.expectedGpa != null)
-        .map((item) => Math.max(item.sampleSize, 1));
-      const aValues = items
-        .filter((item) => item.aRate != null)
-        .map((item) => item.aRate as number);
-      const aWeights = items
-        .filter((item) => item.aRate != null)
-        .map((item) => Math.max(item.sampleSize, 1));
-      const scoreValues = items
-        .filter((item) => item.classifyScore != null)
-        .map((item) => item.classifyScore as number);
-      const scoreWeights = items
-        .filter((item) => item.classifyScore != null)
-        .map((item) => Math.max(item.sampleSize, 1));
-      const ranked = [...items].sort(
-        (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
-      );
-
-      return {
-        schoolSlug,
-        schoolName: school?.name ?? schoolSlug,
-        department,
-        departmentSlug: slugify(department),
-        professorCount: new Set(items.map((item) => item.professorSlug)).size,
-        courseCount: new Set(items.map((item) => item.courseSlug)).size,
-        coverageTier: pickCoverageTier(items),
-        avgClassifyScore:
-          scoreValues.length && scoreWeights.length
-            ? round(weightedAverage(scoreValues, scoreWeights) ?? 0, 1)
-            : null,
-        avgExpectedGpa:
-          gpaValues.length && gpaWeights.length
-            ? round(weightedAverage(gpaValues, gpaWeights) ?? 0, 2)
-            : null,
-        avgARate:
-          aValues.length && aWeights.length
-            ? round(weightedAverage(aValues, aWeights) ?? 0, 1)
-            : null,
-        sampleSize: items.reduce((sum, item) => sum + item.sampleSize, 0),
-        latestFreshness: ranked[0]?.freshness ?? school?.sourceStatus.freshness ?? "Unknown",
-        topProfessorName: ranked[0]?.professorName ?? "Unavailable",
-      };
+      return buildDepartmentAggregate(schools, schoolSlug, department, items);
     })
     .sort((left, right) => {
       const scoreDelta = (right.avgClassifyScore ?? 0) - (left.avgClassifyScore ?? 0);
@@ -260,16 +261,46 @@ function readPublishedSnapshot(): PublishedCatalogSnapshot | null {
 
   try {
     return JSON.parse(fs.readFileSync(PUBLISHED_CATALOG_PATH, "utf8")) as PublishedCatalogSnapshot;
-  } catch {
+  } catch (err) {
+    serverLog.warn("published_catalog_read_failed", {
+      path: PUBLISHED_CATALOG_PATH,
+      error: String(err),
+    });
     return null;
   }
 }
 
+function dedupeOfferingsByProfessorCourse(
+  items: ProfessorCourseSummary[],
+): ProfessorCourseSummary[] {
+  const map = new Map<string, ProfessorCourseSummary>();
+  for (const o of items) {
+    const key = `${o.schoolSlug}:${o.professorSlug}:${o.courseSlug}`;
+    const prev = map.get(key);
+    if (!prev || o.sampleSize > prev.sampleSize) {
+      map.set(key, o);
+    }
+  }
+  return [...map.values()];
+}
+
+function finalizeOfferingsPipeline(
+  schools: School[],
+  mergedOfferings: ProfessorCourseSummary[],
+): {
+  offerings: ProfessorCourseSummary[];
+  departmentAggregates: DepartmentAggregate[];
+} {
+  const enriched = enrichAllOfferings(mergedOfferings);
+  const deduped = dedupeOfferingsByProfessorCourse(enriched);
+  const departmentAggregates = deriveDepartmentAggregates(schools, deduped);
+  const offerings = attachDepartmentDeltas(deduped, departmentAggregates);
+  return { offerings, departmentAggregates };
+}
+
 function buildFallbackSnapshot(): PublishedCatalogSnapshot {
   const schools = getSeedSchools();
-  const baseOfferings = getSeedOfferings();
-  const departmentAggregates = deriveDepartmentAggregates(schools, baseOfferings);
-  const offerings = attachDepartmentDeltas(baseOfferings, departmentAggregates);
+  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(schools, getSeedOfferings());
 
   return {
     updatedAt: new Date().toISOString(),
@@ -281,25 +312,78 @@ function buildFallbackSnapshot(): PublishedCatalogSnapshot {
   };
 }
 
-function getSnapshot(): PublishedCatalogSnapshot {
-  const snapshot = readPublishedSnapshot();
-  if (!snapshot) {
-    return buildFallbackSnapshot();
-  }
+/** Seed snapshot for merge scripts and tests (no published_catalog.json). */
+export function buildSeedCatalogSnapshot(): PublishedCatalogSnapshot {
+  return buildFallbackSnapshot();
+}
 
-  const departmentAggregates =
-    snapshot.departmentAggregates ??
-    deriveDepartmentAggregates(snapshot.schools, snapshot.offerings);
-  const offerings = attachDepartmentDeltas(snapshot.offerings, departmentAggregates);
+function stripForEnrichment(
+  item: ProfessorCourseSummary,
+): Parameters<typeof enrichSummary>[0] {
+  const { classifyScore: _cs, confidence: _cf, trendDelta: _td, trend, ...rest } = item;
+  void _cs;
+  void _cf;
+  void _td;
 
   return {
-    ...snapshot,
-    offerings,
-    departmentAggregates,
-    gradeDistributionSeries:
-      snapshot.gradeDistributionSeries ?? deriveGradeDistributionSeries(offerings),
-    sectionMeetings: snapshot.sectionMeetings ?? [],
+    ...rest,
+    trend: trend.map(({ classifyScore: _c, ...t }) => {
+      void _c;
+      return t;
+    }),
   };
+}
+
+function enrichAllOfferings(offerings: ProfessorCourseSummary[]): ProfessorCourseSummary[] {
+  return offerings.map((item) => {
+    const enriched = enrichSummary(stripForEnrichment(item));
+    return {
+      ...enriched,
+      professorName: formatProfessorDisplayName(enriched.professorName),
+    };
+  });
+}
+
+function mergeByKey<T>(
+  base: T[],
+  incoming: T[] | undefined,
+  getKey: (item: T) => string,
+) {
+  const merged = new Map(base.map((item) => [getKey(item), item]));
+  for (const item of incoming ?? []) {
+    merged.set(getKey(item), item);
+  }
+  return [...merged.values()];
+}
+
+function getSnapshot(): PublishedCatalogSnapshot {
+  try {
+    const fallback = buildFallbackSnapshot();
+    const snapshot = readPublishedSnapshot();
+    if (!snapshot) {
+      return fallback;
+    }
+
+    const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug);
+    const mergedOfferings = mergeByKey(
+      fallback.offerings,
+      snapshot.offerings,
+      (item) => item.id,
+    );
+    const { offerings, departmentAggregates } = finalizeOfferingsPipeline(schools, mergedOfferings);
+
+    return {
+      updatedAt: snapshot.updatedAt ?? fallback.updatedAt,
+      schools,
+      offerings,
+      departmentAggregates,
+      gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+      sectionMeetings: snapshot.sectionMeetings ?? fallback.sectionMeetings,
+    };
+  } catch (err) {
+    serverLog.error("catalog_snapshot_failed", { error: String(err) });
+    return buildFallbackSnapshot();
+  }
 }
 
 export function getCatalogSchools() {
@@ -418,6 +502,19 @@ export function getDepartmentAggregate(
   return getDepartmentAggregatesForSchool(schoolSlug).find(
     (item) => item.departmentSlug === departmentSlug,
   );
+}
+
+export function getDepartmentOfferingsForSchool(
+  schoolSlug: string,
+  departmentSlug: string,
+) {
+  const offerings = getCatalogOfferingsForSchool(schoolSlug);
+
+  if (departmentSlug === GENERAL_ENGINEERING_DEPARTMENT_SLUG) {
+    return offerings.filter((item) => isGeneralEngineeringOffering(item));
+  }
+
+  return offerings.filter((item) => slugify(item.department) === departmentSlug);
 }
 
 export function getGradeDistributionSeriesForOffering(offeringId: string) {
@@ -568,15 +665,28 @@ export function getSchoolTrendSpotlight(slug: string) {
   if (!school) return undefined;
 
   const schoolOfferings = getCatalogOfferingsForSchool(slug);
+  const departments = getDepartmentAggregatesForSchool(slug);
+  const generalEngineering = departments.find(
+    (item) => item.departmentSlug === GENERAL_ENGINEERING_DEPARTMENT_SLUG,
+  );
+  const spotlightDepartments = generalEngineering
+    ? [
+        generalEngineering,
+        ...departments.filter(
+          (item) => item.departmentSlug !== GENERAL_ENGINEERING_DEPARTMENT_SLUG,
+        ),
+      ].slice(0, 6)
+    : departments.slice(0, 6);
+
   return {
     school,
     offerings: schoolOfferings,
-    courses: getCourseGroupsForSchool(slug),
+    courses: getCourseGroupsForSchool(slug).slice(0, 6),
     trending: [...schoolOfferings]
       .filter((offering) => offering.trendDelta != null)
       .sort((left, right) => (right.trendDelta ?? 0) - (left.trendDelta ?? 0))
       .slice(0, 3),
-    departments: getDepartmentAggregatesForSchool(slug).slice(0, 6),
+    departments: spotlightDepartments,
   };
 }
 

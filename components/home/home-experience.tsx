@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   motion,
   useMotionValueEvent,
@@ -27,12 +27,8 @@ const HomeScene = dynamic(
 );
 
 export function HomeExperience() {
-  const rootRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: rootRef,
-    offset: ["start start", "end end"],
-  });
+  const { scrollYProgress } = useScroll();
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState("ut-austin");
@@ -72,7 +68,7 @@ export function HomeExperience() {
   );
 
   return (
-    <div ref={rootRef} className="relative overflow-x-hidden bg-deep-ink text-ivory">
+    <div className="relative overflow-x-hidden bg-deep-ink text-ivory">
       <div className="fixed inset-0">
         {useCanvas ? (
           <HomeScene progress={progress} />

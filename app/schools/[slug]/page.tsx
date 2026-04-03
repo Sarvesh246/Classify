@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ArrowRight, Gem, Layers3 } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogSchools } from "@/lib/catalog";
+import { getCatalogSchoolBySlug, getCatalogSchools } from "@/lib/catalog";
 import { getSchoolHub } from "@/lib/server-directory";
 import {
   formatGpa,
@@ -33,6 +33,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
   const topProfessors = [...offerings]
     .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0))
     .slice(0, 4);
+  const offeringCount = offerings.length;
 
   return (
     <main className="min-h-screen bg-background">
@@ -61,13 +62,38 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             <InfoCard label="Fallback" value={school.sourceStatus.fallback} />
             <InfoCard label="Freshness" value={school.sourceStatus.freshness} />
           </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {getCatalogSchoolBySlug(slug) && offeringCount > 0 ? (
+              <>
+                <Link
+                  href={`/schools/${slug}/instructors`}
+                  className="inline-flex rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
+                >
+                  Browse all {offeringCount} instructor–course rows
+                </Link>
+                <Link
+                  href={`/schools/${slug}/my-courses`}
+                  className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
+                >
+                  My courses planner
+                </Link>
+              </>
+            ) : null}
+            <Link
+              href={`/search?school=${encodeURIComponent(slug)}`}
+              className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
+            >
+              Search within {school.shortName}
+            </Link>
+          </div>
         </section>
 
         <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
           <p className="eyebrow">Top searched courses</p>
           {courses.length ? (
             <div className="mt-5 space-y-3">
-              {courses.map((course) => (
+              {courses.slice(0, 6).map((course) => (
                 <Link
                   key={course.courseSlug}
                   href={`/schools/${slug}/courses/${course.courseSlug}`}
@@ -98,9 +124,20 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             </div>
           ) : (
             <EmptyCard>
-              This school is currently in fallback mode. The school hub stays live
-              for search and profile discovery, and course-level grade intelligence
-              appears here once the institutional adapter is added.
+              <p>
+                No course catalog rows for this school yet—only directory coverage. Course
+                lists and grade summaries appear when an institutional adapter is connected.
+              </p>
+              <p className="mt-4">
+                <Link
+                  href={`/search?school=${encodeURIComponent(slug)}`}
+                  className="font-semibold text-ink underline underline-offset-2"
+                >
+                  Search within {school.shortName}
+                </Link>{" "}
+                for anything already indexed, or try another school with grade data from the
+                homepage.
+              </p>
             </EmptyCard>
           )}
         </section>
@@ -138,8 +175,23 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
               </div>
             ) : (
               <EmptyCard>
-                No professor-course aggregates are published for this school yet, but
-                the route is live and ready for imported RMP or institutional data.
+                <p>
+                  No professor–course rows in the published catalog for this school yet. The
+                  hub stays useful for navigation; aggregates fill in when data is imported.
+                </p>
+                <p className="mt-4">
+                  <Link
+                    href={`/search?school=${encodeURIComponent(slug)}&type=professor`}
+                    className="font-semibold text-ink underline underline-offset-2"
+                  >
+                    Browse scoped search (professors)
+                  </Link>{" "}
+                  or open{" "}
+                  <Link href="/methodology" className="font-semibold text-ink underline underline-offset-2">
+                    methodology
+                  </Link>{" "}
+                  to see how coverage works.
+                </p>
               </EmptyCard>
             )}
           </div>
@@ -180,7 +232,18 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                 ))}
               </div>
             ) : (
-              <EmptyCard>No department aggregates are published for this school yet.</EmptyCard>
+              <EmptyCard>
+                <p>No department aggregates are published for this school yet.</p>
+                <p className="mt-4">
+                  <Link
+                    href={`/search?school=${encodeURIComponent(slug)}`}
+                    className="font-semibold text-ink underline underline-offset-2"
+                  >
+                    Search within this school
+                  </Link>{" "}
+                  or return when course-level data is available.
+                </p>
+              </EmptyCard>
             )}
           </div>
         </section>
