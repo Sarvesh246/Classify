@@ -1,0 +1,13 @@
+{
+  "rows": [
+    {
+      "course_code": "M 408D",
+      "course_name": "Calculus I",
+      "professor_name": "Priya Venkataraman",
+      "term": "Spring 2026",
+      "avg_gpa": 3.71,
+      "a_pct": 76.0,
+      "enrollment": 208
+    }
+  ]
+}

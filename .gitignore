@@ -29,9 +29,20 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.codex-dev.log
+debug-*.log
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ETL outputs
+/etl/output/
 
 # vercel
 .vercel

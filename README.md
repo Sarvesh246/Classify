@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Classify
 
-## Getting Started
+Classify is a Next.js prototype for professor and course intelligence. It combines a
+distinct 3D marketing homepage with an app shell for search, school hubs, department
+rankings, course leaderboards, professor profiles, comparison mode, and methodology.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router + TypeScript
+- Tailwind CSS v4
+- Framer Motion + React Three Fiber
+- Published-catalog loader with seeded fallback data for schools, course outcomes, and RMP fallback
+- Python ETL skeleton with adapter fixtures and parser tests
+
+## Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run test
+python -m unittest discover etl/tests -v
+```
 
-## Learn More
+Install the ETL dependencies separately when you want the live adapters:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+python -m pip install -r etl/requirements.txt
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/` immersive Classify homepage
+- `/search` universal search with autosuggest
+- `/schools/[slug]` school hub
+- `/schools/[slug]/departments/[departmentSlug]` department rankings
+- `/schools/[slug]/courses/[courseSlug]` course leaderboard
+- `/schools/[slug]/professors/[profSlug]` professor profile
+- `/compare` comparison workspace
+- `/methodology` scoring and coverage explanation
 
-## Deploy on Vercel
+## Data-platform scaffolding
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [`db/schema.sql`](./db/schema.sql): normalized PostgreSQL schema
+- [`etl/classly_etl`](./etl/classly_etl): adapter contract, normalization models, scoring, and matcher utilities
+- [`etl/fixtures`](./etl/fixtures): sample institutional source payloads
+- [`etl/tests`](./etl/tests): adapter and scoring verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app now reads `etl/output/published_catalog.json` when it exists and falls back to
+the in-repo seeded catalog otherwise. That published snapshot is intended to hold:
+
+- schools
+- professor-course summaries
+- department aggregates
+- grade distribution series
+- optional section meetings
+
+## Live data commands
+
+The first live path is now implemented for:
+
+- U.S. College Scorecard school directory import
+- UT Austin official grade dashboard CSV export
+- Texas A&M official registrar grade-distribution PDFs
+- RMP GraphQL sync scaffolding with raw snapshot + normalized output
+
+Set `COLLEGE_SCORECARD_API_KEY` in `.env` before using the school importer.
+The app automatically reads `etl/output/college_scorecard_schools.json` for
+nationwide school search and fallback school pages when that file exists.
+Set `RMP_GRAPHQL_ENDPOINT` before using the RMP sync script.
+
+```bash
+python -m etl.scripts.import_school_directory --output etl/output/college_scorecard_schools.json
+python -m etl.scripts.fetch_native_grade_data --school ut-austin --output etl/output/ut_austin_sections.json
+python -m etl.scripts.fetch_native_grade_data --school texas-am --year 2025 --term C --college EN --output etl/output/tamu_engineering_fall_2025.json
+python -m etl.scripts.sync_rmp --school-slug texas-am --school-legacy-id 19
+```

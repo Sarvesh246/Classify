@@ -1,0 +1,13 @@
+{
+  "sections": [
+    {
+      "course_code": "CS 1331",
+      "course_name": "Object-Oriented Programming",
+      "professor_name": "Jordan Banks",
+      "term": "Spring 2026",
+      "avg_gpa": 3.58,
+      "a_pct": 63.0,
+      "sample_size": 202
+    }
+  ]
+}
