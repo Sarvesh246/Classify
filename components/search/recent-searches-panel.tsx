@@ -34,7 +34,7 @@ export function RecentSearchesPanel({
         className={cn(
           "rounded-[24px] px-4 py-5 text-sm",
           tone === "dark"
-            ? "border border-dashed border-white/12 bg-white/7 text-white/70"
+            ? "border border-dashed border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.64),rgba(8,25,44,0.48))] text-white/74"
             : "border border-dashed border-border/80 bg-white/56 text-muted",
           className,
         )}
@@ -50,7 +50,7 @@ export function RecentSearchesPanel({
       className={cn(
         "rounded-[28px] p-4",
         tone === "dark"
-          ? "border border-white/10 bg-white/7 shadow-[0_20px_40px_rgba(7,17,31,0.12)]"
+          ? "border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.5))] shadow-[0_20px_44px_rgba(4,12,24,0.24)]"
           : "border border-border/75 bg-white/70 shadow-[0_14px_36px_rgba(7,17,31,0.06)]",
         className,
       )}
@@ -73,7 +73,7 @@ export function RecentSearchesPanel({
           className={cn(
             "inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-xs font-medium",
             tone === "dark"
-              ? "border border-white/12 bg-white/8 text-white/70"
+              ? "border border-white/12 bg-white/10 text-white/72"
               : "border border-border/80 bg-background text-muted",
           )}
         >
@@ -97,7 +97,7 @@ export function RecentSearchesPanel({
                 className={cn(
                   "flex items-center gap-3 rounded-[22px] px-3 py-3 transition",
                   tone === "dark"
-                    ? "border border-white/10 bg-white/8 hover:bg-white/12"
+                    ? "border border-white/12 bg-white/10 hover:bg-white/14"
                     : "border border-border/65 bg-background/80 hover:bg-white",
                 )}
               >
@@ -126,7 +126,7 @@ export function RecentSearchesPanel({
                   className={cn(
                     "rounded-full px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em]",
                     tone === "dark"
-                      ? "border border-white/12 bg-white/10 text-white/68"
+                      ? "border border-white/12 bg-white/12 text-white/70"
                       : "border border-border/70 bg-white text-muted",
                   )}
                 >

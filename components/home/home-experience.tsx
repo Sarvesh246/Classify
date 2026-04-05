@@ -104,13 +104,8 @@ export function HomeExperience({
       </div>
 
       <div className="relative z-10">
-        <section className="section-shell flex min-h-[calc(100svh-4.5rem)] flex-col justify-center py-14 sm:py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mx-auto w-full max-w-5xl"
-          >
+        <section className="section-shell flex flex-col justify-start py-5 sm:py-8 md:min-h-[calc(100svh-4.5rem)] md:justify-center md:py-14">
+          <div className="mx-auto w-full max-w-5xl">
             <MobileHomeLaunchpad
               featured={featured}
               schools={spotlights.map((item) => item.school)}
@@ -136,7 +131,7 @@ export function HomeExperience({
             </div>
 
             <div className="mt-4 grid gap-3 md:hidden">
-              <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
+              <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.72),rgba(8,25,44,0.56))] p-4 text-white shadow-[0_20px_44px_rgba(4,12,24,0.24)] backdrop-blur-xl">
                 <p className="eyebrow text-white/72">Why it feels different</p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <MobileProof value={coverage.trackedSchools} label="schools" />
@@ -145,7 +140,7 @@ export function HomeExperience({
                 </div>
               </div>
               {spotlight ? (
-                <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
+                <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.72),rgba(8,25,44,0.56))] p-4 text-white shadow-[0_20px_44px_rgba(4,12,24,0.24)] backdrop-blur-xl">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="eyebrow text-white/72">Active school spotlight</p>
@@ -175,7 +170,7 @@ export function HomeExperience({
                 </div>
               ) : null}
             </div>
-          </motion.div>
+          </div>
         </section>
 
         <section className="section-shell hidden py-12 sm:py-28 md:block">

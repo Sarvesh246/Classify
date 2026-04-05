@@ -19,7 +19,7 @@ export function MobileHomeLaunchpad({
 }) {
   return (
     <div className="space-y-4 md:hidden">
-      <div className="rounded-[30px] border border-white/10 bg-white/7 p-4 text-white shadow-[0_20px_40px_rgba(7,17,31,0.12)] backdrop-blur-xl">
+      <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-4 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
         <p className="eyebrow text-white/72">Launchpad</p>
         <h1 className="display-title mt-2 text-[2.3rem] font-semibold leading-[0.94] tracking-[-0.08em] text-white">
           Find the professor who actually gives A&apos;s.
@@ -45,7 +45,7 @@ export function MobileHomeLaunchpad({
       />
 
       <div className="grid gap-3">
-        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
+        <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.52))] p-4 text-white shadow-[0_18px_42px_rgba(4,12,24,0.24)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow text-white/72">Quick starts</p>
@@ -58,7 +58,7 @@ export function MobileHomeLaunchpad({
               <Link
                 key={school.slug}
                 href={`/schools/${school.slug}`}
-                className="inline-flex min-h-11 items-center justify-center rounded-[20px] border border-white/12 bg-white/8 px-3 py-2 text-center text-sm font-medium !text-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-[20px] border border-white/12 bg-white/10 px-3 py-2 text-center text-sm font-medium !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
               >
                 {school.shortName}
               </Link>
@@ -66,7 +66,7 @@ export function MobileHomeLaunchpad({
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
+        <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.52))] p-4 text-white shadow-[0_18px_42px_rgba(4,12,24,0.24)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow text-white/72">Return-worthy picks</p>
@@ -87,7 +87,7 @@ export function MobileHomeLaunchpad({
               >
                 <Link
                   href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                  className="flex items-center gap-3 rounded-[24px] border border-white/10 bg-white/8 px-3 py-3 !text-white"
+                  className="flex items-center gap-3 rounded-[24px] border border-white/12 bg-white/10 px-3 py-3 !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">

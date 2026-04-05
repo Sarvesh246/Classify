@@ -96,13 +96,13 @@ export function SearchScopeChips({
   );
 
   return (
-    <div className="mt-4 flex gap-2 overflow-x-auto pb-1 md:flex-wrap">
+    <div className="mt-4 grid grid-cols-2 gap-2 md:flex md:flex-wrap">
       {chips.map((chip) => (
         <Link
           key={chip.key}
           href={chip.href}
           className={cn(
-            "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition",
+            "inline-flex min-h-11 min-w-0 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-medium transition md:min-h-10 md:w-auto",
             chip.active
               ? "border-deep-ink bg-deep-ink text-ivory shadow-[0_8px_20px_rgba(8,25,44,0.18)]"
               : "border-border bg-white/72 text-ink hover:bg-white",

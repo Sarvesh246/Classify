@@ -256,6 +256,19 @@ export function SearchCombobox({
     ];
   }, [results, searchType]);
 
+  const actionLabel =
+    isPending || isLoading
+      ? isMobileSheet
+        ? "Wait"
+        : "Working"
+      : fetchError
+        ? "Retry"
+        : onSelect
+          ? "Add"
+          : isMobileSheet
+            ? "Go"
+            : "Explore";
+
   function handleSelect(item: SearchHit) {
     setOpen(false);
     pushRecentSearch(item);
@@ -317,13 +330,13 @@ export function SearchCombobox({
     <div className={cn("relative w-full", className)}>
       <form
         ref={setPositionReferenceRef}
-        className="soft-panel flex items-center gap-3 rounded-[26px] p-2"
+        className="soft-panel flex items-center gap-2 rounded-[26px] p-1.5 sm:gap-3 sm:p-2"
         onSubmit={(event) => {
           event.preventDefault();
           handleSubmit();
         }}
       >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-deep-ink text-ivory">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-deep-ink text-ivory sm:h-12 sm:w-12 sm:rounded-[18px]">
           {showListLoading ? (
             <ClassifyLoadingMark
               size="sm"
@@ -354,23 +367,17 @@ export function SearchCombobox({
           aria-busy={isLoading}
           aria-invalid={fetchError}
           className={cn(
-            "h-12 flex-1 bg-transparent pr-2 text-base text-ink outline-none placeholder:text-muted/75 sm:text-lg",
+            "h-11 min-w-0 flex-1 bg-transparent pr-1 text-[0.95rem] text-ink outline-none placeholder:text-muted/75 sm:h-12 sm:pr-2 sm:text-lg",
             inputClassName,
           )}
           {...getReferenceProps()}
         />
         <button
           type="submit"
-          className="inline-flex min-h-11 min-w-[6.5rem] shrink-0 items-center justify-center rounded-full bg-deep-ink px-4 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237] sm:min-w-[7.25rem] sm:px-5"
+          className="inline-flex min-h-11 w-[4.5rem] shrink-0 items-center justify-center rounded-full bg-deep-ink px-3 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237] sm:w-auto sm:min-w-[7.25rem] sm:px-5"
         >
           <span className="inline-flex items-center justify-center">
-            {isPending || isLoading
-              ? "Working"
-              : fetchError
-                ? "Retry"
-                : onSelect
-                  ? "Add"
-                  : "Explore"}
+            {actionLabel}
           </span>
         </button>
       </form>
