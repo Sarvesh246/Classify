@@ -181,7 +181,7 @@ def aggregate_tamu_offerings(
                 "coverageTier": coverage_tier,
                 "latestTerm": latest.term,
                 "termCount": len(term_rows),
-                "matchConfidence": 88,
+                "matchConfidence": 100,
                 "tags": [],
                 "summary": f"Aggregated from TAMU registrar grade reports for {course_code} with {len(term_rows)} term(s) on record.",
                 "professorTitle": "Instructor",

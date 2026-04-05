@@ -19,6 +19,16 @@
       "school.school_url": "www.utexas.edu",
       "school.ownership": 1,
       "latest.student.size": 52213
+    },
+    {
+      "id": 170976,
+      "school.name": "University of Michigan-Ann Arbor",
+      "school.alias": "Michigan",
+      "school.city": "Ann Arbor",
+      "school.state": "MI",
+      "school.school_url": "umich.edu",
+      "school.ownership": 1,
+      "latest.student.size": 32000
     }
   ]
 }

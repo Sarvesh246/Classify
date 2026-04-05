@@ -13,12 +13,8 @@ import { ArrowRight, LineChart, Search, SlidersHorizontal } from "lucide-react";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
-import {
-  getCoverageStats,
-  getFeaturedOfferings,
-  getSchoolSpotlight,
-  getSchools,
-} from "@/lib/data";
+import { useAppRuntime } from "@/hooks/use-app-runtime";
+import type { CourseGroup, ProfessorCourseSummary, School } from "@/lib/types";
 import { formatGpa, formatPercent, formatScore, scoreToLabel } from "@/lib/utils";
 
 const HomeScene = dynamic(
@@ -26,12 +22,33 @@ const HomeScene = dynamic(
   { ssr: false },
 );
 
-export function HomeExperience() {
+type HomeExperienceProps = {
+  coverage: {
+    trackedSchools: number;
+    institutionalSchools: number;
+    plannerReadySchools: number;
+    trackedCourses: number;
+    trackedProfessors: number;
+  };
+  featured: ProfessorCourseSummary[];
+  spotlights: Array<{
+    school: School;
+    courses: CourseGroup[];
+    trending: ProfessorCourseSummary[];
+  }>;
+};
+
+export function HomeExperience({
+  coverage,
+  featured,
+  spotlights,
+}: HomeExperienceProps) {
   const reduceMotion = useReducedMotion();
+  const { isStandalone } = useAppRuntime();
   const { scrollYProgress } = useScroll();
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState("ut-austin");
+  const [selectedSchool, setSelectedSchool] = useState(spotlights[0]?.school.slug ?? "");
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => setProgress(latest));
 
@@ -43,25 +60,25 @@ export function HomeExperience() {
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const coverage = getCoverageStats();
-  const featured = getFeaturedOfferings();
-  const spotlight = getSchoolSpotlight(selectedSchool);
-  const schools = getSchools().slice(0, 6);
-  const useCanvas = !reduceMotion && !isMobile;
+  const useCanvas = !reduceMotion && !isMobile && !isStandalone;
+  const spotlight = useMemo(
+    () => spotlights.find((item) => item.school.slug === selectedSchool) ?? spotlights[0],
+    [selectedSchool, spotlights],
+  );
 
   const narrative = useMemo(
     () => [
       {
         title: "Outcome-driven",
-        body: "Classify anchors every ranking in expected GPA and A-rate first, then layers RMP as enrichment instead of pretending opinion is evidence.",
+        body: "Classify anchors every ranking in expected GPA and A-rate first, then layers outside review signals as enrichment instead of pretending opinion is evidence.",
       },
       {
         title: "Course-specific",
-        body: "You can search the exact class you need and immediately see which instructor is most likely to preserve your GPA.",
+        body: "You can search the exact class you need and immediately see which instructor is most likely to protect your semester.",
       },
       {
-        title: "Trend-aware",
-        body: "If a professor or course has gotten harder over time, the product shows the slope instead of burying old reviews next to new realities.",
+        title: "Planner-ready",
+        body: "Every searchable school lands in the same planning surface first. Catalog, schedule, and evidence depth expand without changing the workflow.",
       },
     ],
     [],
@@ -79,7 +96,7 @@ export function HomeExperience() {
       </div>
 
       <div className="relative z-10">
-        <section className="section-shell flex min-h-[calc(100svh-4.5rem)] flex-col justify-center py-16 sm:py-20">
+        <section className="section-shell flex min-h-[calc(100svh-4.5rem)] flex-col justify-center py-14 sm:py-20">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -95,13 +112,13 @@ export function HomeExperience() {
                 Find the professor who actually gives A&apos;s.
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-ivory/76 sm:text-lg">
-                Grade distributions, not just opinions — for {coverage.trackedSchools} schools across the US.
+                Grade distributions, not just opinions, for {coverage.trackedSchools} schools across the US.
               </p>
             </div>
 
             <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82">
-              <InlineStat label="Tracked schools" value={coverage.trackedSchools} />
-              <InlineStat label="Institutional schools" value={coverage.institutionalSchools} />
+              <InlineStat label="Searchable schools" value={coverage.trackedSchools} />
+              <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
               <InlineStat label="Tracked course options" value={coverage.trackedCourses} />
             </div>
           </motion.div>
@@ -128,7 +145,7 @@ export function HomeExperience() {
             </div>
 
             <div className="glass-line rounded-[34px] p-6">
-              <p className="eyebrow text-ivory/88">Featured picks</p>
+              <p className="eyebrow">Featured picks</p>
               <div className="mt-5 space-y-3">
                 {featured.slice(0, 4).map((item) => (
                   <Link
@@ -138,17 +155,17 @@ export function HomeExperience() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-lg font-semibold">{item.professorName}</p>
-                        <p className="text-sm text-ivory/68">
+                        <p className="text-lg font-semibold text-white">{item.professorName}</p>
+                        <p className="text-sm text-white/75">
                           {item.courseCode} - {item.courseName}
                         </p>
                       </div>
                       <CoverageBadge tier={item.coverageTier} variant="onDark" />
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2 text-sm text-ivory/88">
+                    <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/90">
                       <span className="rounded-full border border-white/10 px-3 py-1">
                         {scoreToLabel(item.classifyScore)}{" "}
-                        <span className="text-ivory/58">(score {formatScore(item.classifyScore)})</span>
+                        <span className="text-white/60">(score {formatScore(item.classifyScore)})</span>
                       </span>
                       <span className="rounded-full border border-white/10 px-3 py-1">
                         GPA {formatGpa(item.expectedGpa)}
@@ -167,28 +184,29 @@ export function HomeExperience() {
         <section className="section-shell py-20 sm:py-28">
           <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
-              <p className="eyebrow">Coverage atlas</p>
+              <p className="eyebrow">National school graph</p>
               <h2 className="display-title mt-4 text-4xl font-semibold">
-                One search bar, multiple data tiers
+                One school graph, one planning workflow
               </h2>
               <p className="mt-4 max-w-xl text-base leading-7 text-muted">
-                Schools with institutional outcomes unlock trend-aware course intelligence.
-                Every other school still stays searchable through RMP fallback, with clear
-                labeling instead of fake precision.
+                Every searchable institution lands in the same Classify surface:
+                school hub, instructor discovery, and planner entry point first. As
+                course catalogs, schedules, and outcome evidence arrive, the same
+                workflow simply gets deeper.
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
-                {schools.map((school) => (
+                {spotlights.map((item) => (
                   <button
-                    key={school.slug}
+                    key={item.school.slug}
                     type="button"
-                    onClick={() => setSelectedSchool(school.slug)}
+                    onClick={() => setSelectedSchool(item.school.slug)}
                     className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                      selectedSchool === school.slug
+                      selectedSchool === item.school.slug
                         ? "border-deep-ink bg-deep-ink text-ivory"
                         : "border-border bg-white/70 text-ink hover:bg-white"
                     }`}
                   >
-                    {school.shortName}
+                    {item.school.shortName}
                   </button>
                 ))}
               </div>
@@ -198,17 +216,17 @@ export function HomeExperience() {
               <div className="glass-line rounded-[34px] p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="eyebrow text-ivory/88">Selected school</p>
+                    <p className="eyebrow">Selected school</p>
                     <h3 className="display-title mt-2 text-4xl font-semibold">
                       {spotlight.school.shortName}
                     </h3>
-                    <p className="mt-2 text-sm text-ivory/68">
+                    <p className="mt-2 text-sm text-white/75">
                       {spotlight.school.city}, {spotlight.school.state} - {spotlight.school.kind}
                     </p>
                   </div>
                   <CoverageBadge tier={spotlight.school.coverageTier} variant="onDark" />
                 </div>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-ivory/76">
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-white/82">
                   {spotlight.school.sourceStatus.note}
                 </p>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -218,39 +236,40 @@ export function HomeExperience() {
                         key={course.courseSlug}
                         className="rounded-[26px] border border-white/10 bg-white/6 p-4"
                       >
-                        <p className="text-lg font-semibold">
+                        <p className="text-lg font-semibold text-white">
                           {course.courseCode} - {course.courseName}
                         </p>
-                        <p className="mt-1 text-sm text-ivory/66">{course.summary}</p>
-                        <p className="mt-3 text-sm text-ivory/76">
+                        <p className="mt-1 text-sm text-white/72">{course.summary}</p>
+                        <p className="mt-3 text-sm text-white/82">
                           Top pick: {course.topProfessorName}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-[26px] border border-dashed border-white/15 px-4 py-10 text-sm text-ivory/70">
-                      RMP-only mode for now. Course-level grade distributions arrive when the
-                      institutional adapter is ready.
+                    <div className="rounded-[26px] border border-dashed border-white/15 px-4 py-10 text-sm text-white/78">
+                      This school is searchable today. Local course and schedule depth
+                      expands here as institutional and community evidence is published.
                     </div>
                   )}
                   {spotlight.trending[0] ? (
                     <div className="rounded-[26px] border border-white/10 bg-white/6 p-4">
-                      <p className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-ivory/64">
+                      <p className="flex items-center gap-2 text-sm uppercase tracking-[0.18em] text-white/70">
                         <LineChart className="h-4 w-4" />
                         Trend callout
                       </p>
-                      <p className="mt-3 text-lg font-semibold">
+                      <p className="mt-3 text-lg font-semibold text-white">
                         {spotlight.trending[0].professorName}
                       </p>
-                      <p className="mt-1 text-sm text-ivory/68">
+                      <p className="mt-1 text-sm text-white/75">
                         {spotlight.trending[0].courseCode} is trending{" "}
                         {(spotlight.trending[0].trendDelta ?? 0) >= 0 ? "easier" : "harder"}.
                       </p>
                       <TrendSparkline trend={spotlight.trending[0].trend} className="mt-4" />
                     </div>
                   ) : (
-                    <div className="rounded-[26px] border border-dashed border-white/15 px-4 py-10 text-sm text-ivory/70">
-                      Trend cards appear automatically once institutional history exists.
+                    <div className="rounded-[26px] border border-dashed border-white/15 px-4 py-10 text-sm text-white/78">
+                      Trend callouts appear automatically once the school has enough
+                      historical evidence.
                     </div>
                   )}
                 </div>
@@ -270,9 +289,9 @@ export function HomeExperience() {
                 Compare instructor options before you build your schedule
               </h2>
               <p className="mt-4 text-base leading-7 text-muted">
-                Evaluate expected GPA, A-rate, rating, difficulty, and trend in a single,
-                clean workspace. It is the missing step between &quot;I heard they
-                are good&quot; and &quot;I know which section protects my
+                Evaluate expected GPA, A-rate, rating, difficulty, and trend in a
+                single, clean workspace. It is the missing step between &quot;I heard
+                they are good&quot; and &quot;I know which section protects my
                 semester.&quot;
               </p>
               <div className="mt-8 space-y-3">
@@ -303,27 +322,27 @@ export function HomeExperience() {
             </div>
 
             <div className="glass-line rounded-[34px] p-6">
-              <p className="eyebrow text-ivory/88">What follows next</p>
+              <p className="eyebrow">What follows next</p>
               <h2 className="display-title mt-4 text-4xl font-semibold">
-                The product is built around a better data shape
+                The product is built around a national planning graph
               </h2>
-              <p className="mt-4 text-base leading-7 text-ivory/74">
-                Raw snapshots, normalized grade distributions, published aggregates, RMP
-                enrichment, and confidence-aware professor matching all feed the same app
-                model. That is what makes optimizer-mode feasible later without rewriting the
-                product.
+              <p className="mt-4 text-base leading-7 text-white/85">
+                Directory records, course catalogs, section schedules, official grade
+                outcomes, and confidence-aware enrichment all feed the same app model.
+                That is what lets Classify support every school with one consistent
+                planning surface before optimizer mode arrives later.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/search"
-                  className="inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-3 text-sm font-medium text-deep-ink"
+                  className="inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-3 text-sm font-semibold !text-deep-ink shadow-md shadow-deep-ink/15"
                 >
                   <Search className="h-4 w-4" />
                   Open the search app
                 </Link>
                 <Link
                   href="/compare"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/12 px-5 py-3 text-sm font-medium text-ivory"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-5 py-3 text-sm font-medium text-white shadow-sm shadow-deep-ink/20"
                 >
                   Compare live records
                   <ArrowRight className="h-4 w-4" />

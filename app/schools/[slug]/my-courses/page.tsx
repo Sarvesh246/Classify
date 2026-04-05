@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { LoadingFallbackPanel } from "@/components/loading/loading-fallback";
 import { MyCoursesPlanner } from "@/components/my-courses/my-courses-planner";
 import { SiteHeader } from "@/components/site-header";
 import {
   getCatalogOfferingsForSchool,
-  getCatalogSchoolBySlug,
-  getCatalogSchools,
   getCourseGroupsForSchool,
 } from "@/lib/catalog";
+import { getDirectorySchoolBySlug } from "@/lib/server-directory";
 import type { ProfessorCourseSummary } from "@/lib/types";
 
 type MyCoursesPageProps = {
@@ -19,13 +19,9 @@ type MyCoursesPageProps = {
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return getCatalogSchools().map((school) => ({ slug: school.slug }));
-}
-
-function groupOfferingsByCourse(slug: string): Record<string, ProfessorCourseSummary[]> {
+async function groupOfferingsByCourse(slug: string): Promise<Record<string, ProfessorCourseSummary[]>> {
   const map: Record<string, ProfessorCourseSummary[]> = {};
-  for (const o of getCatalogOfferingsForSchool(slug)) {
+  for (const o of await getCatalogOfferingsForSchool(slug)) {
     if (!map[o.courseSlug]) map[o.courseSlug] = [];
     map[o.courseSlug].push(o);
   }
@@ -43,11 +39,13 @@ function parseCoursesParam(raw: string | undefined): string[] {
 export default async function MyCoursesPage({ params, searchParams }: MyCoursesPageProps) {
   const { slug } = await params;
   const sp = await searchParams;
-  const school = getCatalogSchoolBySlug(slug);
+  const school = await getDirectorySchoolBySlug(slug);
   if (!school) notFound();
 
-  const courseGroups = getCourseGroupsForSchool(slug);
-  const offeringsByCourseSlug = groupOfferingsByCourse(slug);
+  const [courseGroups, offeringsByCourseSlug] = await Promise.all([
+    getCourseGroupsForSchool(slug),
+    groupOfferingsByCourse(slug),
+  ]);
   const initialCoursesFromUrl = parseCoursesParam(sp.courses);
 
   return (
@@ -80,17 +78,14 @@ export default async function MyCoursesPage({ params, searchParams }: MyCoursesP
 
         <div className="mt-8">
           <Suspense
-            fallback={
-              <div className="soft-panel rounded-[30px] p-8 text-sm text-muted">
-                Loading planner…
-              </div>
-            }
+            fallback={<LoadingFallbackPanel message="Loading planner" />}
           >
             <MyCoursesPlanner
               schoolSlug={slug}
               courseGroups={courseGroups}
               offeringsByCourseSlug={offeringsByCourseSlug}
               initialCoursesFromUrl={initialCoursesFromUrl}
+              supportProfile={school.supportProfile}
             />
           </Suspense>
         </div>

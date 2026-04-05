@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@floating-ui/react"],
+  },
 };
 
 export default nextConfig;

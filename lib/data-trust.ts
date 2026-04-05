@@ -9,13 +9,13 @@ export function isSmallSample(sampleSize: number): boolean {
 function completenessLabel(c: DataCompleteness): string {
   switch (c) {
     case "institutional_full":
-      return "Full institutional coverage";
+      return "Official grade evidence";
     case "institutional_partial":
-      return "Partial institutional coverage";
+      return "Partial official grade evidence";
     case "rmp_only":
-      return "Limited to reviews (RMP); grades incomplete";
+      return "Limited evidence";
     case "directory_only":
-      return "Directory only";
+      return "Directory baseline only";
     default:
       return "Mixed sources";
   }
@@ -25,14 +25,14 @@ function completenessLabel(c: DataCompleteness): string {
 export function dataTrustSummaryLine(offering: ProfessorCourseSummary): string {
   const parts = [
     completenessLabel(offering.dataCompleteness),
-    `n≈${offering.sampleSize}`,
+    `n~${offering.sampleSize}`,
     `latest ${offering.latestTerm}`,
     offering.freshness ? `updated ${offering.freshness}` : null,
   ].filter(Boolean);
-  return parts.join(" · ");
+  return parts.join(" | ");
 }
 
-/** Short note for estimated letter-mix charts (not official A–F buckets). */
+/** Short note for estimated letter-mix charts (not official A-F buckets). */
 export function estimatedChartCaption(): string {
-  return "Letter bars are estimated from expected GPA and A-rate on this row—they are not separate official grade buckets.";
+  return "Letter bars are estimated from expected GPA and A-rate on this row; they are not separate official grade buckets.";
 }

@@ -1,4 +1,4 @@
-import { CompareBuilder } from "@/components/compare/compare-builder";
+import { CompareBuilderClient } from "./compare-builder-client";
 import { SiteHeader } from "@/components/site-header";
 import { getCatalogOfferings } from "@/lib/catalog";
 
@@ -10,13 +10,13 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
   const params = await searchParams;
   const ids = params.ids?.split(",").filter(Boolean) ?? [];
   const school = params.school?.trim() || undefined;
-  const catalog = getCatalogOfferings();
+  const catalog = await getCatalogOfferings();
 
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
       <div className="page-shell pt-10">
-        <CompareBuilder
+        <CompareBuilderClient
           catalog={catalog}
           initialSelectedIds={ids}
           initialSchoolSlug={school}

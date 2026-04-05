@@ -18,6 +18,12 @@
   --z-nav: 60;
   --z-overlay: 240;
   --z-toast: 320;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --mobile-nav-height: 4.75rem;
+  --mobile-install-offset: calc(var(--mobile-nav-height) + var(--safe-bottom) + 1rem);
 }
 
 @theme inline {
@@ -52,6 +58,11 @@ body {
   overflow-x: hidden;
 }
 
+body {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom));
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -61,6 +72,11 @@ a {
 a.bg-deep-ink,
 button.bg-deep-ink {
   color: var(--ivory) !important;
+}
+
+/* Light pill links must stay dark; otherwise they inherit ivory from .glass-line and disappear. */
+a.bg-ivory {
+  color: var(--deep-ink) !important;
 }
 
 button {
@@ -128,9 +144,24 @@ a:focus:not(:focus-visible) {
 }
 
 .glass-line {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(8, 25, 44, 0.42);
   backdrop-filter: blur(12px);
+  /*
+   * High-contrast copy for frosted tiles: warm ivory reads like the highlight in the blur and
+   * washes out next to inner `bg-white/6` cards — use a cooler near-white plus a light shadow.
+   */
+  color: rgb(248 250 252);
+}
+
+.glass-line .eyebrow {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(7, 17, 31, 0.35);
+}
+
+.glass-line :where(h1, h2, h3, h4, .display-title) {
+  color: rgb(255 255 255);
+  text-shadow: 0 1px 3px rgba(7, 17, 31, 0.4);
 }
 
 .text-balance {
@@ -143,6 +174,49 @@ a:focus:not(:focus-visible) {
 
 .overlay-layer {
   z-index: var(--z-overlay);
+}
+
+.safe-top-pad {
+  padding-top: max(0.75rem, var(--safe-top));
+}
+
+.safe-bottom-pad {
+  padding-bottom: max(0.75rem, var(--safe-bottom));
+}
+
+.mobile-sheet-shell {
+  padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 0.75rem);
+}
+
+.mobile-app-scroll {
+  overscroll-behavior-y: contain;
+}
+
+/* Branded loader: grade-distribution style bars (not a spinner) */
+@keyframes classify-wave {
+  0%,
+  100% {
+    transform: scaleY(0.22);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.classify-load-bar {
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+  animation: classify-wave 1.08s cubic-bezier(0.42, 0, 0.22, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classify-load-bar {
+    animation: none;
+    opacity: 0.75;
+    transform: scaleY(0.62);
+  }
 }
 
 .app-page-title {
@@ -179,5 +253,19 @@ a:focus:not(:focus-visible) {
   .section-shell,
   .page-shell {
     width: min(100vw - 1.25rem, 1180px);
+  }
+
+  .page-shell {
+    padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 2rem);
+  }
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+
+  .page-shell {
+    padding-bottom: 5rem;
   }
 }

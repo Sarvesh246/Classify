@@ -1,0 +1,175 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - link "Classify home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]:
+          - img [ref=e8]
+          - generic [ref=e13]:
+            - generic [ref=e14]: Classify
+            - generic [ref=e15]: Course Intelligence
+      - navigation [ref=e16]:
+        - link "Search" [ref=e17] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e18] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e19] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e20] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e21] [cursor=pointer]:
+          - /url: /search?q=UT
+      - generic [ref=e22]:
+        - link "Search" [ref=e23] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e24]
+          - text: Search
+        - generic [ref=e27]: …
+    - generic [ref=e28]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: COMMUNICATION & JOURNALISM
+          - heading "COMM 230 - COMM 230" [level=1] [ref=e33]
+          - paragraph [ref=e34]: "TAMU COMM 230 outcomes in COMMUNICATION & JOURNALISM from published grade reports. This is the exact question RMP cannot answer well: who teaches this required course and gives the most A's?"
+        - generic [ref=e36]: High evidence
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: A-rate trend unavailable
+          - generic [ref=e40]: Expected GPA trend unavailable
+        - generic [ref=e41]:
+          - paragraph [ref=e42]: Stacked grade bars are modeled from each term's reported GPA and A-rate when full A–F counts are not in the catalog—they are a visual companion to the headline stats, not a separate official breakdown.
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]:
+                - paragraph [ref=e46]: Grade distribution
+                - paragraph [ref=e47]: Bars are approximated from each term’s reported average GPA and A-rate (we do not store full A–F counts in the catalog yet). When those stats show near-all A’s, we do not invent extra letter grades.
+              - button "Fall 2025" [ref=e49] [cursor=pointer]
+            - generic [ref=e51]:
+              - 'generic "A: 94%" [ref=e52]': A
+              - 'generic "B: 3.4%" [ref=e53]': B
+              - 'generic "C: 2%" [ref=e54]': C
+              - 'generic "D: 0.7%" [ref=e55]': D
+              - 'generic "F: 0%"': F
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - paragraph [ref=e58]: A
+                - paragraph [ref=e59]: "140"
+                - paragraph [ref=e60]: 94%
+              - generic [ref=e61]:
+                - paragraph [ref=e62]: B
+                - paragraph [ref=e63]: "5"
+                - paragraph [ref=e64]: 3.4%
+              - generic [ref=e65]:
+                - paragraph [ref=e66]: C
+                - paragraph [ref=e67]: "3"
+                - paragraph [ref=e68]: 2%
+              - generic [ref=e69]:
+                - paragraph [ref=e70]: D
+                - paragraph [ref=e71]: "1"
+                - paragraph [ref=e72]: 0.7%
+              - generic [ref=e73]:
+                - paragraph [ref=e74]: F
+                - paragraph [ref=e75]: "0"
+                - paragraph [ref=e76]: 0%
+            - generic [ref=e77]:
+              - generic [ref=e78]: Sample 149
+              - generic [ref=e79]: GPA 3.91
+              - generic [ref=e80]: Source TAMU grade report PDF
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - button "A–Z (last name)" [ref=e83] [cursor=pointer]
+          - button "Best overall" [ref=e84] [cursor=pointer]
+          - button "Highest GPA" [ref=e85] [cursor=pointer]
+          - button "Most A's" [ref=e86] [cursor=pointer]
+          - button "Easiest trend lately" [ref=e87] [cursor=pointer]
+          - button "Best rated" [ref=e88] [cursor=pointer]
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - heading "M. Beck" [level=2] [ref=e93]
+                - generic [ref=e94]: Official data
+              - paragraph [ref=e95]: COMM 230 - COMM 230
+              - paragraph [ref=e96]: Official grade evidence · n~90 · latest Fall 2025 · updated Fall 2025
+              - paragraph [ref=e97]: Official TAMU grade distributions for M. Beck in COMM 230.
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - text: Classify
+                - paragraph [ref=e100]: Above avg
+                - paragraph [ref=e101]: "score: 66"
+              - generic [ref=e102]:
+                - text: Expected GPA
+                - paragraph [ref=e103]: "3.89"
+              - generic [ref=e104]:
+                - text: A-rate
+                - paragraph [ref=e105]: 92%
+              - generic [ref=e106]:
+                - text: RMP
+                - paragraph [ref=e107]: Unavailable
+                - paragraph [ref=e108]: diff Unavailable
+            - generic [ref=e109]:
+              - link "Open profile" [ref=e110] [cursor=pointer]:
+                - /url: /schools/texas-am/professors/beck-m
+              - link "Compare selected" [ref=e111] [cursor=pointer]:
+                - /url: /compare?ids=texas-am-comm-230-communication-and-journalism-beck-m&school=texas-am
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - heading "J. Guajardo" [level=2] [ref=e115]
+                - generic [ref=e116]: High evidence
+              - paragraph [ref=e117]: COMM 230 - COMM 230
+              - paragraph [ref=e118]: Official grade evidence · n~30 · latest Fall 2025 · updated Fall 2025
+              - paragraph [ref=e119]: Small sample — use as a hint, not a guarantee.
+              - paragraph [ref=e120]: Official TAMU grade distributions for J. Guajardo in COMM 230.
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - text: Classify
+                - paragraph [ref=e123]: Easy
+                - paragraph [ref=e124]: "score: 95"
+              - generic [ref=e125]:
+                - text: Expected GPA
+                - paragraph [ref=e126]: "4.00"
+              - generic [ref=e127]:
+                - text: A-rate
+                - paragraph [ref=e128]: 100%
+              - generic [ref=e129]:
+                - text: RMP
+                - paragraph [ref=e130]: "4.9"
+                - paragraph [ref=e131]: diff 1.2
+            - generic [ref=e132]:
+              - link "Open profile" [ref=e133] [cursor=pointer]:
+                - /url: /schools/texas-am/professors/guajardo-j
+              - link "Compare selected" [ref=e134] [cursor=pointer]:
+                - /url: /compare?ids=texas-am-comm-230-communication-and-journalism-guajardo-j&school=texas-am
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - generic [ref=e137]:
+                - heading "J. Lopez" [level=2] [ref=e138]
+                - generic [ref=e139]: High evidence
+              - paragraph [ref=e140]: COMM 230 - COMM 230
+              - paragraph [ref=e141]: Official grade evidence · n~29 · latest Fall 2025 · updated Fall 2025
+              - paragraph [ref=e142]: Small sample — use as a hint, not a guarantee.
+              - paragraph [ref=e143]: Official TAMU grade distributions for J. Lopez in COMM 230.
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - text: Classify
+                - paragraph [ref=e146]: Easy
+                - paragraph [ref=e147]: "score: 92"
+              - generic [ref=e148]:
+                - text: Expected GPA
+                - paragraph [ref=e149]: "3.86"
+              - generic [ref=e150]:
+                - text: A-rate
+                - paragraph [ref=e151]: 93%
+              - generic [ref=e152]:
+                - text: RMP
+                - paragraph [ref=e153]: "5.0"
+                - paragraph [ref=e154]: diff 1.0
+            - generic [ref=e155]:
+              - link "Open profile" [ref=e156] [cursor=pointer]:
+                - /url: /schools/texas-am/professors/lopez-j
+              - link "Compare selected" [ref=e157] [cursor=pointer]:
+                - /url: /compare?ids=texas-am-comm-230-communication-and-journalism-lopez-j&school=texas-am
+  - button "Open Next.js Dev Tools" [ref=e163] [cursor=pointer]:
+    - img [ref=e164]
+  - alert [ref=e167]

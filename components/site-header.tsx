@@ -1,11 +1,21 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { HeaderAuthControl } from "@/components/auth/header-auth-control";
 import { ClassifyLogo } from "@/components/classify-logo";
+import { NavSavedLink } from "@/components/nav-saved-link";
 import { cn } from "@/lib/utils";
 
 interface SiteHeaderProps {
   tone?: "home" | "app";
 }
+
+const navLinkClassName = cn(
+  "group relative inline-flex py-1 transition-colors duration-200 ease-out",
+  "hover:text-teal focus-visible:text-teal",
+  "after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-teal after:transition-transform after:duration-200 after:ease-out",
+  "motion-reduce:after:transition-none motion-reduce:transition-none",
+  "hover:after:scale-x-100 focus-visible:after:scale-x-100",
+);
 
 export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
   const isHome = tone === "home";
@@ -13,27 +23,28 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-[60] border-b backdrop-blur-xl",
+        "safe-top-pad sticky top-0 z-[60] border-b backdrop-blur-xl",
         isHome
           ? "border-white/10 bg-deep-ink/34 text-ivory"
           : "border-border/70 bg-background/84 text-ink",
       )}
     >
-      <div className="section-shell flex min-h-18 items-center justify-between gap-4 py-4">
+      <div className="section-shell flex min-h-18 items-center justify-between gap-4 py-3 md:py-4">
         <Link href="/" aria-label="Classify home">
           <ClassifyLogo />
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
-          <Link href="/search" className="transition hover:text-teal">
+          <Link href="/search" className={navLinkClassName}>
             Search
           </Link>
-          <Link href="/compare" className="transition hover:text-teal">
+          <Link href="/compare" className={navLinkClassName}>
             Compare
           </Link>
-          <Link href="/methodology" className="transition hover:text-teal">
+          <NavSavedLink className={navLinkClassName} />
+          <Link href="/methodology" className={navLinkClassName}>
             Methodology
           </Link>
-          <Link href="/search?q=UT" className="transition hover:text-teal">
+          <Link href="/search?q=UT" className={navLinkClassName}>
             Schools
           </Link>
         </nav>
@@ -41,26 +52,18 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
           <Link
             href="/search"
             className={cn(
-              "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition",
+              "hidden min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out sm:inline-flex",
+              "hover:-translate-y-px hover:shadow-md active:translate-y-0 active:shadow-sm",
+              "motion-reduce:transform-none motion-reduce:hover:shadow-none",
               isHome
-                ? "glass-line text-ivory hover:bg-white/12"
-                : "border border-border bg-white/60 hover:bg-white",
+                ? "glass-line text-ivory hover:bg-white/18 hover:ring-1 hover:ring-white/25"
+                : "border border-border bg-white/60 hover:border-teal/40 hover:bg-white hover:ring-1 hover:ring-teal/20",
             )}
           >
             <Search className="h-4 w-4" />
             Search
           </Link>
-          <Link
-            href="/login"
-            className={cn(
-              "inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition",
-              isHome
-                ? "bg-ivory !text-deep-ink hover:bg-white"
-                : "border border-border bg-white/80 !text-ink hover:bg-white",
-            )}
-          >
-            Log in
-          </Link>
+          <HeaderAuthControl isHome={isHome} />
         </div>
       </div>
     </header>

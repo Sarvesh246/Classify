@@ -1,7 +1,4 @@
-import {
-  dataTrustSummaryLine,
-  isSmallSample,
-} from "@/lib/data-trust";
+import { dataTrustSummaryLine, isSmallSample } from "@/lib/data-trust";
 import type { ProfessorCourseSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +25,7 @@ export function DataTrustBanner({
           className="mt-3 rounded-xl border border-copper/35 bg-copper/12 px-3 py-2 text-xs font-medium text-deep-ink"
           role="status"
         >
-          Small sample: GPA, A-rate, and the estimated letter chart are directional—not exact rankings.
+          Small sample: GPA, A-rate, and the estimated letter chart are directional, not exact rankings.
         </p>
       ) : null}
     </div>

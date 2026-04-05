@@ -23,11 +23,15 @@ import {
   useState,
   useTransition,
   type ComponentType,
+  type MutableRefObject,
 } from "react";
-import { Search, School, GraduationCap, UserRound } from "lucide-react";
+import { Search, School, GraduationCap, UserRound, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { runDeferredNavigation } from "@/lib/deferred-navigation";
 import { type SearchHit, type SearchHitType } from "@/lib/types";
+import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { useDelayedShown } from "@/hooks/use-delayed-shown";
 
 interface SearchComboboxProps {
   initialQuery?: string;
@@ -40,7 +44,6 @@ interface SearchComboboxProps {
   emptyMessage?: string;
   clearOnSelect?: boolean;
   onSelect?: (item: SearchHit) => void;
-  /** When true, Explore submits to `/search` with q, school, and type (page uses `school`; API still uses schoolSlug). */
   syncSearchUrl?: boolean;
 }
 
@@ -72,12 +75,38 @@ export function SearchCombobox({
   const [fetchError, setFetchError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [retryNonce, setRetryNonce] = useState(0);
+  const [isMobileSheet, setIsMobileSheet] = useState(false);
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<Array<HTMLElement | null>>([]);
+  const showListLoading = useDelayedShown(isPending || isLoading, 380);
 
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileSheet(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!(open && isMobileSheet)) {
+      return;
+    }
+
+    const htmlOverflow = document.documentElement.style.overflow;
+    const bodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = htmlOverflow;
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, [isMobileSheet, open]);
 
   const { refs, floatingStyles, context } = useFloating({
     open,
@@ -154,16 +183,22 @@ export function SearchCombobox({
 
     fetch(endpoint)
       .then(async (response) => {
+        const payload = (await response.json().catch(() => null)) as {
+          results?: SearchHit[];
+        } | null;
+        const list = Array.isArray(payload?.results) ? payload.results : [];
+
         if (!response.ok) {
-          throw new Error(`search ${response.status}`);
+          if (ignore) return;
+          setResults(list);
+          setActiveIndex(list.length ? 0 : null);
+          setFetchError(true);
+          return;
         }
-        return response.json() as Promise<{ results?: SearchHit[] }>;
-      })
-      .then((payload) => {
+
         if (ignore) return;
-        const next = Array.isArray(payload.results) ? payload.results : [];
-        setResults(next);
-        setActiveIndex(next.length ? 0 : null);
+        setResults(list);
+        setActiveIndex(list.length ? 0 : null);
         setFetchError(false);
       })
       .catch(() => {
@@ -233,7 +268,9 @@ export function SearchCombobox({
     }
 
     startTransition(() => {
-      router.push(item.href);
+      runDeferredNavigation(() => {
+        router.push(item.href);
+      });
     });
   }
 
@@ -253,21 +290,23 @@ export function SearchCombobox({
     }
 
     startTransition(() => {
-      if (syncSearchUrl) {
-        const p = new URLSearchParams();
-        if (query.trim()) p.set("q", query.trim());
-        if (schoolSlug?.trim()) p.set("school", schoolSlug.trim());
-        if (searchType !== "all") p.set("type", searchType);
-        const qs = p.toString();
-        router.push(qs ? `/search?${qs}` : "/search");
-      } else {
-        router.push(
-          query.trim()
-            ? `/search?q=${encodeURIComponent(query.trim())}`
-            : "/search",
-        );
-      }
-      setOpen(false);
+      runDeferredNavigation(() => {
+        if (syncSearchUrl) {
+          const p = new URLSearchParams();
+          if (query.trim()) p.set("q", query.trim());
+          if (schoolSlug?.trim()) p.set("school", schoolSlug.trim());
+          if (searchType !== "all") p.set("type", searchType);
+          const qs = p.toString();
+          router.push(qs ? `/search?${qs}` : "/search");
+        } else {
+          router.push(
+            query.trim()
+              ? `/search?q=${encodeURIComponent(query.trim())}`
+              : "/search",
+          );
+        }
+        setOpen(false);
+      });
     });
   }
 
@@ -282,7 +321,16 @@ export function SearchCombobox({
         }}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-deep-ink text-ivory">
-          <Search className="h-5 w-5" />
+          {showListLoading ? (
+            <ClassifyLoadingMark
+              size="sm"
+              tone="onDark"
+              className="scale-[0.88]"
+              label="Searching catalog"
+            />
+          ) : (
+            <Search className="h-5 w-5 shrink-0" aria-hidden />
+          )}
         </div>
         <input
           ref={setReferenceRef}
@@ -310,7 +358,7 @@ export function SearchCombobox({
         />
         <button
           type="submit"
-          className="rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237]"
+          className="min-h-11 rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237]"
         >
           {isPending || isLoading
             ? "Searching..."
@@ -323,86 +371,178 @@ export function SearchCombobox({
       </form>
 
       {open ? (
-        <FloatingPortal>
-          <div
-            ref={setFloatingRef}
-            style={floatingStyles}
-            className="overlay-layer"
-            {...getFloatingProps()}
-          >
-            <div className="soft-panel overflow-hidden rounded-[28px]">
-              <div className="max-h-[28rem] overflow-y-auto p-3">
-                {groupedSections.map((section) =>
-                  section.items.length ? (
-                    <div key={section.key} className="mb-4 last:mb-0">
-                      <div className="px-3 pb-2 pt-1 text-[0.72rem] uppercase tracking-[0.18em] text-muted">
-                        {query.trim()
-                          ? section.label
-                          : `Suggested ${section.label.toLowerCase()}`}
-                      </div>
-                      <div className="space-y-1">
-                        {section.items.map((item) => {
-                          const index = results.findIndex(
-                            (candidate) => candidate.id === item.id,
-                          );
-                          const Icon = iconMap[item.type];
-                          const active = index === activeIndex;
-
-                          return onSelect ? (
-                            <button
-                              key={item.id}
-                              ref={(node) => {
-                                listRef.current[index] = node;
-                              }}
-                              type="button"
-                              className={cn(
-                                "group flex w-full items-start gap-3 rounded-[22px] px-3 py-3 text-left transition",
-                                active ? "bg-white" : "hover:bg-white/78",
-                              )}
-                              {...getItemProps({
-                                onMouseEnter: () => setActiveIndex(index),
-                                onClick: () => handleSelect(item),
-                              })}
-                            >
-                              <ResultContent item={item} Icon={Icon} />
-                            </button>
-                          ) : (
-                            <Link
-                              key={item.id}
-                              ref={(node) => {
-                                listRef.current[index] = node;
-                              }}
-                              href={item.href}
-                              className={cn(
-                                "group flex items-start gap-3 rounded-[22px] px-3 py-3 transition",
-                                active ? "bg-white" : "hover:bg-white/78",
-                              )}
-                              {...getItemProps({
-                                onMouseEnter: () => setActiveIndex(index),
-                                onClick: () => setOpen(false),
-                              })}
-                            >
-                              <ResultContent item={item} Icon={Icon} />
-                            </Link>
-                          );
-                        })}
-                      </div>
+        isMobileSheet ? (
+          <FloatingPortal>
+            <div className="overlay-layer fixed inset-0 z-[240]">
+              <button
+                type="button"
+                className="absolute inset-0 bg-deep-ink/45"
+                onClick={() => setOpen(false)}
+                aria-label="Close search suggestions"
+              />
+              <div
+                ref={setFloatingRef}
+                className="mobile-sheet-shell absolute inset-x-0 bottom-0 rounded-t-[30px] bg-background"
+                {...getFloatingProps()}
+              >
+                <div className="soft-panel mobile-app-scroll max-h-[min(72dvh,42rem)] overflow-y-auto rounded-t-[30px] border-b-0 p-3 pb-6">
+                  <div className="mb-3 flex items-center justify-between gap-3 px-2 pt-2">
+                    <div>
+                      <p className="eyebrow">Search results</p>
+                      <p className="mt-1 text-sm text-muted">
+                        Tap a result to keep moving without leaving the app flow.
+                      </p>
                     </div>
-                  ) : null,
-                )}
-                {fetchError ? (
-                  <div className="rounded-[24px] border border-copper/40 bg-copper/10 px-4 py-6 text-center text-sm text-ink">
-                    Couldn&apos;t load suggestions. Check your connection and try again.
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink"
+                      aria-label="Dismiss search results"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                ) : !results.length ? (
-                  <div className="rounded-[24px] border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
-                    {emptyMessage}
-                  </div>
-                ) : null}
+                  <SearchResultsPanel
+                    query={query}
+                    groupedSections={groupedSections}
+                    results={results}
+                    activeIndex={activeIndex}
+                    setActiveIndex={setActiveIndex}
+                    onSelect={handleSelect}
+                    onLinkSelect={() => setOpen(false)}
+                    getItemProps={getItemProps}
+                    listRef={listRef}
+                    emptyMessage={emptyMessage}
+                    fetchError={fetchError}
+                    linkResults={!onSelect}
+                  />
+                </div>
               </div>
             </div>
+          </FloatingPortal>
+        ) : (
+          <FloatingPortal>
+            <div
+              ref={setFloatingRef}
+              style={floatingStyles}
+              className="overlay-layer"
+              {...getFloatingProps()}
+            >
+              <div className="soft-panel overflow-hidden rounded-[28px]">
+                <SearchResultsPanel
+                  query={query}
+                  groupedSections={groupedSections}
+                  results={results}
+                  activeIndex={activeIndex}
+                  setActiveIndex={setActiveIndex}
+                  onSelect={handleSelect}
+                  onLinkSelect={() => setOpen(false)}
+                  getItemProps={getItemProps}
+                  listRef={listRef}
+                  emptyMessage={emptyMessage}
+                  fetchError={fetchError}
+                  linkResults={!onSelect}
+                />
+              </div>
+            </div>
+          </FloatingPortal>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function SearchResultsPanel({
+  query,
+  groupedSections,
+  results,
+  activeIndex,
+  setActiveIndex,
+  onSelect,
+  onLinkSelect,
+  getItemProps,
+  listRef,
+  emptyMessage,
+  fetchError,
+  linkResults,
+}: {
+  query: string;
+  groupedSections: Array<{ key: string; label: string; items: SearchHit[] }>;
+  results: SearchHit[];
+  activeIndex: number | null;
+  setActiveIndex: (index: number | null) => void;
+  onSelect: (item: SearchHit) => void;
+  onLinkSelect: () => void;
+  getItemProps: ReturnType<typeof useInteractions>["getItemProps"];
+  listRef: MutableRefObject<Array<HTMLElement | null>>;
+  emptyMessage: string;
+  fetchError: boolean;
+  linkResults: boolean;
+}) {
+  return (
+    <div className="max-h-[28rem] overflow-y-auto p-3">
+      {groupedSections.map((section) =>
+        section.items.length ? (
+          <div key={section.key} className="mb-4 last:mb-0">
+            <div className="px-3 pb-2 pt-1 text-[0.72rem] uppercase tracking-[0.18em] text-muted">
+              {query.trim() ? section.label : `Suggested ${section.label.toLowerCase()}`}
+            </div>
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const index = results.findIndex((candidate) => candidate.id === item.id);
+                const Icon = iconMap[item.type];
+                const active = index === activeIndex;
+
+                return linkResults ? (
+                  <Link
+                    key={item.id}
+                    ref={(node) => {
+                      listRef.current[index] = node;
+                    }}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-start gap-3 rounded-[22px] px-3 py-3 transition",
+                      active ? "bg-white" : "hover:bg-white/78",
+                    )}
+                    {...getItemProps({
+                      onMouseEnter: () => setActiveIndex(index),
+                      onClick: () => onLinkSelect(),
+                    })}
+                  >
+                    <ResultContent item={item} Icon={Icon} />
+                  </Link>
+                ) : (
+                  <button
+                    key={item.id}
+                    ref={(node) => {
+                      listRef.current[index] = node;
+                    }}
+                    type="button"
+                    className={cn(
+                      "group flex w-full items-start gap-3 rounded-[22px] px-3 py-3 text-left transition",
+                      active ? "bg-white" : "hover:bg-white/78",
+                    )}
+                    {...getItemProps({
+                      onMouseEnter: () => setActiveIndex(index),
+                      onClick: () => onSelect(item),
+                    })}
+                  >
+                    <ResultContent item={item} Icon={Icon} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </FloatingPortal>
+        ) : null,
+      )}
+      {fetchError ? (
+        <div className="rounded-[24px] border border-copper/40 bg-copper/10 px-4 py-6 text-center text-sm text-ink">
+          Couldn&apos;t load suggestions. Check your connection and try again.
+        </div>
+      ) : !results.length ? (
+        <div className="rounded-[24px] border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
+          {emptyMessage}
+        </div>
       ) : null}
     </div>
   );
@@ -417,7 +557,7 @@ function ResultContent({
 }) {
   return (
     <>
-      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
+      <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">

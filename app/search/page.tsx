@@ -4,13 +4,15 @@ import { CoverageBadge } from "@/components/coverage-badge";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import { SearchScopeChips } from "@/components/search/search-scope-chips";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogSchoolBySlug, getFeaturedOfferings } from "@/lib/catalog";
-import { searchDirectory } from "@/lib/server-directory";
+import { getFeaturedOfferings } from "@/lib/catalog";
+import { getDirectorySchoolBySlug, searchDirectoryWithTotal } from "@/lib/server-directory";
 import { type SearchHit, type SearchHitType } from "@/lib/types";
 import { formatScore, scoreToLabel } from "@/lib/utils";
 
+const PAGE_SIZE = 24;
+
 type SearchPageProps = {
-  searchParams: Promise<{ q?: string; school?: string; type?: string }>;
+  searchParams: Promise<{ q?: string; school?: string; type?: string; page?: string }>;
 };
 
 function parseFilterType(raw: string | undefined): SearchHitType | "all" {
@@ -23,19 +25,49 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = params.q?.trim() ?? "";
   const schoolParam = params.school?.trim() || undefined;
   const filterType = parseFilterType(params.type?.trim());
-  const catalogSchool = schoolParam ? getCatalogSchoolBySlug(schoolParam) : undefined;
-  const schoolShortName = catalogSchool?.shortName;
+  const school = schoolParam ? await getDirectorySchoolBySlug(schoolParam) : undefined;
+  const schoolShortName = school?.shortName;
 
   const shouldSearch =
     query.length > 0 || Boolean(schoolParam) || filterType !== "all";
-  const results = shouldSearch
-    ? await searchDirectory(query, {
-        limit: 30,
+  const pageRequested = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+
+  let searchTotal = 0;
+  let results: SearchHit[] = [];
+  let safePage = 1;
+  let totalPages = 1;
+  let pageSizeUsed = PAGE_SIZE;
+
+  if (shouldSearch) {
+    const browseWithoutQuery = query.length === 0;
+    const pageSize = browseWithoutQuery ? PAGE_SIZE : 30;
+    pageSizeUsed = pageSize;
+    let page = pageRequested;
+    let offset = (page - 1) * pageSize;
+
+    let batch = await searchDirectoryWithTotal(query, {
+      limit: pageSize,
+      offset,
+      schoolSlug: schoolParam,
+      type: filterType,
+    });
+    searchTotal = batch.total;
+    totalPages = Math.max(1, Math.ceil(searchTotal / pageSize));
+    if (page > totalPages && totalPages > 0) {
+      page = totalPages;
+      offset = (page - 1) * pageSize;
+      batch = await searchDirectoryWithTotal(query, {
+        limit: pageSize,
+        offset,
         schoolSlug: schoolParam,
         type: filterType,
-      })
-    : [];
-  const featured = getFeaturedOfferings();
+      });
+    }
+    safePage = page;
+    results = batch.results;
+  }
+
+  const featured = await getFeaturedOfferings();
   const grouped = {
     school: results.filter((item) => item.type === "school"),
     course: results.filter((item) => item.type === "course"),
@@ -52,9 +84,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             Search schools, courses, and professors in one place
           </h1>
           <p className="app-lead mt-4">
-            Schools stay pinned to the top until context is clear. Once you enter
-            a course or professor, Classify pivots to the course-level data that
-            RMP cannot organize.
+            Any searchable school can land in the same Classify workflow. Start
+            with a school, course, or professor and then narrow into the school hub,
+            planner, course view, or instructor comparison surface.
           </p>
           <div className="mt-8">
             <SearchCombobox
@@ -81,7 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   Try a shorter query, a course code with or without a space (
                   <code className="rounded bg-background px-1">CSCE 221</code> or{" "}
                   <code className="rounded bg-background px-1">CSCE221</code>
-                  ), or widen scope.
+                  ), or widen the scope.
                 </p>
                 <ul className="mx-auto mt-6 max-w-md list-disc space-y-2 pl-5 text-sm text-muted">
                   <li>
@@ -200,6 +232,50 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </div>
               ) : null,
             )}
+
+            {shouldSearch && totalPages > 1 ? (
+              <nav
+                className="mt-8 flex flex-wrap items-center justify-center gap-3"
+                aria-label="Search results pagination"
+              >
+                {safePage > 1 ? (
+                  <Link
+                    href={searchResultsHref({
+                      q: query,
+                      school: schoolParam,
+                      type: filterType,
+                      page: safePage - 1,
+                    })}
+                    className="rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                  >
+                    Previous
+                  </Link>
+                ) : null}
+                <span className="text-sm text-muted">
+                  Page {safePage} of {totalPages}
+                  {searchTotal > 0 ? (
+                    <>
+                      {" "}
+                      | {(safePage - 1) * pageSizeUsed + 1}-
+                      {(safePage - 1) * pageSizeUsed + results.length} of {searchTotal}
+                    </>
+                  ) : null}
+                </span>
+                {safePage < totalPages ? (
+                  <Link
+                    href={searchResultsHref({
+                      q: query,
+                      school: schoolParam,
+                      type: filterType,
+                      page: safePage + 1,
+                    })}
+                    className="rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                  >
+                    Next
+                  </Link>
+                ) : null}
+              </nav>
+            ) : null}
           </section>
         ) : (
           <section className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
@@ -210,16 +286,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </h2>
               <div className="mt-6 space-y-3 text-sm text-muted">
                 <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                  Try a school name first if you want the full school hub and coverage
-                  status.
+                  Try a school name first if you want the full school hub, planner
+                  entry point, and instructor directory.
                 </div>
                 <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
                   Try a course code like <code>CS 312</code> if your question is
-                  &nbsp;&quot;who teaches this class and gives the most A&apos;s?&quot;
+                  &nbsp;&quot;who teaches this class and gives the best outcomes?&quot;
                 </div>
                 <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                  Try a professor name if you already know the person and want the
-                  profile page.
+                  Try a professor name if you already know the person and want a
+                  direct path into the profile page and compare flow.
                 </div>
               </div>
             </div>
@@ -257,6 +333,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </div>
     </main>
   );
+}
+
+function searchResultsHref(args: {
+  q: string;
+  school?: string;
+  type: SearchHitType | "all";
+  page: number;
+}) {
+  const p = new URLSearchParams();
+  if (args.q.trim()) p.set("q", args.q.trim());
+  if (args.school?.trim()) p.set("school", args.school.trim());
+  if (args.type !== "all") p.set("type", args.type);
+  if (args.page > 1) p.set("page", String(args.page));
+  const qs = p.toString();
+  return qs ? `/search?${qs}` : "/search";
 }
 
 function groupBySchool(items: SearchHit[]) {

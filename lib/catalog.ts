@@ -4,8 +4,6 @@
  */
 import "server-only";
 
-import fs from "node:fs";
-import path from "node:path";
 import {
   getAllOfferings as getSeedOfferings,
   getFeaturedOfferings as getSeedFeaturedOfferings,
@@ -14,26 +12,32 @@ import {
 import type {
   CourseGroup,
   DepartmentAggregate,
+  EvidenceProfile,
   GradeDistributionSeries,
   ProfessorCourseSummary,
   ProfessorDelta,
   ProfessorProfile,
   PublishedCatalogSnapshot,
+  RankingMode,
   School,
+  SchoolSupportProfile,
+  SectionMeeting,
   TrendPoint,
 } from "@/lib/types";
 import { estimateGradeBuckets } from "@/lib/grade-distribution-estimate";
+import {
+  getPublishedCatalogReadTrace,
+  getPublishedCatalogSourceInfo,
+  readPublishedCatalogSnapshot,
+} from "@/lib/published-catalog-source";
 import { formatProfessorDisplayName } from "@/lib/professor-display";
 import { serverLog } from "@/lib/server-logger";
 import { slugify } from "@/lib/utils";
 import { enrichSummary } from "@/lib/scoring";
-
-const PUBLISHED_CATALOG_PATH = path.join(
-  process.cwd(),
-  "etl",
-  "output",
-  "published_catalog.json",
-);
+import {
+  invalidateScorecardDirectoryCache,
+  loadScorecardDirectorySchools,
+} from "@/lib/scorecard-directory";
 
 const GENERAL_ENGINEERING_DEPARTMENT = "General Engineering";
 const GENERAL_ENGINEERING_DEPARTMENT_SLUG = slugify(
@@ -43,6 +47,75 @@ const GENERAL_ENGINEERING_DEPARTMENT_SLUG = slugify(
 function round(value: number, digits = 1) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
+}
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function clampPct(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function courseCodeTokens(courseCode: string) {
+  return courseCode
+    .split(/[^A-Za-z0-9]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function titleFromCourseSlug(courseSlug: string, courseCode: string) {
+  const codeTokens = new Set(courseCodeTokens(courseCode).map((token) => token.toLowerCase()));
+  const titleTokens = courseSlug
+    .split("-")
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .filter((token) => !codeTokens.has(token.toLowerCase()));
+
+  if (!titleTokens.length) {
+    return normalizeWhitespace(courseCode);
+  }
+
+  return titleTokens
+    .map((token) =>
+      token.length <= 3 && /^[a-z]+$/i.test(token)
+        ? token.toUpperCase()
+        : token.charAt(0).toUpperCase() + token.slice(1),
+    )
+    .join(" ");
+}
+
+function normalizeCourseNameDisplay(
+  courseCode: string,
+  courseName: string,
+  courseSlug: string,
+) {
+  const normalizedName = normalizeWhitespace(courseName);
+  const normalizedCode = normalizeWhitespace(courseCode);
+
+  if (!normalizedName) {
+    return titleFromCourseSlug(courseSlug, courseCode);
+  }
+
+  if (normalizedName.toUpperCase() === normalizedCode.toUpperCase()) {
+    return titleFromCourseSlug(courseSlug, courseCode);
+  }
+
+  const repeatedPrefix = new RegExp(
+    `^${escapeRegex(normalizedCode)}\\s*[-:]\\s*`,
+    "i",
+  );
+  const stripped = normalizeWhitespace(normalizedName.replace(repeatedPrefix, ""));
+
+  if (!stripped || stripped.toUpperCase() === normalizedCode.toUpperCase()) {
+    return titleFromCourseSlug(courseSlug, courseCode);
+  }
+
+  return stripped;
 }
 
 function weightedAverage(items: number[], weights: number[]) {
@@ -74,6 +147,215 @@ function pickCoverageTier(offerings: ProfessorCourseSummary[]): School["coverage
       coverageRank(item.coverageTier) > coverageRank(best) ? item.coverageTier : best,
     "rmp_only",
   );
+}
+
+function toConfidenceLabel(confidence: number): EvidenceProfile["confidenceLabel"] {
+  if (confidence >= 75) {
+    return "high";
+  }
+  if (confidence >= 50) {
+    return "medium";
+  }
+  return "low";
+}
+
+function hasOfficialGradeEvidence(offering: ProfessorCourseSummary) {
+  return (
+    offering.dataCompleteness === "institutional_full" ||
+    offering.dataCompleteness === "institutional_partial" ||
+    offering.coverageTier === "institutional_only" ||
+    offering.coverageTier === "institutional_plus_rmp"
+  );
+}
+
+function hasRmpEvidence(offering: ProfessorCourseSummary) {
+  return (
+    offering.coverageTier === "institutional_plus_rmp" ||
+    offering.coverageTier === "rmp_only" ||
+    offering.sourceLabels.some((label) => /rmp|rate my professors/i.test(label))
+  );
+}
+
+function resolveRankingMode(
+  offering: ProfessorCourseSummary,
+  hasSectionPlanning: boolean,
+): RankingMode {
+  if (offering.expectedGpa != null || offering.aRate != null) {
+    return "expected_gpa";
+  }
+  if (hasSectionPlanning) {
+    return "planner_fit";
+  }
+  return "ease_score";
+}
+
+function buildEvidenceProfile(
+  offering: ProfessorCourseSummary,
+  hasSectionPlanning: boolean,
+): EvidenceProfile {
+  const sourceKinds = new Set<EvidenceProfile["sourceKinds"][number]>();
+
+  sourceKinds.add("catalog");
+
+  if (hasSectionPlanning) {
+    sourceKinds.add("schedule");
+  }
+  if (hasOfficialGradeEvidence(offering)) {
+    sourceKinds.add("official_grades");
+  }
+  if (hasRmpEvidence(offering)) {
+    sourceKinds.add("rmp");
+  }
+  if (offering.sourceLabels.some((label) => /community|student/i.test(label))) {
+    sourceKinds.add("community");
+  }
+  if (offering.sourceLabels.some((label) => /syllabus/i.test(label))) {
+    sourceKinds.add("syllabus");
+  }
+
+  return {
+    sourceKinds: [...sourceKinds],
+    confidenceLabel: toConfidenceLabel(offering.confidence),
+    hasOfficialGrades: hasOfficialGradeEvidence(offering),
+    hasScheduleData: hasSectionPlanning,
+    hasRmp: hasRmpEvidence(offering),
+    hasCommunityEvidence: sourceKinds.has("community"),
+    hasSyllabusEvidence: sourceKinds.has("syllabus"),
+  };
+}
+
+function buildSchoolSupportProfile(
+  school: School,
+  offerings: ProfessorCourseSummary[],
+  sectionMeetings: SectionMeeting[],
+): SchoolSupportProfile {
+  const hasCatalog = offerings.length > 0;
+  const hasSections = sectionMeetings.length > 0;
+  const hasOfficialGrades = offerings.some(hasOfficialGradeEvidence);
+  const hasRmp = offerings.some(hasRmpEvidence);
+  const hasCommunityEvidence = offerings.some((item) =>
+    item.sourceLabels.some((label) => /community|student/i.test(label)),
+  );
+  const catalogCompletenessPct = clampPct(hasCatalog ? 100 : 0);
+  const sectionCompletenessPct = clampPct(
+    hasCatalog ? (new Set(sectionMeetings.map((item) => item.courseSlug)).size / Math.max(new Set(offerings.map((item) => item.courseSlug)).size, 1)) * 100 : 0,
+  );
+  const meetingTimeCompletenessPct = clampPct(
+    hasSections
+      ? (sectionMeetings.filter((item) => item.startTime && item.endTime && item.days.length).length /
+          Math.max(sectionMeetings.length, 1)) *
+        100
+      : 0,
+  );
+  const evidenceCompletenessPct = clampPct(
+    offerings.length
+      ? (offerings.filter(
+          (item) =>
+            item.expectedGpa != null ||
+            item.aRate != null ||
+            item.rmpRating != null ||
+            item.rmpDifficulty != null,
+        ).length /
+          offerings.length) *
+        100
+      : 0,
+  );
+  const plannerReadiness: SchoolSupportProfile["plannerReadiness"] =
+    hasSections && evidenceCompletenessPct >= 60
+      ? "evidence_ready"
+      : hasSections
+        ? "schedule_ready"
+        : hasCatalog
+          ? "catalog_ready"
+          : "directory_ready";
+  const readinessReason =
+    plannerReadiness === "evidence_ready"
+      ? "Sections and evidence-backed ranking signals are published."
+      : plannerReadiness === "schedule_ready"
+        ? "Sections are published, but ranking evidence is still partial."
+        : plannerReadiness === "catalog_ready"
+          ? "Courses and instructors are published, but section timing is still incomplete."
+          : "Only school-directory coverage is published so far.";
+
+  return {
+    plannerReadiness,
+    hasCatalog,
+    hasSections,
+    hasInstructorDirectory: hasCatalog,
+    hasPlanner: true,
+    hasOfficialGrades,
+    hasRmp,
+    hasCommunityEvidence,
+    evidenceFreshness: school.sourceStatus.freshness,
+    sourceAvailability: [
+      ...(hasCatalog ? (["catalog"] as const) : []),
+      ...(hasSections ? (["schedule"] as const) : []),
+      ...(hasOfficialGrades ? (["official_grades"] as const) : []),
+      ...(hasRmp ? (["rmp"] as const) : []),
+      ...(hasCommunityEvidence ? (["community"] as const) : []),
+    ],
+    catalogCompletenessPct,
+    sectionCompletenessPct,
+    meetingTimeCompletenessPct,
+    evidenceCompletenessPct,
+    readinessReason,
+  };
+}
+
+function normalizeSchoolDescriptor(
+  supportProfile: SchoolSupportProfile,
+) {
+  if (supportProfile.plannerReadiness === "evidence_ready") {
+    return "Evidence-backed school profile with published sections, instructors, and ranking signals.";
+  }
+
+  if (supportProfile.plannerReadiness === "schedule_ready") {
+    return "Planner-ready school profile with published course, section, and instructor coverage.";
+  }
+
+  if (supportProfile.plannerReadiness === "catalog_ready") {
+    return supportProfile.hasOfficialGrades
+      ? "Published course and instructor data with evidence-backed ranking signals."
+      : "Published course and instructor data with a live planning workflow.";
+  }
+
+  return "Universal school profile with the same Classify planning workflow. Course and schedule depth expands as school data is published.";
+}
+
+function normalizeSchoolNote(
+  supportProfile: SchoolSupportProfile,
+) {
+  if (supportProfile.plannerReadiness === "evidence_ready") {
+    return "This school is ready for evidence-backed planning with published section timing and ranking signals.";
+  }
+
+  if (supportProfile.hasOfficialGrades && supportProfile.hasRmp) {
+    return "Official school data and external review signals are both available for ranked planning.";
+  }
+
+  if (supportProfile.hasOfficialGrades) {
+    return "Official school data is live. Additional review enrichment attaches when matches clear publishing thresholds.";
+  }
+
+  if (supportProfile.hasCatalog || supportProfile.hasSections) {
+    return "This school profile is live with local catalog or schedule data. More evidence layers attach as they are published.";
+  }
+
+  return "This school profile is live. Catalog, schedule, and evidence layers attach as local data is published.";
+}
+
+function normalizeSchoolPresentation(
+  school: School,
+  supportProfile: SchoolSupportProfile,
+): School {
+  return {
+    ...school,
+    descriptor: normalizeSchoolDescriptor(supportProfile),
+    sourceStatus: {
+      ...school.sourceStatus,
+      note: normalizeSchoolNote(supportProfile),
+    },
+  };
 }
 
 function deriveGradeDistributionSeries(
@@ -254,20 +536,8 @@ function attachDepartmentDeltas(
   }));
 }
 
-function readPublishedSnapshot(): PublishedCatalogSnapshot | null {
-  if (!fs.existsSync(PUBLISHED_CATALOG_PATH)) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(fs.readFileSync(PUBLISHED_CATALOG_PATH, "utf8")) as PublishedCatalogSnapshot;
-  } catch (err) {
-    serverLog.warn("published_catalog_read_failed", {
-      path: PUBLISHED_CATALOG_PATH,
-      error: String(err),
-    });
-    return null;
-  }
+async function readPublishedSnapshot(): Promise<PublishedCatalogSnapshot | null> {
+  return readPublishedCatalogSnapshot<PublishedCatalogSnapshot>();
 }
 
 function dedupeOfferingsByProfessorCourse(
@@ -287,20 +557,55 @@ function dedupeOfferingsByProfessorCourse(
 function finalizeOfferingsPipeline(
   schools: School[],
   mergedOfferings: ProfessorCourseSummary[],
+  sectionMeetings: SectionMeeting[],
 ): {
   offerings: ProfessorCourseSummary[];
   departmentAggregates: DepartmentAggregate[];
 } {
   const enriched = enrichAllOfferings(mergedOfferings);
-  const deduped = dedupeOfferingsByProfessorCourse(enriched);
+  const deduped = dedupeOfferingsByProfessorCourse(enriched).map((offering) => {
+    const hasSectionPlanning = sectionMeetings.some(
+      (item) =>
+        item.schoolSlug === offering.schoolSlug &&
+        item.courseSlug === offering.courseSlug,
+    );
+    const rankingMode = resolveRankingMode(offering, hasSectionPlanning);
+
+    return {
+      ...offering,
+      hasSectionPlanning,
+      rankingMode,
+      evidenceProfile: buildEvidenceProfile(offering, hasSectionPlanning),
+    };
+  });
   const departmentAggregates = deriveDepartmentAggregates(schools, deduped);
   const offerings = attachDepartmentDeltas(deduped, departmentAggregates);
   return { offerings, departmentAggregates };
 }
 
 function buildFallbackSnapshot(): PublishedCatalogSnapshot {
-  const schools = getSeedSchools();
-  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(schools, getSeedOfferings());
+  const baseSchools = getSeedSchools();
+  const sectionMeetings: SectionMeeting[] = [];
+  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+    baseSchools,
+    getSeedOfferings(),
+    sectionMeetings,
+  );
+  const schools = baseSchools.map((school) => {
+    const supportProfile = buildSchoolSupportProfile(
+      school,
+      offerings.filter((item) => item.schoolSlug === school.slug),
+      sectionMeetings.filter((item) => item.schoolSlug === school.slug),
+    );
+
+    return normalizeSchoolPresentation(
+      {
+        ...school,
+        supportProfile,
+      },
+      supportProfile,
+    );
+  });
 
   return {
     updatedAt: new Date().toISOString(),
@@ -308,7 +613,103 @@ function buildFallbackSnapshot(): PublishedCatalogSnapshot {
     offerings,
     departmentAggregates,
     gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+    sectionMeetings,
+    publishMetadata: {
+      runId: "seed-fallback",
+      activatedAt: new Date().toISOString(),
+      source: "seed",
+      summary: {
+        schoolCount: schools.length,
+        offeringCount: offerings.length,
+        sectionCount: 0,
+        evidenceReadySchoolCount: schools.filter(
+          (item) => item.supportProfile?.plannerReadiness === "evidence_ready",
+        ).length,
+      },
+    },
+  };
+}
+
+/** Dev-only: seed schools plus College Scorecard directory rows (seed wins on slug). Matches production browse breadth when the JSON exists. */
+function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
+  const seedSnap = buildFallbackSnapshot();
+  const directorySchools = loadScorecardDirectorySchools();
+  if (!directorySchools.length) {
+    return seedSnap;
+  }
+
+  const mergedSchools = mergeByKey(directorySchools, seedSnap.schools, (s) => s.slug);
+  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+    mergedSchools,
+    seedSnap.offerings,
+    seedSnap.sectionMeetings ?? [],
+  );
+  const schools = mergedSchools.map((school) => {
+    const supportProfile = buildSchoolSupportProfile(
+      school,
+      offerings.filter((item) => item.schoolSlug === school.slug),
+      (seedSnap.sectionMeetings ?? []).filter((item) => item.schoolSlug === school.slug),
+    );
+
+    return normalizeSchoolPresentation(
+      {
+        ...school,
+        supportProfile,
+      },
+      supportProfile,
+    );
+  });
+
+  const baseMeta = seedSnap.publishMetadata;
+  if (!baseMeta) {
+    return {
+      ...seedSnap,
+      schools,
+      offerings,
+      departmentAggregates,
+      gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+    };
+  }
+
+  return {
+    ...seedSnap,
+    schools,
+    offerings,
+    departmentAggregates,
+    gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+    publishMetadata: {
+      ...baseMeta,
+      runId: "seed-plus-directory-fallback",
+      summary: {
+        schoolCount: schools.length,
+        offeringCount: offerings.length,
+        sectionCount: baseMeta.summary?.sectionCount ?? 0,
+        evidenceReadySchoolCount: baseMeta.summary?.evidenceReadySchoolCount ?? 0,
+      },
+    },
+  };
+}
+
+function buildDirectoryOnlySnapshot(): PublishedCatalogSnapshot {
+  const schools = loadScorecardDirectorySchools();
+  return {
+    updatedAt: new Date().toISOString(),
+    schools,
+    offerings: [],
+    departmentAggregates: [],
+    gradeDistributionSeries: [],
     sectionMeetings: [],
+    publishMetadata: {
+      runId: "directory-fallback",
+      activatedAt: new Date().toISOString(),
+      source: "file",
+      summary: {
+        schoolCount: schools.length,
+        offeringCount: 0,
+        sectionCount: 0,
+        evidenceReadySchoolCount: 0,
+      },
+    },
   };
 }
 
@@ -339,6 +740,11 @@ function enrichAllOfferings(offerings: ProfessorCourseSummary[]): ProfessorCours
     const enriched = enrichSummary(stripForEnrichment(item));
     return {
       ...enriched,
+      courseName: normalizeCourseNameDisplay(
+        enriched.courseCode,
+        enriched.courseName,
+        enriched.courseSlug,
+      ),
       professorName: formatProfessorDisplayName(enriched.professorName),
     };
   });
@@ -356,46 +762,110 @@ function mergeByKey<T>(
   return [...merged.values()];
 }
 
-function getSnapshot(): PublishedCatalogSnapshot {
-  try {
-    const fallback = buildFallbackSnapshot();
-    const snapshot = readPublishedSnapshot();
-    if (!snapshot) {
-      return fallback;
-    }
+let snapshotPromise: Promise<PublishedCatalogSnapshot> | null = null;
 
-    const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug);
-    const mergedOfferings = mergeByKey(
-      fallback.offerings,
-      snapshot.offerings,
-      (item) => item.id,
-    );
-    const { offerings, departmentAggregates } = finalizeOfferingsPipeline(schools, mergedOfferings);
+/** Clears the in-memory catalog snapshot (e.g. after republishing data to Supabase). Next request reloads. */
+export function invalidateCatalogSnapshotCache() {
+  invalidateScorecardDirectoryCache();
+  snapshotPromise = null;
+}
 
-    return {
-      updatedAt: snapshot.updatedAt ?? fallback.updatedAt,
-      schools,
-      offerings,
-      departmentAggregates,
-      gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
-      sectionMeetings: snapshot.sectionMeetings ?? fallback.sectionMeetings,
-    };
-  } catch (err) {
-    serverLog.error("catalog_snapshot_failed", { error: String(err) });
-    return buildFallbackSnapshot();
+async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
+  if (snapshotPromise) {
+    return snapshotPromise;
   }
+
+  snapshotPromise = (async () => {
+    try {
+      const fallback =
+        process.env.NODE_ENV === "production"
+          ? buildDirectoryOnlySnapshot()
+          : buildDevFallbackWithDirectory();
+      const snapshot = await readPublishedSnapshot();
+      if (!snapshot) {
+        return fallback;
+      }
+
+      const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug);
+      const sectionMeetings = snapshot.sectionMeetings ?? fallback.sectionMeetings ?? [];
+      const mergedOfferings = mergeByKey(
+        fallback.offerings,
+        snapshot.offerings,
+        (item) => item.id,
+      );
+      const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+        schools,
+        mergedOfferings,
+        sectionMeetings,
+      );
+      const schoolsWithSupport = schools.map((school) => {
+        const supportProfile = buildSchoolSupportProfile(
+          school,
+          offerings.filter((item) => item.schoolSlug === school.slug),
+          sectionMeetings.filter((item) => item.schoolSlug === school.slug),
+        );
+
+        return normalizeSchoolPresentation(
+          {
+            ...school,
+            supportProfile,
+          },
+          supportProfile,
+        );
+      });
+
+      return {
+        updatedAt: snapshot.updatedAt ?? fallback.updatedAt,
+        schools: schoolsWithSupport,
+        offerings,
+        departmentAggregates,
+        gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+        sectionMeetings,
+        publishMetadata:
+          snapshot.publishMetadata ?? {
+            runId: "merged-runtime-snapshot",
+            activatedAt: snapshot.updatedAt ?? fallback.updatedAt,
+            source: "db",
+            summary: {
+              schoolCount: schoolsWithSupport.length,
+              offeringCount: offerings.length,
+              sectionCount: sectionMeetings.length,
+              evidenceReadySchoolCount: schoolsWithSupport.filter(
+                (item) => item.supportProfile?.plannerReadiness === "evidence_ready",
+              ).length,
+            },
+          },
+      };
+    } catch (err) {
+      serverLog.error("catalog_snapshot_failed", { error: String(err) });
+      return process.env.NODE_ENV === "production"
+        ? buildDirectoryOnlySnapshot()
+        : buildDevFallbackWithDirectory();
+    }
+  })();
+
+  return snapshotPromise;
 }
 
-export function getCatalogSchools() {
-  return getSnapshot().schools;
+export async function getCatalogSchools() {
+  return (await getSnapshot()).schools;
 }
 
-export function getCatalogOfferings() {
-  return getSnapshot().offerings;
+export async function getCatalogSourceInfo() {
+  return getPublishedCatalogSourceInfo();
 }
 
-export function getCatalogCoverageStats() {
-  const snapshot = getSnapshot();
+/** Last published-layer load: `db` = Supabase snapshot, `file` = published_catalog.json (dev only), `none` = seed only. */
+export function getCatalogDataOriginTrace() {
+  return getPublishedCatalogReadTrace();
+}
+
+export async function getCatalogOfferings() {
+  return (await getSnapshot()).offerings;
+}
+
+export async function getCatalogCoverageStats() {
+  const snapshot = await getSnapshot();
   const trackedCourses = new Set(
     snapshot.offerings.map((item) => `${item.schoolSlug}:${item.courseSlug}`),
   ).size;
@@ -406,15 +876,18 @@ export function getCatalogCoverageStats() {
   return {
     trackedSchools: snapshot.schools.length,
     institutionalSchools: snapshot.schools.filter(
-      (school) => school.coverageTier !== "rmp_only",
+      (school) => school.supportProfile?.hasOfficialGrades,
+    ).length,
+    plannerReadySchools: snapshot.schools.filter(
+      (school) => school.supportProfile?.hasCatalog,
     ).length,
     trackedCourses,
     trackedProfessors,
   };
 }
 
-export function getFeaturedOfferings() {
-  const offerings = getCatalogOfferings();
+export async function getFeaturedOfferings() {
+  const offerings = await getCatalogOfferings();
   return offerings.length
     ? [...offerings]
         .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0))
@@ -422,17 +895,50 @@ export function getFeaturedOfferings() {
     : getSeedFeaturedOfferings();
 }
 
-export function getCatalogSchoolBySlug(slug: string) {
-  return getCatalogSchools().find((school) => school.slug === slug);
+export async function getCatalogSchoolBySlug(slug: string) {
+  return (await getCatalogSchools()).find((school) => school.slug === slug);
 }
 
-export function getCatalogOfferingsForSchool(schoolSlug: string) {
-  return getCatalogOfferings().filter((offering) => offering.schoolSlug === schoolSlug);
+export async function getCatalogUpdatedAt() {
+  return (await getSnapshot()).updatedAt;
 }
 
-export function getCourseGroupsForSchool(schoolSlug: string): CourseGroup[] {
+export async function getCatalogPublishMetadata() {
+  return (await getSnapshot()).publishMetadata ?? null;
+}
+
+export async function getCatalogReadinessSummary() {
+  const schools = await getCatalogSchools();
+  return {
+    totalSchools: schools.length,
+    directoryReady: schools.filter(
+      (school) => school.supportProfile?.plannerReadiness === "directory_ready",
+    ).length,
+    catalogReady: schools.filter(
+      (school) => school.supportProfile?.plannerReadiness === "catalog_ready",
+    ).length,
+    scheduleReady: schools.filter(
+      (school) => school.supportProfile?.plannerReadiness === "schedule_ready",
+    ).length,
+    evidenceReady: schools.filter(
+      (school) => school.supportProfile?.plannerReadiness === "evidence_ready",
+    ).length,
+  };
+}
+
+export async function getCatalogOfferingsForSchool(schoolSlug: string) {
+  return (await getCatalogOfferings()).filter((offering) => offering.schoolSlug === schoolSlug);
+}
+
+export async function getCatalogSectionMeetingsForSchool(schoolSlug: string) {
+  return ((await getSnapshot()).sectionMeetings ?? []).filter(
+    (item) => item.schoolSlug === schoolSlug,
+  );
+}
+
+export async function getCourseGroupsForSchool(schoolSlug: string): Promise<CourseGroup[]> {
   const groups = new Map<string, ProfessorCourseSummary[]>();
-  for (const offering of getCatalogOfferingsForSchool(schoolSlug)) {
+  for (const offering of await getCatalogOfferingsForSchool(schoolSlug)) {
     groups.set(offering.courseSlug, [...(groups.get(offering.courseSlug) ?? []), offering]);
   }
 
@@ -459,12 +965,12 @@ export function getCourseGroupsForSchool(schoolSlug: string): CourseGroup[] {
     .sort((left, right) => (right.topClassifyScore ?? 0) - (left.topClassifyScore ?? 0));
 }
 
-export function getCourseGroup(schoolSlug: string, courseSlug: string) {
-  return getCourseGroupsForSchool(schoolSlug).find((course) => course.courseSlug === courseSlug);
+export async function getCourseGroup(schoolSlug: string, courseSlug: string) {
+  return (await getCourseGroupsForSchool(schoolSlug)).find((course) => course.courseSlug === courseSlug);
 }
 
-export function getCourseOfferings(schoolSlug: string, courseSlug: string) {
-  return getCatalogOfferings()
+export async function getCourseOfferings(schoolSlug: string, courseSlug: string) {
+  return (await getCatalogOfferings())
     .filter(
       (offering) =>
         offering.schoolSlug === schoolSlug && offering.courseSlug === courseSlug,
@@ -472,12 +978,12 @@ export function getCourseOfferings(schoolSlug: string, courseSlug: string) {
     .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
 }
 
-export function getProfessorProfile(
+export async function getProfessorProfile(
   schoolSlug: string,
   professorSlug: string,
-): ProfessorProfile | undefined {
-  const school = getCatalogSchoolBySlug(schoolSlug);
-  const matches = getCatalogOfferings().filter(
+): Promise<ProfessorProfile | undefined> {
+  const school = await getCatalogSchoolBySlug(schoolSlug);
+  const matches = (await getCatalogOfferings()).filter(
     (offering) =>
       offering.schoolSlug === schoolSlug &&
       offering.professorSlug === professorSlug,
@@ -489,26 +995,26 @@ export function getProfessorProfile(
   return { school, offerings: matches, professor: matches[0] };
 }
 
-export function getDepartmentAggregatesForSchool(schoolSlug: string) {
-  return (getSnapshot().departmentAggregates ?? []).filter(
+export async function getDepartmentAggregatesForSchool(schoolSlug: string) {
+  return ((await getSnapshot()).departmentAggregates ?? []).filter(
     (item) => item.schoolSlug === schoolSlug,
   );
 }
 
-export function getDepartmentAggregate(
+export async function getDepartmentAggregate(
   schoolSlug: string,
   departmentSlug: string,
 ) {
-  return getDepartmentAggregatesForSchool(schoolSlug).find(
+  return (await getDepartmentAggregatesForSchool(schoolSlug)).find(
     (item) => item.departmentSlug === departmentSlug,
   );
 }
 
-export function getDepartmentOfferingsForSchool(
+export async function getDepartmentOfferingsForSchool(
   schoolSlug: string,
   departmentSlug: string,
 ) {
-  const offerings = getCatalogOfferingsForSchool(schoolSlug);
+  const offerings = await getCatalogOfferingsForSchool(schoolSlug);
 
   if (departmentSlug === GENERAL_ENGINEERING_DEPARTMENT_SLUG) {
     return offerings.filter((item) => isGeneralEngineeringOffering(item));
@@ -517,17 +1023,17 @@ export function getDepartmentOfferingsForSchool(
   return offerings.filter((item) => slugify(item.department) === departmentSlug);
 }
 
-export function getGradeDistributionSeriesForOffering(offeringId: string) {
-  return (getSnapshot().gradeDistributionSeries ?? [])
+export async function getGradeDistributionSeriesForOffering(offeringId: string) {
+  return ((await getSnapshot()).gradeDistributionSeries ?? [])
     .filter((item) => item.offeringId === offeringId)
     .sort((left, right) => left.term.localeCompare(right.term));
 }
 
-export function getGradeDistributionSeriesForCourse(
+export async function getGradeDistributionSeriesForCourse(
   schoolSlug: string,
   courseSlug: string,
 ) {
-  const series = (getSnapshot().gradeDistributionSeries ?? []).filter(
+  const series = ((await getSnapshot()).gradeDistributionSeries ?? []).filter(
     (item) => item.schoolSlug === schoolSlug && item.courseSlug === courseSlug,
   );
 
@@ -647,11 +1153,11 @@ function aggregateTrend(
   }));
 }
 
-export function getCourseTrend(
+export async function getCourseTrend(
   schoolSlug: string,
   courseSlug: string,
 ) {
-  const offerings = getCourseOfferings(schoolSlug, courseSlug);
+  const offerings = await getCourseOfferings(schoolSlug, courseSlug);
   return aggregateTrend(
     offerings.map((offering) => ({
       trend: offering.trend,
@@ -660,12 +1166,12 @@ export function getCourseTrend(
   );
 }
 
-export function getSchoolTrendSpotlight(slug: string) {
-  const school = getCatalogSchoolBySlug(slug);
+export async function getSchoolTrendSpotlight(slug: string) {
+  const school = await getCatalogSchoolBySlug(slug);
   if (!school) return undefined;
 
-  const schoolOfferings = getCatalogOfferingsForSchool(slug);
-  const departments = getDepartmentAggregatesForSchool(slug);
+  const schoolOfferings = await getCatalogOfferingsForSchool(slug);
+  const departments = await getDepartmentAggregatesForSchool(slug);
   const generalEngineering = departments.find(
     (item) => item.departmentSlug === GENERAL_ENGINEERING_DEPARTMENT_SLUG,
   );
@@ -681,7 +1187,7 @@ export function getSchoolTrendSpotlight(slug: string) {
   return {
     school,
     offerings: schoolOfferings,
-    courses: getCourseGroupsForSchool(slug).slice(0, 6),
+    courses: (await getCourseGroupsForSchool(slug)).slice(0, 6),
     trending: [...schoolOfferings]
       .filter((offering) => offering.trendDelta != null)
       .sort((left, right) => (right.trendDelta ?? 0) - (left.trendDelta ?? 0))
@@ -690,8 +1196,8 @@ export function getSchoolTrendSpotlight(slug: string) {
   };
 }
 
-export function getHiddenGemsForSchool(schoolSlug: string) {
-  const offerings = getCatalogOfferingsForSchool(schoolSlug).filter(
+export async function getHiddenGemsForSchool(schoolSlug: string) {
+  const offerings = (await getCatalogOfferingsForSchool(schoolSlug)).filter(
     (item) => item.expectedGpa != null && item.aRate != null,
   );
 
@@ -713,3 +1219,5 @@ export function getHiddenGemsForSchool(schoolSlug: string) {
     })
     .slice(0, 4);
 }
+
+export { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";

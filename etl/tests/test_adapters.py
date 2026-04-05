@@ -10,7 +10,13 @@ from etl.classly_etl.adapters.public_json import PublicJsonAdapter
 from etl.classly_etl.adapters.rmp import LiveRMPGraphQLAdapter, RMPRatingAdapter
 from etl.classly_etl.adapters.tamu import TexasAMGradeDistributionAdapter
 from etl.classly_etl.adapters.ut_austin import UTAustinTableauAdapter
-from etl.classly_etl.matchers import best_professor_match
+from etl.classly_etl.matchers import (
+    best_professor_match,
+    build_match_audit_report,
+    enrich_offerings_with_match_resolutions,
+    resolve_professor_matches,
+)
+from etl.classly_etl.models import RMPRatingRecord
 
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
@@ -54,8 +60,10 @@ class AdapterTests(unittest.TestCase):
             fixture_path=FIXTURES / "college_scorecard_schools.json"
         )
         records = list(adapter.normalize(adapter.fetch_raw()))
+        self.assertEqual(len(records), 3)
         self.assertEqual(records[0].slug, "texas-a-m-university-college-station")
         self.assertEqual(records[1].state, "TX")
+        self.assertEqual(records[2].slug, "university-of-michigan-ann-arbor")
 
     def test_professor_matching(self):
         match, score = best_professor_match(
@@ -64,6 +72,157 @@ class AdapterTests(unittest.TestCase):
         )
         self.assertEqual(match, "Priya Venkataraman")
         self.assertGreater(score, 0.95)
+
+    def test_resolve_professor_matches_auto_links_exact_name(self):
+        offerings = [
+            {
+                "schoolSlug": "ut-austin",
+                "professorSlug": "priya-venkataraman",
+                "professorName": "Priya Venkataraman",
+                "department": "Mathematics",
+                "courseCode": "M 408D",
+                "coverageTier": "institutional_only",
+                "sourceLabels": ["UT grade dashboard"],
+                "matchConfidence": 100,
+            }
+        ]
+        rmp_records = [
+            RMPRatingRecord(
+                school_slug="ut-austin",
+                professor_name="Priya Venkataraman",
+                rmp_id="321",
+                rating=4.8,
+                difficulty=2.1,
+                review_count=84,
+                tags=("Clear grading",),
+            )
+        ]
+
+        resolutions, reviews = resolve_professor_matches(offerings, rmp_records)
+        self.assertEqual(reviews, [])
+        self.assertEqual(resolutions[0].status, "auto_linked")
+        self.assertGreaterEqual(resolutions[0].confidence, 90)
+
+        enriched = enrich_offerings_with_match_resolutions(offerings, resolutions)
+        self.assertEqual(enriched[0]["coverageTier"], "institutional_plus_rmp")
+        self.assertEqual(enriched[0]["rmpRating"], 4.8)
+        self.assertIn("RMP GraphQL", enriched[0]["sourceLabels"])
+
+    def test_resolve_professor_matches_queues_ambiguous_same_initial_surname(self):
+        offerings = [
+            {
+                "schoolSlug": "texas-am",
+                "professorSlug": "jacob-smith",
+                "professorName": "Jacob Smith",
+                "department": "Engineering",
+                "courseCode": "ENGR 102",
+                "coverageTier": "institutional_only",
+                "sourceLabels": ["TAMU PDF"],
+                "matchConfidence": 100,
+            },
+            {
+                "schoolSlug": "texas-am",
+                "professorSlug": "jordan-smith",
+                "professorName": "Jordan Smith",
+                "department": "Engineering",
+                "courseCode": "ENGR 102",
+                "coverageTier": "institutional_only",
+                "sourceLabels": ["TAMU PDF"],
+                "matchConfidence": 100,
+            },
+        ]
+        rmp_records = [
+            RMPRatingRecord(
+                school_slug="texas-am",
+                professor_name="Jason Smith",
+                rmp_id="999",
+                rating=4.1,
+                difficulty=3.0,
+                review_count=19,
+            )
+        ]
+
+        resolutions, reviews = resolve_professor_matches(offerings, rmp_records)
+        self.assertEqual(len(reviews), 1)
+        self.assertIn("Smith", reviews[0].professor_name_raw)
+        self.assertTrue(any(item.status == "review" for item in resolutions))
+
+        audit = build_match_audit_report(resolutions, reviews, school_slug="texas-am")
+        self.assertEqual(audit["pendingReviewCount"], 1)
+
+    def test_auto_link_without_reviews_stays_institutional_only(self):
+        offerings = [
+            {
+                "schoolSlug": "texas-am",
+                "professorSlug": "alex-ramos",
+                "professorName": "Alex Ramos",
+                "department": "Engineering",
+                "courseCode": "ENGR 102",
+                "coverageTier": "institutional_only",
+                "sourceLabels": ["TAMU PDF"],
+                "matchConfidence": 100,
+            }
+        ]
+        rmp_records = [
+            RMPRatingRecord(
+                school_slug="texas-am",
+                professor_name="Alex Ramos",
+                rmp_id="444",
+                rating=0,
+                difficulty=0,
+                review_count=0,
+                tags=(),
+            )
+        ]
+
+        resolutions, _ = resolve_professor_matches(offerings, rmp_records)
+        self.assertEqual(resolutions[0].status, "auto_linked")
+
+        enriched = enrich_offerings_with_match_resolutions(offerings, resolutions)
+        self.assertEqual(enriched[0]["coverageTier"], "institutional_only")
+        self.assertEqual(enriched[0]["rmpRating"], None)
+        self.assertEqual(enriched[0]["rmpDifficulty"], None)
+        self.assertEqual(enriched[0]["tags"], [])
+        self.assertNotIn("RMP GraphQL", enriched[0]["sourceLabels"])
+
+    def test_resolve_professor_matches_leaves_unmatched_identity_when_no_rmp_candidate(self):
+        offerings = [
+            {
+                "schoolSlug": "texas-am",
+                "professorSlug": "a-cahill",
+                "professorName": "A. Cahill",
+                "department": "Engineering",
+                "courseCode": "ENGR 102",
+                "coverageTier": "institutional_plus_rmp",
+                "sourceLabels": ["TAMU PDF", "Rate My Professors"],
+                "matchConfidence": 88,
+                "rmpRating": 4.3,
+                "rmpDifficulty": 2.1,
+                "tags": ["Clear grading"],
+            }
+        ]
+        rmp_records = [
+            RMPRatingRecord(
+                school_slug="texas-am",
+                professor_name="Morgan Blake",
+                rmp_id="123",
+                rating=4.0,
+                difficulty=2.7,
+                review_count=11,
+            )
+        ]
+
+        resolutions, reviews = resolve_professor_matches(offerings, rmp_records)
+        self.assertEqual(reviews, [])
+        self.assertEqual(resolutions[0].status, "unmatched")
+        self.assertEqual(resolutions[0].confidence, 100.0)
+
+        enriched = enrich_offerings_with_match_resolutions(offerings, resolutions)
+        self.assertEqual(enriched[0]["coverageTier"], "institutional_only")
+        self.assertEqual(enriched[0]["rmpRating"], None)
+        self.assertEqual(enriched[0]["rmpDifficulty"], None)
+        self.assertEqual(enriched[0]["tags"], [])
+        self.assertNotIn("Rate My Professors", enriched[0]["sourceLabels"])
 
     def test_rmp_adapter_normalizes_tags_and_id(self):
         payload = {

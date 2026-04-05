@@ -9,13 +9,21 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "catalog:merge": "tsx scripts/merge-published-catalog.ts"
+    "catalog:merge": "tsx scripts/merge-published-catalog.ts",
+    "catalog:directory:fixture": "python -m etl.scripts.import_school_directory --fixture",
+    "catalog:publish:supabase": "tsx scripts/publish-catalog-to-supabase.ts",
+    "catalog:validate:supabase": "tsx scripts/validate-catalog-supabase.ts",
+    "catalog:rollback:supabase": "tsx scripts/rollback-catalog-supabase.ts",
+    "catalog:doctor:supabase": "tsx scripts/doctor-published-catalog-supabase.ts"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.101.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.11.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
     "next": "16.2.2",

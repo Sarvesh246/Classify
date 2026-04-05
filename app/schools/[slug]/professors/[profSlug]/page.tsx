@@ -5,10 +5,12 @@ import { ProfessorCoursesList } from "@/components/professor/professor-courses-l
 import { ProfessorGradeTabs } from "@/components/professor/professor-grade-tabs";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { SaveItemButton } from "@/components/saved/save-item-button";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogOfferings, getProfessorProfile } from "@/lib/catalog";
+import { getProfessorProfile } from "@/lib/catalog";
 import {
   confidenceToLabel,
+  formatFreshnessLabel,
   formatGpa,
   formatPercent,
   formatRating,
@@ -23,16 +25,9 @@ type ProfessorPageProps = {
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return getCatalogOfferings().map((offering) => ({
-    slug: offering.schoolSlug,
-    profSlug: offering.professorSlug,
-  }));
-}
-
 export default async function ProfessorPage({ params }: ProfessorPageProps) {
   const { slug, profSlug } = await params;
-  const profile = getProfessorProfile(slug, profSlug);
+  const profile = await getProfessorProfile(slug, profSlug);
   if (!profile) notFound();
 
   const primary = profile.professor;
@@ -53,7 +48,14 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               <p className="mt-2 text-base text-muted">{primary.professorTitle}</p>
               <p className="app-lead mt-4">{primary.professorSummary}</p>
             </div>
-            <CoverageBadge tier={primary.coverageTier} />
+            <div className="flex shrink-0 flex-col items-end gap-3">
+              <SaveItemButton
+                itemType="professor"
+                schoolSlug={slug}
+                professorSlug={profSlug}
+              />
+              <CoverageBadge tier={primary.coverageTier} />
+            </div>
           </div>
 
           <DataTrustBanner offering={primary} className="mt-6" />
@@ -111,7 +113,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <TrendSparkline trend={primary.trend} className="mt-6" />
             <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
               <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                Freshness {primary.freshness}
+                Freshness {formatFreshnessLabel(primary.freshness)}
               </span>
               <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
                 Latest term {primary.latestTerm}

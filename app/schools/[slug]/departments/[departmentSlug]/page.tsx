@@ -3,11 +3,10 @@ import { notFound } from "next/navigation";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
 import {
-  getCatalogSchools,
   getDepartmentAggregate,
-  getDepartmentAggregatesForSchool,
   getDepartmentOfferingsForSchool,
 } from "@/lib/catalog";
+import type { ProfessorCourseSummary } from "@/lib/types";
 import {
   formatGpa,
   formatPercent,
@@ -21,27 +20,13 @@ type DepartmentPageProps = {
 };
 
 const sorters = {
-  classify: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
-    item.classifyScore ?? -1,
-  gpa: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
-    item.expectedGpa ?? -1,
-  arate: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
-    item.aRate ?? -1,
-  trend: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
-    item.trendDelta ?? -999,
-  /** Lower (more negative)-grade ease delta sorts first — “toughest” recent trend. */
-  trend_hard: (item: ReturnType<typeof getDepartmentOfferingsForSchool>[number]) =>
+  classify: (item: ProfessorCourseSummary) => item.classifyScore ?? -1,
+  gpa: (item: ProfessorCourseSummary) => item.expectedGpa ?? -1,
+  arate: (item: ProfessorCourseSummary) => item.aRate ?? -1,
+  trend: (item: ProfessorCourseSummary) => item.trendDelta ?? -999,
+  trend_hard: (item: ProfessorCourseSummary) =>
     item.trendDelta == null ? -99999 : -item.trendDelta,
 };
-
-export async function generateStaticParams() {
-  return getCatalogSchools().flatMap((school) =>
-    getDepartmentAggregatesForSchool(school.slug).map((department) => ({
-      slug: school.slug,
-      departmentSlug: department.departmentSlug,
-    })),
-  );
-}
 
 export default async function DepartmentPage({
   params,
@@ -49,15 +34,16 @@ export default async function DepartmentPage({
 }: DepartmentPageProps) {
   const { slug, departmentSlug } = await params;
   const { sort = "classify" } = await searchParams;
-  const department = getDepartmentAggregate(slug, departmentSlug);
+  const department = await getDepartmentAggregate(slug, departmentSlug);
 
   if (!department) {
     notFound();
   }
 
   const sortKey = sort in sorters ? (sort as keyof typeof sorters) : "classify";
-  const offerings = getDepartmentOfferingsForSchool(slug, departmentSlug)
-    .sort((left, right) => sorters[sortKey](right) - sorters[sortKey](left));
+  const offerings = (await getDepartmentOfferingsForSchool(slug, departmentSlug)).sort(
+    (left, right) => sorters[sortKey](right) - sorters[sortKey](left),
+  );
 
   return (
     <main className="min-h-screen bg-background">
@@ -80,12 +66,21 @@ export default async function DepartmentPage({
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
-            <MetricCard label="Department Classify" value={formatScore(department.avgClassifyScore)} />
-            <MetricCard label="Department GPA" value={formatGpa(department.avgExpectedGpa)} />
-            <MetricCard label="Department A-rate" value={formatPercent(department.avgARate)} />
+            <MetricCard
+              label="Department Classify"
+              value={formatScore(department.avgClassifyScore)}
+            />
+            <MetricCard
+              label="Department GPA"
+              value={formatGpa(department.avgExpectedGpa)}
+            />
+            <MetricCard
+              label="Department A-rate"
+              value={formatPercent(department.avgARate)}
+            />
             <MetricCard
               label="Coverage"
-              value={`${department.professorCount} profs · ${department.courseCount} courses`}
+              value={`${department.professorCount} profs | ${department.courseCount} courses`}
             />
           </div>
 
@@ -160,8 +155,20 @@ export default async function DepartmentPage({
                   </Link>
                   {item.departmentDelta ? (
                     <div className="rounded-[20px] border border-border bg-background px-4 py-3 text-xs text-muted">
-                      <p>{formatSignedDelta(item.departmentDelta.expectedGpaDelta, (value) => value.toFixed(2))} GPA vs dept</p>
-                      <p>{formatSignedDelta(item.departmentDelta.aRateDelta, (value) => `${Math.round(value)}%`)} A-rate vs dept</p>
+                      <p>
+                        {formatSignedDelta(
+                          item.departmentDelta.expectedGpaDelta,
+                          (value) => value.toFixed(2),
+                        )}{" "}
+                        GPA vs dept
+                      </p>
+                      <p>
+                        {formatSignedDelta(
+                          item.departmentDelta.aRateDelta,
+                          (value) => `${Math.round(value)}%`,
+                        )}{" "}
+                        A-rate vs dept
+                      </p>
                     </div>
                   ) : null}
                 </div>

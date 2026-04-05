@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { dataTrustSummaryLine, isSmallSample } from "@/lib/data-trust";
-import { offeringSortLabels, offeringSorters, type OfferingSortKey } from "@/lib/offering-sort";
+import {
+  compareOfferings,
+  offeringSortLabels,
+  type OfferingSortKey,
+} from "@/lib/offering-sort";
 import { type ProfessorCourseSummary } from "@/lib/types";
 import {
   formatGpa,
@@ -21,13 +25,10 @@ export function CourseProfessorList({
   offerings: ProfessorCourseSummary[];
   schoolSlug: string;
 }) {
-  const [sortKey, setSortKey] = useState<OfferingSortKey>("classify");
+  const [sortKey, setSortKey] = useState<OfferingSortKey>("name");
 
   const sorted = useMemo(
-    () =>
-      [...offerings].sort(
-        (left, right) => offeringSorters[sortKey](right) - offeringSorters[sortKey](left),
-      ),
+    () => [...offerings].sort((left, right) => compareOfferings(left, right, sortKey)),
     [offerings, sortKey],
   );
 

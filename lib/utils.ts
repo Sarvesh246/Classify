@@ -32,6 +32,22 @@ export function confidenceToLabel(confidence: number): string {
   return "Low";
 }
 
+export function formatConfidenceTone(value: string) {
+  switch (value) {
+    case "high":
+    case "High":
+      return "High confidence";
+    case "medium":
+    case "Medium":
+      return "Medium confidence";
+    case "low":
+    case "Low":
+      return "Limited confidence";
+    default:
+      return value;
+  }
+}
+
 export function formatRating(value: number | null) {
   return value == null ? "Unavailable" : value.toFixed(1);
 }
@@ -39,14 +55,80 @@ export function formatRating(value: number | null) {
 export function formatCoverageTier(tier: string) {
   switch (tier) {
     case "institutional_plus_rmp":
-      return "Grades + reviews";
+      return "High evidence";
     case "institutional_only":
-      return "Grades (official)";
+      return "Official data";
     case "rmp_only":
-      return "Reviews only";
+      return "Limited evidence";
     default:
       return tier.replace(/_/g, " ");
   }
+}
+
+export function formatPlannerReadiness(value: string) {
+  switch (value) {
+    case "evidence_ready":
+      return "Evidence-backed planning";
+    case "schedule_ready":
+      return "Schedule planner ready";
+    case "catalog_ready":
+      return "Course planner ready";
+    case "directory_ready":
+      return "School profile ready";
+    default:
+      return value.replace(/_/g, " ");
+  }
+}
+
+export function formatEvidenceSource(value: string) {
+  switch (value) {
+    case "official_grades":
+      return "Official grades";
+    case "schedule":
+      return "Section schedule";
+    case "catalog":
+      return "Course catalog";
+    case "rmp":
+      return "RMP enrichment";
+    case "community":
+      return "Student submissions";
+    case "syllabus":
+      return "Syllabi";
+    default:
+      return value.replace(/_/g, " ");
+  }
+}
+
+export function formatFreshnessLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Unknown";
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}(t.*)?$/i.test(value)) {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+  }
+
+  return value;
+}
+
+export function formatSectionSchedule(
+  days: string[] | null | undefined,
+  startTime: string | null | undefined,
+  endTime: string | null | undefined,
+) {
+  const safeDays = days?.filter(Boolean) ?? [];
+  if (!safeDays.length || !startTime || !endTime) {
+    return "Time TBD";
+  }
+
+  return `${safeDays.join("")} ${startTime}-${endTime}`;
 }
 
 export function toTitleCase(value: string) {
@@ -70,6 +152,6 @@ export function formatSignedDelta(
     return "Unavailable";
   }
 
-  const prefix = value > 0 ? "+" : value < 0 ? "-" : "±";
+  const prefix = value > 0 ? "+" : value < 0 ? "-" : "+/-";
   return `${prefix}${formatter(Math.abs(value))}`;
 }

@@ -1,10 +1,12 @@
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
-import { getFeaturedOfferings } from "@/lib/data";
+import { getFeaturedOfferings } from "@/lib/catalog";
 import { getScoreBreakdown } from "@/lib/scoring";
 
-export default function MethodologyPage() {
-  const example = getFeaturedOfferings()[0];
+export const dynamic = "force-dynamic";
+
+export default async function MethodologyPage() {
+  const example = (await getFeaturedOfferings())[0];
   const breakdown = getScoreBreakdown({
     avgGpa: example.expectedGpa,
     aPct: example.aRate,
@@ -20,14 +22,14 @@ export default function MethodologyPage() {
         <section className="soft-panel rounded-[34px] p-6 sm:p-8">
           <p className="eyebrow">Methodology</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">
-            Classify scores are weighted, transparent, and confidence-aware
+            Classify rankings are evidence-aware, transparent, and confidence-scored
           </h1>
           <p className="app-lead mt-4">
-            Objective grade outcomes do most of the work. RMP still matters, but
-            only as enrichment. When a signal is missing, Classify renormalizes the
-            remaining weights so scores stay comparable—except for purely
-            institutional coverage (no RMP), where grade weights are fixed so a
-            strong GPA cannot mathematically max out the full 0–100 scale alone.
+            Classify uses the same planning workflow for every school. When official
+            grade data exists, it drives expected GPA, A-rate, and trends. When only
+            lighter evidence exists, the product stays useful without pretending to
+            have official certainty. Missing signals are renormalized so rows stay
+            comparable without inventing precision.
           </p>
         </section>
 
@@ -50,24 +52,30 @@ When a signal is missing:
 
           <div className="soft-panel rounded-[30px] p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-3">
-              <p className="eyebrow">Coverage tiers</p>
+              <p className="eyebrow">Evidence profiles</p>
               <CoverageBadge tier="institutional_plus_rmp" />
+              <CoverageBadge tier="institutional_only" />
               <CoverageBadge tier="rmp_only" />
             </div>
             <div className="mt-5 space-y-3 text-sm text-muted">
               <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                <strong className="text-ink">Institutional + RMP</strong> means
-                grade distributions and trend data exist, plus RMP enrichment.
+                <strong className="text-ink">High evidence</strong> means official
+                outcomes are present and may also be paired with RMP enrichment.
               </div>
               <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                <strong className="text-ink">Institutional only</strong> is
-                reserved for schools where grade data exists but RMP matching is
-                disabled or unavailable.
+                <strong className="text-ink">Official data</strong> means Classify can
+                still rank with institutional outcomes even if external enrichment is
+                absent or intentionally disabled.
               </div>
               <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                <strong className="text-ink">RMP only</strong> means the profile
-                remains searchable, but GPA and A-rate cards explicitly show as
-                unavailable.
+                <strong className="text-ink">Limited evidence</strong> means the
+                school stays searchable and planner-ready, but grade outcomes are not
+                yet published locally and reliability messaging stays softer.
+              </div>
+              <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+                <strong className="text-ink">Planner readiness</strong> describes how
+                much baseline structure is available: directory-ready, catalog-ready,
+                or schedule-ready.
               </div>
             </div>
           </div>

@@ -9,36 +9,38 @@ beforeAll(async () => {
 });
 
 describe("catalog aggregates", () => {
-  it("derives department aggregates for native-coverage schools", () => {
+  it("derives department aggregates for native-coverage schools", async () => {
     const { getDepartmentAggregatesForSchool } = catalog;
-    const departments = getDepartmentAggregatesForSchool("texas-am");
+    const departments = await getDepartmentAggregatesForSchool("texas-am");
     expect(departments.some((item) => item.department === "Engineering")).toBe(true);
     expect(departments.some((item) => item.department === "Computer Science")).toBe(true);
   });
 
-  it("adds a General Engineering department for first-year engineering offerings", () => {
+  it("adds a General Engineering department for first-year engineering offerings", async () => {
     const {
       getDepartmentAggregate,
       getDepartmentOfferingsForSchool,
     } = catalog;
-    const department = getDepartmentAggregate("texas-am", "general-engineering");
-    const offerings = getDepartmentOfferingsForSchool("texas-am", "general-engineering");
+    const [department, offerings] = await Promise.all([
+      getDepartmentAggregate("texas-am", "general-engineering"),
+      getDepartmentOfferingsForSchool("texas-am", "general-engineering"),
+    ]);
 
     expect(department?.department).toBe("General Engineering");
     expect(offerings.length).toBeGreaterThan(0);
     expect(offerings.every((item) => item.courseCode.startsWith("ENGR 1"))).toBe(true);
   });
 
-  it("attaches department deltas to professor profiles", () => {
+  it("attaches department deltas to professor profiles", async () => {
     const { getProfessorProfile } = catalog;
-    const profile = getProfessorProfile("texas-am", "s-lupoli");
+    const profile = await getProfessorProfile("texas-am", "s-lupoli");
     expect(profile?.professor.departmentDelta?.classifyScoreDelta).not.toBeNull();
     expect(profile?.professor.departmentDelta?.baselineLabel).toContain("department");
   });
 
-  it("exposes grade distribution series for course pages", () => {
+  it("exposes grade distribution series for course pages", async () => {
     const { getGradeDistributionSeriesForCourse } = catalog;
-    const series = getGradeDistributionSeriesForCourse(
+    const series = await getGradeDistributionSeriesForCourse(
       "texas-am",
       "engr-102-engineering-lab-i-computation",
     );
@@ -46,13 +48,48 @@ describe("catalog aggregates", () => {
     expect(series[0]?.buckets).toHaveLength(5);
   });
 
-  it("aggregates course trend metrics across offerings", () => {
+  it("aggregates course trend metrics across offerings", async () => {
     const { getCourseTrend } = catalog;
-    const trend = getCourseTrend(
+    const trend = await getCourseTrend(
       "texas-am",
       "engr-102-engineering-lab-i-computation",
     );
     expect(trend.length).toBeGreaterThan(0);
     expect(trend.some((point) => point.aPct != null)).toBe(true);
+  });
+
+  it("attaches planner support profiles to published schools", async () => {
+    const { getCatalogSchoolBySlug } = catalog;
+    const school = await getCatalogSchoolBySlug("texas-am");
+
+    expect(school?.supportProfile?.hasPlanner).toBe(true);
+    expect(school?.supportProfile?.plannerReadiness).toBeDefined();
+    expect(Array.isArray(school?.supportProfile?.sourceAvailability)).toBe(true);
+    expect((school?.supportProfile?.catalogCompletenessPct ?? 0) >= 0).toBe(true);
+    expect((school?.supportProfile?.evidenceCompletenessPct ?? 0) >= 0).toBe(true);
+  });
+
+  it("keeps readiness and completeness honest for heavily published schools", async () => {
+    const { getCatalogSchoolBySlug } = catalog;
+    const school = await getCatalogSchoolBySlug("texas-am");
+
+    expect(["catalog_ready", "schedule_ready", "evidence_ready"]).toContain(
+      school?.supportProfile?.plannerReadiness,
+    );
+    expect((school?.supportProfile?.sectionCompletenessPct ?? 0)).toBeGreaterThanOrEqual(0);
+    expect((school?.supportProfile?.evidenceCompletenessPct ?? 0) > 0).toBe(true);
+    if ((school?.supportProfile?.sectionCompletenessPct ?? 0) === 0) {
+      expect(school?.supportProfile?.plannerReadiness).toBe("catalog_ready");
+    }
+  });
+
+  it("normalizes repeated course names from published offerings", async () => {
+    const { getCatalogOfferingsForSchool } = catalog;
+    const repeatedNameRow = (await getCatalogOfferingsForSchool("texas-am")).find(
+      (item) => item.courseCode === "COMM 230",
+    );
+
+    expect(repeatedNameRow?.courseName).not.toBe("COMM 230");
+    expect(repeatedNameRow?.courseName?.toLowerCase()).toContain("communication");
   });
 });

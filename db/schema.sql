@@ -10,6 +10,21 @@ create table schools (
   source_primary text not null,
   source_fallback text not null,
   source_note text not null,
+  planner_readiness text not null default 'directory_ready',
+  has_catalog boolean not null default false,
+  has_sections boolean not null default false,
+  has_instructor_directory boolean not null default false,
+  has_planner boolean not null default true,
+  has_official_grades boolean not null default false,
+  has_rmp boolean not null default false,
+  has_community_evidence boolean not null default false,
+  evidence_freshness text,
+  source_availability jsonb not null default '[]'::jsonb,
+  catalog_completeness_pct integer not null default 0,
+  section_completeness_pct integer not null default 0,
+  meeting_time_completeness_pct integer not null default 0,
+  evidence_completeness_pct integer not null default 0,
+  readiness_reason text,
   refreshed_at timestamptz not null default now()
 );
 
@@ -78,6 +93,12 @@ create table raw_source_snapshots (
   payload jsonb not null
 );
 
+create table published_catalog_control (
+  slot text primary key,
+  active_snapshot_id text not null references raw_source_snapshots(id),
+  updated_at timestamptz not null default now()
+);
+
 create table published_professor_course_summaries (
   id text primary key,
   school_id text not null references schools(id),
@@ -92,6 +113,9 @@ create table published_professor_course_summaries (
   match_confidence numeric(5,2),
   freshness_label text,
   source_labels jsonb not null default '[]'::jsonb,
+  ranking_mode text,
+  available_evidence_sources jsonb not null default '[]'::jsonb,
+  has_section_planning boolean not null default false,
   data_completeness text,
   latest_term text,
   published_at timestamptz not null default now()
@@ -145,6 +169,7 @@ create table section_meetings (
   id text primary key,
   section_id text not null references sections(id) on delete cascade,
   school_id text not null references schools(id),
+  instructor_name text,
   meeting_days text[] not null default '{}'::text[],
   start_time time,
   end_time time,

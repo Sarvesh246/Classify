@@ -5,11 +5,60 @@ export type CoverageTier =
 
 export type SearchHitType = "school" | "course" | "professor";
 
+export type PlannerReadiness =
+  | "evidence_ready"
+  | "schedule_ready"
+  | "catalog_ready"
+  | "directory_ready";
+
+export type EvidenceSourceKind =
+  | "official_grades"
+  | "schedule"
+  | "catalog"
+  | "rmp"
+  | "community"
+  | "syllabus";
+
+export type ConfidenceLabel = "high" | "medium" | "low";
+
+export type RankingMode =
+  | "expected_gpa"
+  | "ease_score"
+  | "planner_fit";
+
 export type DataCompleteness =
   | "institutional_full"
   | "institutional_partial"
   | "rmp_only"
   | "directory_only";
+
+export interface SchoolSupportProfile {
+  plannerReadiness: PlannerReadiness;
+  hasCatalog: boolean;
+  hasSections: boolean;
+  hasInstructorDirectory: boolean;
+  hasPlanner: boolean;
+  hasOfficialGrades: boolean;
+  hasRmp: boolean;
+  hasCommunityEvidence: boolean;
+  evidenceFreshness: string;
+  sourceAvailability: EvidenceSourceKind[];
+  catalogCompletenessPct?: number;
+  sectionCompletenessPct?: number;
+  meetingTimeCompletenessPct?: number;
+  evidenceCompletenessPct?: number;
+  readinessReason?: string;
+}
+
+export interface EvidenceProfile {
+  sourceKinds: EvidenceSourceKind[];
+  confidenceLabel: ConfidenceLabel;
+  hasOfficialGrades: boolean;
+  hasScheduleData: boolean;
+  hasRmp: boolean;
+  hasCommunityEvidence: boolean;
+  hasSyllabusEvidence: boolean;
+}
 
 export interface SearchHitContext {
   schoolSlug: string;
@@ -32,6 +81,7 @@ export interface SearchHit {
   sourceLabels: string[];
   dataCompleteness: DataCompleteness;
   context: SearchHitContext;
+  supportProfile?: SchoolSupportProfile;
   /** Short labels explaining match quality (search ranking). */
   rankHints?: string[];
 }
@@ -84,6 +134,9 @@ export interface ProfessorCourseSummary {
   sourceLabels: string[];
   dataCompleteness: DataCompleteness;
   trend: TrendPoint[];
+  rankingMode?: RankingMode;
+  evidenceProfile?: EvidenceProfile;
+  hasSectionPlanning?: boolean;
   departmentDelta?: ProfessorDelta;
 }
 
@@ -104,6 +157,7 @@ export interface School {
     freshness: string;
     note: string;
   };
+  supportProfile?: SchoolSupportProfile;
   descriptor: string;
   programs: string[];
 }
@@ -188,6 +242,90 @@ export interface SectionMeeting {
   sourceKey: string;
 }
 
+export interface CatalogRecord {
+  id: string;
+  schoolSlug: string;
+  courseSlug: string;
+  courseCode: string;
+  courseName: string;
+  department: string;
+  summary: string;
+}
+
+export interface SectionRecord {
+  id: string;
+  schoolSlug: string;
+  courseSlug: string;
+  courseCode: string;
+  courseName: string;
+  professorSlug: string | null;
+  professorName: string | null;
+  term: string;
+  days: string[];
+  startTime: string | null;
+  endTime: string | null;
+  location: string | null;
+  hasMeetingTime: boolean;
+  sourceKey: string;
+  rankingMode: RankingMode;
+  evidenceProfile: EvidenceProfile;
+  supportingOfferingId?: string;
+}
+
+export interface PublishedPlannerSchoolSnapshot {
+  school: School;
+  supportProfile: SchoolSupportProfile;
+  updatedAt: string;
+  catalog: CatalogRecord[];
+  sections: SectionRecord[];
+  instructorCount: number;
+  courseCount: number;
+}
+
+export interface PlannerSnapshotResponse {
+  school: School;
+  supportProfile: SchoolSupportProfile;
+  updatedAt: string;
+  courseCount: number;
+  instructorCount: number;
+  catalogPreview: CatalogRecord[];
+  sectionPreviewCount: number;
+}
+
+export interface PlannerSectionSliceResponse {
+  school: School;
+  supportProfile: SchoolSupportProfile;
+  updatedAt: string;
+  courseSlugs: string[];
+  sections: SectionRecord[];
+  sectionCount: number;
+}
+
+export interface PlannerSolveSelection {
+  courseSlug: string;
+  section: SectionRecord | null;
+}
+
+export interface PlannerSolveResponse {
+  school: School;
+  supportProfile: SchoolSupportProfile;
+  rankingMode: RankingMode;
+  selections: PlannerSolveSelection[];
+  warnings: string[];
+  updatedAt: string;
+}
+
+export interface PlannerDraft {
+  id: string;
+  name: string;
+  school_slug: string;
+  term_label: string | null;
+  course_slugs: string[];
+  ranking_mode: RankingMode;
+  updated_at: string;
+  created_at: string;
+}
+
 export interface PublishedCatalogSnapshot {
   updatedAt: string;
   schools: School[];
@@ -195,6 +333,17 @@ export interface PublishedCatalogSnapshot {
   departmentAggregates?: DepartmentAggregate[];
   gradeDistributionSeries?: GradeDistributionSeries[];
   sectionMeetings?: SectionMeeting[];
+  publishMetadata?: {
+    runId: string;
+    activatedAt: string;
+    source: "db" | "file" | "seed";
+    summary?: {
+      schoolCount: number;
+      offeringCount: number;
+      sectionCount: number;
+      evidenceReadySchoolCount: number;
+    };
+  };
 }
 
 export interface SourceAdapter {

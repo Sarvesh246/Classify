@@ -3,12 +3,11 @@ import { CourseProfessorList } from "@/components/course/course-professor-list";
 import { GradeDistributionPanel } from "@/components/charts/grade-distribution-panel";
 import { MetricTrendChart } from "@/components/charts/metric-trend-chart";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { SaveItemButton } from "@/components/saved/save-item-button";
 import { SiteHeader } from "@/components/site-header";
 import {
-  getCatalogSchools,
   getCourseGroup,
   getCourseOfferings,
-  getCourseGroupsForSchool,
   getCourseTrend,
   getGradeDistributionSeriesForCourse,
 } from "@/lib/catalog";
@@ -20,24 +19,19 @@ type CoursePageProps = {
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return getCatalogSchools().flatMap((school) =>
-    getCourseGroupsForSchool(school.slug).map((course) => ({
-      slug: school.slug,
-      courseSlug: course.courseSlug,
-    })),
-  );
-}
-
 export default async function CoursePage({ params }: CoursePageProps) {
   const { slug, courseSlug } = await params;
-  const course = getCourseGroup(slug, courseSlug);
-  const offerings = getCourseOfferings(slug, courseSlug);
+  const [course, offerings] = await Promise.all([
+    getCourseGroup(slug, courseSlug),
+    getCourseOfferings(slug, courseSlug),
+  ]);
 
   if (!course || !offerings.length) notFound();
 
-  const courseTrend = getCourseTrend(slug, courseSlug);
-  const gradeSeries = getGradeDistributionSeriesForCourse(slug, courseSlug);
+  const [courseTrend, gradeSeries] = await Promise.all([
+    getCourseTrend(slug, courseSlug),
+    getGradeDistributionSeriesForCourse(slug, courseSlug),
+  ]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -56,7 +50,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 who teaches this required course and gives the most A&apos;s?
               </p>
             </div>
-            <CoverageBadge tier={course.coverageTier} />
+            <div className="flex shrink-0 flex-col items-end gap-3">
+              <SaveItemButton
+                itemType="course"
+                schoolSlug={slug}
+                courseSlug={courseSlug}
+              />
+              <CoverageBadge tier={course.coverageTier} />
+            </div>
           </div>
         </section>
 

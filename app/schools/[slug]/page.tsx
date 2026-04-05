@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 import { ArrowRight, Gem, Layers3 } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogSchoolBySlug, getCatalogSchools } from "@/lib/catalog";
 import { getSchoolHub } from "@/lib/server-directory";
 import {
+  formatEvidenceSource,
+  formatFreshnessLabel,
   formatGpa,
+  formatPlannerReadiness,
   formatPercent,
   formatScore,
   scoreToLabel,
@@ -20,16 +22,13 @@ type SchoolPageProps = {
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  return getCatalogSchools().map((school) => ({ slug: school.slug }));
-}
-
 export default async function SchoolPage({ params }: SchoolPageProps) {
   const { slug } = await params;
   const hub = await getSchoolHub(slug);
   if (!hub) notFound();
 
   const { school, courses, offerings, departments, hiddenGems } = hub;
+  const supportProfile = school.supportProfile;
   const topProfessors = [...offerings]
     .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0))
     .slice(0, 4);
@@ -49,37 +48,52 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                 {school.name}
               </h1>
               <p className="app-lead mt-4">
-                {school.descriptor} Search stays live across the full school directory,
-                but the amount of course intelligence exposed depends on the current
-                coverage tier.
+                {school.descriptor} Every school uses the same Classify planning surface.
+                Course depth, schedule detail, and evidence strength expand as catalog,
+                section, and outcome data land.
               </p>
             </div>
             <CoverageBadge tier={school.coverageTier} />
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <InfoCard
+              label="Planner readiness"
+              value={formatPlannerReadiness(
+                supportProfile?.plannerReadiness ?? "directory_ready",
+              )}
+            />
             <InfoCard label="Primary source" value={school.sourceStatus.primary} />
-            <InfoCard label="Fallback" value={school.sourceStatus.fallback} />
-            <InfoCard label="Freshness" value={school.sourceStatus.freshness} />
+            <InfoCard label="Freshness" value={formatFreshnessLabel(school.sourceStatus.freshness)} />
           </div>
+          {supportProfile?.sourceAvailability.length ? (
+            <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
+              {supportProfile.sourceAvailability.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                >
+                  {formatEvidenceSource(item)}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {getCatalogSchoolBySlug(slug) && offeringCount > 0 ? (
-              <>
-                <Link
-                  href={`/schools/${slug}/instructors`}
-                  className="inline-flex rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
-                >
-                  Browse all {offeringCount} instructor–course rows
-                </Link>
-                <Link
-                  href={`/schools/${slug}/my-courses`}
-                  className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
-                >
-                  My courses planner
-                </Link>
-              </>
-            ) : null}
+            <Link
+              href={`/schools/${slug}/instructors`}
+              className="inline-flex rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
+            >
+              {offeringCount
+                ? `Browse all ${offeringCount} instructor-course rows`
+                : "Browse instructor directory"}
+            </Link>
+            <Link
+              href={`/schools/${slug}/my-courses`}
+              className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
+            >
+              Open planner
+            </Link>
             <Link
               href={`/search?school=${encodeURIComponent(slug)}`}
               className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-medium text-ink"
@@ -90,7 +104,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
         </section>
 
         <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
-          <p className="eyebrow">Top searched courses</p>
+          <p className="eyebrow">Course planning</p>
           {courses.length ? (
             <div className="mt-5 space-y-3">
               {courses.slice(0, 6).map((course) => (
@@ -116,7 +130,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                     <span className="rounded-full border border-border bg-background px-3 py-1.5">
                       {course.topClassifyScore == null
                         ? "Classify unavailable"
-                        : `${scoreToLabel(course.topClassifyScore)} · score ${formatScore(course.topClassifyScore)}`}
+                        : `${scoreToLabel(course.topClassifyScore)} | score ${formatScore(course.topClassifyScore)}`}
                     </span>
                   </div>
                 </Link>
@@ -125,18 +139,18 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
           ) : (
             <EmptyCard>
               <p>
-                No course catalog rows for this school yet—only directory coverage. Course
-                lists and grade summaries appear when an institutional adapter is connected.
+                No local course catalog rows are published for this school yet. The planner
+                shell is still live, and this page will automatically deepen once catalog or
+                schedule imports are added.
               </p>
               <p className="mt-4">
                 <Link
-                  href={`/search?school=${encodeURIComponent(slug)}`}
+                  href={`/schools/${slug}/my-courses`}
                   className="font-semibold text-ink underline underline-offset-2"
                 >
-                  Search within {school.shortName}
+                  Open the planner surface
                 </Link>{" "}
-                for anything already indexed, or try another school with grade data from the
-                homepage.
+                or use scoped search while course-level publishing expands.
               </p>
             </EmptyCard>
           )}
@@ -144,7 +158,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
 
         <section className="mt-8 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
           <div className="soft-panel rounded-[30px] p-5 sm:p-6">
-            <p className="eyebrow">Top professor picks</p>
+            <p className="eyebrow">Current evidence</p>
             {topProfessors.length ? (
               <div className="mt-5 space-y-3">
                 {topProfessors.map((item) => (
@@ -176,21 +190,18 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             ) : (
               <EmptyCard>
                 <p>
-                  No professor–course rows in the published catalog for this school yet. The
-                  hub stays useful for navigation; aggregates fill in when data is imported.
+                  This school is live in the national directory, but no published instructor
+                  rows are attached yet. Classify will attach local catalog, section, and
+                  evidence rows here without changing the workflow students use.
                 </p>
                 <p className="mt-4">
                   <Link
-                    href={`/search?school=${encodeURIComponent(slug)}&type=professor`}
+                    href={`/search?school=${encodeURIComponent(slug)}`}
                     className="font-semibold text-ink underline underline-offset-2"
                   >
-                    Browse scoped search (professors)
+                    Browse scoped search
                   </Link>{" "}
-                  or open{" "}
-                  <Link href="/methodology" className="font-semibold text-ink underline underline-offset-2">
-                    methodology
-                  </Link>{" "}
-                  to see how coverage works.
+                  to stay within {school.shortName}.
                 </p>
               </EmptyCard>
             )}
@@ -221,7 +232,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                         {department.department}
                       </p>
                       <p className="mt-1 text-sm text-muted">
-                        {department.professorCount} professors · {department.courseCount} courses
+                        {department.professorCount} professors | {department.courseCount} courses
                       </p>
                     </div>
                     <div className="text-right text-sm text-muted">
@@ -279,7 +290,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
                     <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                      {scoreToLabel(item.classifyScore)} · score {formatScore(item.classifyScore)}
+                      {scoreToLabel(item.classifyScore)} | score {formatScore(item.classifyScore)}
                     </span>
                     <span className="rounded-full border border-border bg-background px-3 py-1.5">
                       GPA {formatGpa(item.expectedGpa)}

@@ -21,7 +21,7 @@ describe("searchDirectory", () => {
     expect(results.some((item) => item.type === "professor")).toBe(true);
   });
 
-  it("indexes Texas A&M as a native school result", async () => {
+  it("indexes Texas A&M as a strong school result", async () => {
     const results = await searchDirectory("Texas A&M", { limit: 10 });
     expect(results[0]?.type).toBe("school");
     expect(results.some((item) => item.label.includes("Texas A&M"))).toBe(true);
@@ -37,5 +37,21 @@ describe("searchDirectory", () => {
     expect(results.length).toBeGreaterThan(0);
     expect(results.every((item) => item.type === "professor")).toBe(true);
     expect(results.every((item) => item.context.schoolSlug === "texas-am")).toBe(true);
+  });
+
+  it("drops irrelevant matches instead of filling with noisy results", async () => {
+    const results = await searchDirectory("qzzzz", { limit: 10 });
+    expect(results).toHaveLength(0);
+  });
+
+  it("keeps school-scoped professor searches tightly relevant", async () => {
+    const results = await searchDirectory("Altemose", {
+      type: "professor",
+      schoolSlug: "texas-am",
+      limit: 12,
+    });
+
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((item) => /altemose/i.test(item.label))).toBe(true);
   });
 });

@@ -1,19 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Plus, School, X } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
+import { useCombinedAuth } from "@/components/auth/use-combined-auth";
+import { MobileSheet } from "@/components/mobile/mobile-sheet";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import {
   type CoverageTier,
   type ProfessorCourseSummary,
   type SearchHit,
 } from "@/lib/types";
+import { runDeferredNavigation } from "@/lib/deferred-navigation";
+import {
+  fetchCompareSets,
+  postCompareSet,
+  type CompareSetRow,
+} from "@/lib/me-api-client";
 import {
   confidenceToLabel,
+  formatFreshnessLabel,
   formatGpa,
   formatPercent,
   formatRating,
@@ -32,6 +41,7 @@ export function CompareBuilder({
   initialSelectedIds,
   initialSchoolSlug,
 }: CompareBuilderProps) {
+  const { supabaseUserId } = useCombinedAuth();
   const pathname = usePathname();
   const router = useRouter();
   const initialSelectedSchool =
@@ -48,7 +58,49 @@ export function CompareBuilder({
     coverageTier: initialSelectedSchool?.coverageTier,
   });
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [activeCourseSlug, setActiveCourseSlug] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   const [, startTransition] = useTransition();
+  const [compareSets, setCompareSets] = useState<CompareSetRow[]>([]);
+  const [saveName, setSaveName] = useState("");
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [loadSetId, setLoadSetId] = useState("");
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!supabaseUserId) return;
+    let cancelled = false;
+    void fetchCompareSets().then((d) => {
+      if (!cancelled && d) setCompareSets(d.sets);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabaseUserId]);
+
+  useEffect(() => {
+    if (!(isMobile && (catalogOpen || builderOpen))) {
+      return;
+    }
+
+    const htmlOverflow = document.documentElement.style.overflow;
+    const bodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = htmlOverflow;
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, [builderOpen, catalogOpen, isMobile]);
 
   const selected = useMemo(
     () =>
@@ -71,11 +123,28 @@ export function CompareBuilder({
     schoolOptions.find((item) => item.schoolSlug === activeSchoolSlug) ??
     selected.find((item) => item.schoolSlug === activeSchoolSlug);
 
+  const courseOptions = useMemo(() => {
+    const seen = new Map<string, { courseSlug: string; label: string }>();
+    for (const item of catalog) {
+      if (activeSchoolSlug && item.schoolSlug !== activeSchoolSlug) {
+        continue;
+      }
+      if (!seen.has(item.courseSlug)) {
+        seen.set(item.courseSlug, {
+          courseSlug: item.courseSlug,
+          label: `${item.courseCode} - ${item.courseName}`,
+        });
+      }
+    }
+    return [...seen.values()].sort((left, right) => left.label.localeCompare(right.label));
+  }, [activeSchoolSlug, catalog]);
+
   const visibleCatalog = useMemo(() => {
     return [...catalog]
       .filter((item) => !activeSchoolSlug || item.schoolSlug === activeSchoolSlug)
+      .filter((item) => !activeCourseSlug || item.courseSlug === activeCourseSlug)
       .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
-  }, [activeSchoolSlug, catalog]);
+  }, [activeCourseSlug, activeSchoolSlug, catalog]);
 
   function sync(nextIds: string[], nextSchoolSlug = activeSchoolSlug) {
     startTransition(() => {
@@ -91,8 +160,36 @@ export function CompareBuilder({
         params.set("school", nextSchoolSlug);
       }
       const queryString = params.toString() ? `?${params.toString()}` : "";
-      router.replace(`${pathname}${queryString}`, { scroll: false });
+      const url = `${pathname}${queryString}`;
+      runDeferredNavigation(() => {
+        router.replace(url, { scroll: false });
+      });
     });
+  }
+
+  async function saveCompareSnapshot() {
+    if (!supabaseUserId || selectedIds.length === 0) return;
+    setSaveBusy(true);
+    try {
+      const res = await postCompareSet({
+        name: saveName.trim() || undefined,
+        offeringIds: selectedIds,
+        schoolSlug: activeSchoolSlug ?? undefined,
+      });
+      if (res) {
+        setCompareSets((prev) => [res.set, ...prev]);
+        setSaveName("");
+      }
+    } finally {
+      setSaveBusy(false);
+    }
+  }
+
+  function loadSavedCompare() {
+    const row = compareSets.find((s) => s.id === loadSetId);
+    if (!row || row.offering_ids.length === 0) return;
+    sync(row.offering_ids, row.school_slug ?? activeSchoolSlug);
+    setLoadSetId("");
   }
 
   function addItem(hit: SearchHit) {
@@ -110,7 +207,47 @@ export function CompareBuilder({
 
   return (
     <div className="space-y-6">
-      <div className="soft-panel sticky top-24 z-30 rounded-[30px] p-4 sm:p-5">
+      <div className="soft-panel sticky top-[calc(var(--safe-top)+4.75rem)] z-30 rounded-[28px] p-4 lg:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="eyebrow">Compare builder</p>
+            <p className="mt-2 truncate text-lg font-semibold text-ink">
+              {activeSchool?.schoolName ?? activeSchoolMeta.name ?? "Choose a school"}
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Open the builder when you want to add picks. The comparison stays in view.
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => setBuilderOpen(true)}
+              className="min-h-11 rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
+            >
+              Build
+            </button>
+            <button
+              type="button"
+              onClick={() => setCatalogOpen(true)}
+              className="min-h-11 rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+            >
+              Browse
+            </button>
+          </div>
+        </div>
+        {(activeSchool?.coverageTier ?? activeSchoolMeta.coverageTier) ? (
+          <div className="mt-3">
+            <CoverageBadge
+              tier={
+                (activeSchool?.coverageTier ??
+                  activeSchoolMeta.coverageTier) as CoverageTier
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+
+      <div className="soft-panel sticky top-24 z-30 hidden rounded-[30px] p-4 sm:p-5 lg:block">
         <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr_auto] xl:items-end">
           <div>
             <p className="eyebrow">Compare builder</p>
@@ -131,6 +268,7 @@ export function CompareBuilder({
                     name: item.label,
                     coverageTier: item.coverageTier,
                   });
+                  setActiveCourseSlug("");
                   sync(selectedIds, item.context.schoolSlug);
                 }}
               />
@@ -179,6 +317,7 @@ export function CompareBuilder({
                 type="button"
                 onClick={() => {
                   setActiveSchoolMeta({});
+                  setActiveCourseSlug("");
                   sync(selectedIds, undefined);
                 }}
                 className="mt-3 rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
@@ -188,6 +327,70 @@ export function CompareBuilder({
             ) : null}
           </div>
         </div>
+
+        {supabaseUserId ? (
+          <div className="mt-6 rounded-[22px] border border-border/80 bg-white/55 p-4 sm:p-5">
+            <p className="text-sm font-medium text-ink">Save to your account</p>
+            <p className="mt-1 text-xs text-muted">
+              Store this comparison to open later from{" "}
+              <Link href="/saved" className="font-medium text-ink underline-offset-2 hover:underline">
+                Saved
+              </Link>
+              .
+            </p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <label className="block min-w-[10rem] flex-1 text-sm">
+                <span className="text-muted">Name (optional)</span>
+                <input
+                  value={saveName}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  placeholder="e.g. Fall picks"
+                  className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                />
+              </label>
+              <div className="flex min-w-[12rem] flex-1 flex-col gap-2 sm:flex-row sm:items-end">
+                <label className="block w-full text-sm">
+                  <span className="text-muted">Load saved</span>
+                  <select
+                    value={loadSetId}
+                    onChange={(e) => setLoadSetId(e.target.value)}
+                    className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                  >
+                    <option value="">Choose a saved set...</option>
+                    {compareSets.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.offering_ids.length})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  disabled={!loadSetId}
+                  onClick={loadSavedCompare}
+                  className="h-10 shrink-0 rounded-full border border-border bg-white px-4 text-sm font-medium text-ink disabled:opacity-50"
+                >
+                  Load
+                </button>
+              </div>
+              <button
+                type="button"
+                disabled={saveBusy || selectedIds.length === 0}
+                onClick={() => void saveCompareSnapshot()}
+                className="h-10 rounded-full bg-deep-ink px-5 text-sm font-semibold !text-ivory disabled:opacity-50"
+              >
+                {saveBusy ? "Saving..." : "Save comparison"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-6 text-sm text-muted">
+            <Link href="/login" className="font-medium text-ink underline-offset-2 hover:underline">
+              Sign in with email
+            </Link>{" "}
+            to save comparisons to your account. Compare URLs still work without an account.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
@@ -239,16 +442,27 @@ export function CompareBuilder({
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
               <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                Freshness {item.freshness}
+                Freshness {formatFreshnessLabel(item.freshness)}
+              </span>
+              <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                {item.hasSectionPlanning ? "Section timing available" : "Instructor row only"}
               </span>
             </div>
 
-            <Link
-              href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-              className="mt-4 inline-flex text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
-            >
-              Open profile
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
+                className="inline-flex text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
+              >
+                Open profile
+              </Link>
+              <Link
+                href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
+                className="inline-flex text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
+              >
+                Plan this course
+              </Link>
+            </div>
           </article>
         ))}
 
@@ -256,7 +470,7 @@ export function CompareBuilder({
           <button
             key={`empty-${index}`}
             type="button"
-            onClick={() => setCatalogOpen(true)}
+            onClick={() => (isMobile ? setBuilderOpen(true) : setCatalogOpen(true))}
             className="soft-panel flex min-h-[24rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-white/55"
           >
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-white/72 text-deep-ink">
@@ -270,7 +484,25 @@ export function CompareBuilder({
         ))}
       </div>
 
-      <div className="soft-panel rounded-[30px] p-5 sm:p-6">
+      <div className="soft-panel rounded-[28px] p-4 lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="eyebrow">Catalog</p>
+            <p className="mt-1 text-sm text-muted">
+              Browse the active school only when you want to add another option.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCatalogOpen(true)}
+            className="min-h-11 rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+          >
+            Browse catalog
+          </button>
+        </div>
+      </div>
+
+      <div className="soft-panel hidden rounded-[30px] p-5 sm:p-6 lg:block">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="eyebrow">Catalog</p>
@@ -281,6 +513,23 @@ export function CompareBuilder({
             </h3>
           </div>
           <div className="flex items-center gap-3">
+            {courseOptions.length ? (
+              <label className="hidden text-sm text-muted lg:block">
+                <span className="sr-only">Filter by course</span>
+                <select
+                  value={activeCourseSlug}
+                  onChange={(event) => setActiveCourseSlug(event.target.value)}
+                  className="h-10 min-w-[16rem] rounded-full border border-border bg-white/72 px-4 text-sm text-ink outline-none"
+                >
+                  <option value="">All courses</option>
+                  {courseOptions.map((course) => (
+                    <option key={course.courseSlug} value={course.courseSlug}>
+                      {course.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             {(activeSchool?.coverageTier ?? activeSchoolMeta.coverageTier) ? (
               <CoverageBadge
                 tier={
@@ -333,6 +582,9 @@ export function CompareBuilder({
                         <span className="rounded-full border border-border bg-background px-3 py-1.5">
                           GPA {formatGpa(item.expectedGpa)}
                         </span>
+                        <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                          {item.hasSectionPlanning ? "Section timing" : "No meeting time"}
+                        </span>
                         <button
                           type="button"
                           disabled={atLimit}
@@ -352,6 +604,12 @@ export function CompareBuilder({
                               ? "Limit reached"
                               : "Add"}
                         </button>
+                        <Link
+                          href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
+                          className="inline-flex items-center rounded-full border border-border px-4 py-2 font-medium text-ink"
+                        >
+                          Plan
+                        </Link>
                       </div>
                     </div>
                   );
@@ -370,6 +628,253 @@ export function CompareBuilder({
           )
         ) : null}
       </div>
+
+      {isMobile && builderOpen ? (
+        <MobileSheet title="Compare builder" onClose={() => setBuilderOpen(false)}>
+          <div className="space-y-6">
+            <div>
+              <p className="mb-2 text-sm font-medium text-ink">School</p>
+              <SearchCombobox
+                searchType="school"
+                limit={10}
+                placeholder="Search a school like Texas A&M"
+                onSelect={(item) => {
+                  setActiveSchoolMeta({
+                    name: item.label,
+                    coverageTier: item.coverageTier,
+                  });
+                  setActiveCourseSlug("");
+                  sync(selectedIds, item.context.schoolSlug);
+                }}
+              />
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-medium text-ink">Professor or course</p>
+              <SearchCombobox
+                key={`mobile-${activeSchoolSlug ?? "no-school"}`}
+                searchType="professor"
+                schoolSlug={activeSchoolSlug}
+                limit={12}
+                clearOnSelect
+                onSelect={(item) => {
+                  addItem(item);
+                  setBuilderOpen(false);
+                }}
+                placeholder={
+                  activeSchoolSlug
+                    ? `Search ${activeSchool?.schoolName ?? activeSchoolMeta.name ?? "this school"}`
+                    : "Select a school first"
+                }
+                emptyMessage={
+                  activeSchoolSlug
+                    ? "No compare-ready professor-course records match yet for this school."
+                    : "Select a school first. Compare search stays scoped to one campus at a time."
+                }
+                className={!activeSchoolSlug ? "pointer-events-none opacity-55" : undefined}
+              />
+            </div>
+
+            <div className="rounded-[24px] border border-border/70 bg-white/72 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
+                  <School className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="eyebrow">Active school</p>
+                  <p className="mt-1 truncate text-sm font-semibold text-ink">
+                    {activeSchool?.schoolName ?? activeSchoolMeta.name ?? "Choose a school"}
+                  </p>
+                </div>
+              </div>
+              {activeSchoolSlug ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveSchoolMeta({});
+                    setActiveCourseSlug("");
+                    sync(selectedIds, undefined);
+                  }}
+                  className="mt-3 rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                >
+                  Clear school
+                </button>
+              ) : null}
+            </div>
+
+            {supabaseUserId ? (
+              <div className="rounded-[22px] border border-border/80 bg-white/55 p-4">
+                <p className="text-sm font-medium text-ink">Save to your account</p>
+                <div className="mt-3 space-y-3">
+                  <label className="block text-sm">
+                    <span className="text-muted">Name (optional)</span>
+                    <input
+                      value={saveName}
+                      onChange={(e) => setSaveName(e.target.value)}
+                      placeholder="e.g. Fall picks"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    <span className="text-muted">Load saved</span>
+                    <select
+                      value={loadSetId}
+                      onChange={(e) => setLoadSetId(e.target.value)}
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                    >
+                      <option value="">Choose a saved set...</option>
+                      {compareSets.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.offering_ids.length})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={!loadSetId}
+                      onClick={() => {
+                        loadSavedCompare();
+                        setBuilderOpen(false);
+                      }}
+                      className="flex-1 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
+                    >
+                      Load
+                    </button>
+                    <button
+                      type="button"
+                      disabled={saveBusy || selectedIds.length === 0}
+                      onClick={() => void saveCompareSnapshot()}
+                      className="flex-1 rounded-full bg-deep-ink px-4 py-2 text-sm font-semibold text-ivory disabled:opacity-50"
+                    >
+                      {saveBusy ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted">
+                <Link href="/login" className="font-medium text-ink underline-offset-2 hover:underline">
+                  Sign in with email
+                </Link>{" "}
+                to save comparisons to your account.
+              </p>
+            )}
+          </div>
+        </MobileSheet>
+      ) : null}
+
+      {isMobile && catalogOpen ? (
+        <MobileSheet
+          title={`${activeSchool?.schoolName ?? activeSchoolMeta.name ?? "School"} catalog`}
+          onClose={() => setCatalogOpen(false)}
+        >
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {courseOptions.length ? (
+                <label className="block w-full text-sm text-muted">
+                  <span className="sr-only">Filter by course</span>
+                  <select
+                    value={activeCourseSlug}
+                    onChange={(event) => setActiveCourseSlug(event.target.value)}
+                    className="h-11 w-full rounded-full border border-border bg-white/72 px-4 text-sm text-ink outline-none"
+                  >
+                    <option value="">All courses</option>
+                    {courseOptions.map((course) => (
+                      <option key={course.courseSlug} value={course.courseSlug}>
+                        {course.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              {(activeSchool?.coverageTier ?? activeSchoolMeta.coverageTier) ? (
+                <CoverageBadge
+                  tier={
+                    (activeSchool?.coverageTier ??
+                      activeSchoolMeta.coverageTier) as CoverageTier
+                  }
+                />
+              ) : null}
+            </div>
+            {activeSchoolSlug ? (
+              visibleCatalog.length ? (
+                <div className="mt-5 space-y-2">
+                  {visibleCatalog.map((item) => {
+                    const selectedAlready = selectedIds.includes(item.id);
+                    const atLimit = !selectedAlready && selectedIds.length >= 4;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-semibold text-ink">{item.professorName}</h3>
+                          <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+                        </div>
+                        <p className="mt-1 text-sm text-muted">
+                          {item.courseCode} - {item.courseName} - {item.department}
+                        </p>
+                        <p className="mt-2 text-sm text-ink/78">{item.professorSummary}</p>
+                        <div className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
+                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                            {scoreToLabel(item.classifyScore)}{" "}
+                            <span className="text-muted">({formatScore(item.classifyScore)})</span>
+                          </span>
+                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                            GPA {formatGpa(item.expectedGpa)}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            disabled={atLimit}
+                            onClick={() => {
+                              sync(
+                                selectedAlready
+                                  ? selectedIds.filter((id) => id !== item.id)
+                                  : [...selectedIds, item.id],
+                              );
+                              if (!selectedAlready) {
+                                setCatalogOpen(false);
+                              }
+                            }}
+                            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory disabled:cursor-not-allowed disabled:bg-deep-ink/40"
+                          >
+                            {selectedAlready ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                            {selectedAlready
+                              ? "Remove"
+                              : atLimit
+                                ? "Limit reached"
+                                : "Add"}
+                          </button>
+                          <Link
+                            href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
+                            className="inline-flex min-h-11 items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                          >
+                            Plan
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mt-5 rounded-[26px] border border-dashed border-border px-4 py-12 text-sm text-muted">
+                  This school is searchable, but there are no compare-ready professor-course
+                  aggregates published for it yet.
+                </div>
+              )
+            ) : (
+              <div className="mt-5 rounded-[26px] border border-dashed border-border px-4 py-12 text-sm text-muted">
+                Choose a school above to reveal its compare-ready professor catalog.
+              </div>
+            )}
+          </div>
+        </MobileSheet>
+      ) : null}
     </div>
   );
 }

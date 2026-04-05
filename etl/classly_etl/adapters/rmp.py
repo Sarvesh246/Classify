@@ -1,3 +1,4 @@
+import base64
 import json
 import time
 from pathlib import Path
@@ -23,8 +24,10 @@ query SearchTeachers($query: TeacherSearchQuery!, $first: Int!, $after: String) 
           avgRating
           avgDifficulty
           numRatings
+          department
           school {
-            slug
+            id
+            name
           }
           teacherRatingTags {
             tagName
@@ -84,6 +87,35 @@ def _extract_tags(item: dict) -> tuple[str, ...]:
     return tuple(tag for tag in tags if tag)
 
 
+def _build_headers() -> dict[str, str]:
+    return {
+        "Authorization": "Basic dGVzdDp0ZXN0",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/135.0.0.0 Safari/537.36"
+        ),
+        "Origin": "https://www.ratemyprofessors.com",
+        "Referer": "https://www.ratemyprofessors.com/",
+        "Accept": "application/json, text/plain, */*",
+        "apollographql-client-name": "rmp-web",
+        "apollographql-client-version": "1.0",
+    }
+
+
+def _normalize_school_graphql_id(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    if raw.startswith("U2Nob29sL"):
+        return raw
+    if raw.isdigit():
+        return base64.b64encode(f"School-{raw}".encode("utf-8")).decode("utf-8")
+    return raw
+
+
 class RMPRatingAdapter(SourceAdapter):
     key = "rmp_graphql"
 
@@ -108,6 +140,7 @@ class RMPRatingAdapter(SourceAdapter):
                 rating=item.get("avgRating"),
                 difficulty=item.get("avgDifficulty"),
                 review_count=item.get("numRatings", 0),
+                department=item.get("department"),
                 tags=_extract_tags(item),
             )
 
@@ -131,7 +164,7 @@ class LiveRMPGraphQLAdapter(SourceAdapter):
         timeout_seconds: int = 20,
     ):
         self.school_slug = school_slug
-        self.school_legacy_id = school_legacy_id
+        self.school_legacy_id = _normalize_school_graphql_id(school_legacy_id)
         self.endpoint = endpoint
         self.search_text = search_text
         self.page_size = page_size
@@ -147,9 +180,6 @@ class LiveRMPGraphQLAdapter(SourceAdapter):
 
         if self.school_legacy_id:
             query_filter["schoolID"] = self.school_legacy_id
-
-        if self.school_slug:
-            query_filter["schoolSlug"] = self.school_slug
 
         return {
             "query": query_filter,
@@ -171,6 +201,7 @@ class LiveRMPGraphQLAdapter(SourceAdapter):
                     "query": self.query_text,
                     "variables": self._build_variables(cursor),
                 },
+                headers=_build_headers(),
                 timeout=self.timeout_seconds,
             )
             response.raise_for_status()
@@ -196,4 +227,17 @@ class LiveRMPGraphQLAdapter(SourceAdapter):
         else:
             pages = [payload]
         for page in pages:
-            yield from RMPRatingAdapter(page).normalize(page)
+            for record in RMPRatingAdapter(page).normalize(page):
+                if record.school_slug:
+                    yield record
+                else:
+                    yield RMPRatingRecord(
+                        school_slug=self.school_slug,
+                        professor_name=record.professor_name,
+                        rmp_id=record.rmp_id,
+                        rating=record.rating,
+                        difficulty=record.difficulty,
+                        review_count=record.review_count,
+                        department=record.department,
+                        tags=record.tags,
+                    )

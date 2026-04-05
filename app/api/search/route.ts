@@ -3,6 +3,7 @@ import {
   getSuggestedHits,
   searchDirectory,
 } from "@/lib/server-directory";
+import { rateLimitRequest } from "@/lib/rate-limit";
 import { serverLog } from "@/lib/server-logger";
 
 const MAX_SEARCH_LIMIT = 50;
@@ -16,6 +17,21 @@ function clampLimit(raw: string | null): number {
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimit = rateLimitRequest(request, {
+      key: "search",
+      limit: 90,
+      windowMs: 60_000,
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        { results: [], error: "rate_limited" },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+        },
+      );
+    }
+
     const query = request.nextUrl.searchParams.get("query")?.trim() ?? "";
     const type =
       request.nextUrl.searchParams.get("type")?.trim() || undefined;
@@ -34,7 +50,22 @@ export async function GET(request: NextRequest) {
     const results = query
       ? await searchDirectory(query, options)
       : await getSuggestedHits(options);
-    return NextResponse.json({ results });
+
+    if (query || schoolSlug || options.type !== "all") {
+      serverLog.info("search_query_completed", {
+        query,
+        type: options.type,
+        schoolSlug: schoolSlug ?? null,
+        resultCount: results.length,
+        empty: results.length === 0,
+      });
+    }
+
+    return NextResponse.json({ results }, {
+      headers: {
+        "X-RateLimit-Remaining": String(rateLimit.remaining),
+      },
+    });
   } catch (err) {
     serverLog.error("search_api_failed", {
       error: String(err),

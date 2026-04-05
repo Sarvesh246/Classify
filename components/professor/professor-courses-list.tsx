@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  compareOfferings,
   offeringSortLabels,
-  offeringSorters,
   type OfferingSortKey,
 } from "@/lib/offering-sort";
 import type { ProfessorCourseSummary } from "@/lib/types";
@@ -17,12 +17,9 @@ export function ProfessorCoursesList({
   offerings: ProfessorCourseSummary[];
   schoolSlug: string;
 }) {
-  const [sort, setSort] = useState<OfferingSortKey>("classify");
+  const [sort, setSort] = useState<OfferingSortKey>("name");
   const sorted = useMemo(
-    () =>
-      [...offerings].sort(
-        (left, right) => offeringSorters[sort](right) - offeringSorters[sort](left),
-      ),
+    () => [...offerings].sort((left, right) => compareOfferings(left, right, sort)),
     [offerings, sort],
   );
 

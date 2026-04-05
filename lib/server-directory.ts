@@ -1,15 +1,16 @@
 import "server-only";
 
-import fs from "node:fs";
-import path from "node:path";
 import {
   getCatalogOfferings,
+  getCatalogOfferingsForSchool,
   getCatalogSchoolBySlug,
   getCatalogSchools,
   getHiddenGemsForSchool,
   getSchoolTrendSpotlight,
 } from "@/lib/catalog";
 import type {
+  CourseGroup,
+  DepartmentAggregate,
   ProfessorCourseSummary,
   SearchHit,
   SearchHitType,
@@ -21,6 +22,8 @@ import {
   type CatalogHitSearchContext,
 } from "@/lib/search-scoring";
 import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
+import { professorLastNameSortKey } from "@/lib/professor-sort";
+import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
 
 type ScoredSearchRow = {
   hit: SearchHit;
@@ -41,9 +44,12 @@ function finalizeSearchHit(
     if (!active) {
       return hit;
     }
-    const rankHints = schoolsWithCatalogRows.has(hit.slug)
-      ? ["Grade data in app catalog"]
-      : ["Directory listing — add adapter for course rows"];
+    const rankHints = hit.supportProfile?.plannerReadiness === "schedule_ready"
+      || hit.supportProfile?.plannerReadiness === "evidence_ready"
+      ? ["Schedule planning ready"]
+      : schoolsWithCatalogRows.has(hit.slug) || hit.supportProfile?.plannerReadiness === "catalog_ready"
+        ? ["Course shortlist ready"]
+        : ["School profile live"];
     return { ...hit, rankHints };
   }
 
@@ -67,132 +73,69 @@ function finalizeSearchHit(
 
   const secondaryMetrics = [
     ...hit.secondaryMetrics,
-    `n≈${offering.sampleSize}`,
+    `n~${offering.sampleSize}`,
     offering.latestTerm,
   ];
 
   return { ...hit, rankHints, secondaryMetrics };
 }
 
-interface DirectorySchoolRecord {
-  school_id: number;
-  slug: string;
-  name: string;
-  alias?: string | null;
-  city: string;
-  state: string;
-  website?: string | null;
-  control?: string | null;
-  student_size?: number | null;
+function minimumSchoolTextScore(query: string) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return 0;
+  }
+
+  if (trimmed.length <= 2) {
+    return 88;
+  }
+  if (trimmed.length <= 3) {
+    return 72;
+  }
+  return 24;
+}
+
+function minimumCatalogTextScore(
+  query: string,
+  hitType: SearchHitType,
+  schoolScoped: boolean,
+) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return 0;
+  }
+
+  if (/\d/.test(trimmed)) {
+    return hitType === "course" ? 18 : 24;
+  }
+
+  if (trimmed.length <= 2) {
+    return hitType === "course" ? 72 : 88;
+  }
+
+  if (trimmed.length <= 3) {
+    return schoolScoped ? 54 : 48;
+  }
+
+  return schoolScoped ? 24 : 18;
 }
 
 interface SearchDirectoryOptions {
   limit?: number;
+  /** For full search page pagination; omit for API/combobox (offset 0). */
+  offset?: number;
   type?: SearchHitType | "all";
   schoolSlug?: string;
 }
 
-const DIRECTORY_OUTPUT_PATH = path.join(
-  process.cwd(),
-  "etl",
-  "output",
-  "college_scorecard_schools.json",
-);
-
-const CANONICAL_SLUG_OVERRIDES: Record<string, string> = {
-  "the-university-of-texas-at-austin": "ut-austin",
-  "texas-a-m-university-college-station": "texas-am",
-  "university-of-california-berkeley": "uc-berkeley",
-  "university-of-wisconsin-madison": "uw-madison",
-  "the-ohio-state-university-main-campus": "ohio-state",
-  "university-of-north-carolina-at-chapel-hill": "unc-chapel-hill",
-  "university-of-washington-seattle-campus": "university-of-washington",
-  "university-of-illinois-urbana-champaign": "uiuc",
-};
-
-const ALIAS_OVERRIDES: Record<string, string[]> = {
-  "ut-austin": ["UT", "UT Austin", "University of Texas", "Texas Austin"],
-  "texas-am": ["Texas A&M", "Texas A and M", "TAMU", "A&M", "Texas AM"],
-  "uc-berkeley": ["UC Berkeley", "Berkeley", "Cal"],
-  "uw-madison": ["UW-Madison", "UW Madison", "Wisconsin", "Madison"],
-  "ohio-state": ["Ohio State", "OSU", "The Ohio State University"],
-  "unc-chapel-hill": ["UNC", "UNC Chapel Hill", "Carolina"],
-  "university-of-washington": ["UW", "University of Washington", "Washington Seattle"],
-  uiuc: ["UIUC", "Illinois", "U of I", "University of Illinois"],
-};
-
-function normalizeWhitespace(value: string) {
-  return value.replace(/\s+/g, " ").trim();
-}
-
-function buildAliases(record: DirectorySchoolRecord, canonicalSlug: string) {
-  const aliases = new Set<string>();
-  aliases.add(record.name);
-
-  if (record.alias) {
-    aliases.add(record.alias);
-  }
-
-  for (const alias of ALIAS_OVERRIDES[canonicalSlug] ?? []) {
-    aliases.add(alias);
-  }
-
-  return [...aliases]
-    .map((value) => normalizeWhitespace(value))
-    .filter(Boolean);
-}
-
-function buildImportedSchool(record: DirectorySchoolRecord): School {
-  const canonicalSlug = CANONICAL_SLUG_OVERRIDES[record.slug] ?? record.slug;
-  const shortName = normalizeWhitespace(record.alias || record.name);
-
-  return {
-    id: `scorecard:${record.school_id}`,
-    slug: canonicalSlug,
-    name: normalizeWhitespace(record.name),
-    shortName,
-    city: record.city,
-    state: record.state,
-    kind: record.control?.includes("Private") ? "Private" : "Public",
-    coverageTier: "rmp_only",
-    aliases: buildAliases(record, canonicalSlug),
-    directoryCount: 0,
-    sourceStatus: {
-      primary: "College Scorecard directory",
-      fallback: "Rate My Professors",
-      freshness: "Directory sync ready",
-      note: "This school is live in the nationwide directory. Native course-grade coverage appears once its institutional adapter is ingested.",
-    },
-    descriptor:
-      "Nationwide school directory coverage with transparent fallback mode until course-level grade data is added.",
-    programs: [],
-  };
-}
-
-function loadImportedSchools(): School[] {
-  if (!fs.existsSync(DIRECTORY_OUTPUT_PATH)) {
-    return [];
-  }
-
-  try {
-    const payload = JSON.parse(
-      fs.readFileSync(DIRECTORY_OUTPUT_PATH, "utf8"),
-    ) as DirectorySchoolRecord[];
-
-    return payload.map(buildImportedSchool);
-  } catch {
-    return [];
-  }
-}
-
-export function getDirectorySchools() {
+export async function getDirectorySchools() {
   const merged = new Map<string, School>();
 
-  for (const school of loadImportedSchools()) {
+  for (const school of loadScorecardDirectorySchools()) {
     merged.set(school.slug, school);
   }
 
-  for (const school of getCatalogSchools()) {
+  for (const school of await getCatalogSchools()) {
     const existing = merged.get(school.slug);
     if (!existing) {
       merged.set(school.slug, school);
@@ -207,6 +150,10 @@ export function getDirectorySchools() {
   }
 
   return [...merged.values()].sort((left, right) => left.name.localeCompare(right.name));
+}
+
+export async function getDirectorySchoolBySlug(slug: string) {
+  return (await getDirectorySchools()).find((school) => school.slug === slug);
 }
 
 function dataCompletenessBoost(hit: SearchHit) {
@@ -290,12 +237,14 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
   return 0;
 }
 
-function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
+async function buildSchoolSearchHits(allSchools: School[]): Promise<SearchHit[]> {
+  const catalogSchools = await getCatalogSchools();
+  const catalogSchoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
   return allSchools.map((school) => {
-    const catalogSchool = getCatalogSchoolBySlug(school.slug);
+    const catalogSchool = catalogSchoolLookup.get(school.slug);
     const coverageLine = catalogSchool
-      ? "Grade data in app catalog"
-      : "Directory listing only (no local course rows yet)";
+      ? "Planner baseline available"
+      : "School profile ready";
     return {
     type: "school",
     id: school.id,
@@ -309,9 +258,12 @@ function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
       coverageLine,
       school.sourceStatus.primary,
       school.sourceStatus.freshness,
-      school.coverageTier === "rmp_only"
-        ? "RMP fallback enabled"
-        : `${school.directoryCount}+ searchable professors`,
+      school.supportProfile?.plannerReadiness === "schedule_ready"
+        || school.supportProfile?.plannerReadiness === "evidence_ready"
+        ? "Schedule planner ready"
+        : school.supportProfile?.plannerReadiness === "catalog_ready"
+          ? "Course planner ready"
+          : "Catalog sync expanding",
     ],
     freshness: school.sourceStatus.freshness,
     sourceLabels: [school.sourceStatus.primary, school.sourceStatus.fallback],
@@ -327,13 +279,15 @@ function buildSchoolSearchHits(allSchools: School[]): SearchHit[] {
       contextLabel: `${school.city}, ${school.state}`,
       searchScope: "directory" as const,
     },
+    supportProfile: school.supportProfile,
   };
   });
 }
 
-function buildCatalogSearchHits(schoolSlug?: string): SearchHit[] {
-  const schoolLookup = new Map(getCatalogSchools().map((school) => [school.slug, school]));
-  const offerings = [...getCatalogOfferings()]
+async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]> {
+  const catalogSchools = await getCatalogSchools();
+  const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
+  const offerings = [...(await getCatalogOfferings())]
     .filter((item) => !schoolSlug || item.schoolSlug === schoolSlug)
     .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
   const courseByKey = new Map<string, ProfessorCourseSummary>();
@@ -404,36 +358,64 @@ function buildCatalogSearchHits(schoolSlug?: string): SearchHit[] {
   return [...courseHits, ...professorHits];
 }
 
-export async function searchDirectory(
+/** One hit per professor when browsing (empty query); avoids filling the cap with the same person across courses. */
+function dedupeProfessorHitsForBrowse(
+  hits: SearchHit[],
+  offeringLookup: Map<string, ProfessorCourseSummary>,
+): SearchHit[] {
+  const nonProfessors = hits.filter((h) => h.type !== "professor");
+  const professors = hits.filter((h) => h.type === "professor");
+  const rankHit = (hit: SearchHit) => {
+    const o = offeringLookup.get(hit.id);
+    const score = o?.classifyScore ?? -1;
+    const n = o?.sampleSize ?? 0;
+    return score * 1_000_000 + n;
+  };
+  const bestByKey = new Map<string, SearchHit>();
+  for (const hit of professors) {
+    const key = `${hit.context.schoolSlug}:${hit.slug}`;
+    const prev = bestByKey.get(key);
+    if (!prev || rankHit(hit) > rankHit(prev)) {
+      bestByKey.set(key, hit);
+    }
+  }
+  return [...nonProfessors, ...bestByKey.values()];
+}
+
+async function collectSortedSearchRows(
   query: string,
-  options: SearchDirectoryOptions = {},
-) {
-  const { limit = 12, schoolSlug, type = "all" } = options;
-  const allSchools = getDirectorySchools();
-  const catalogSchools = getCatalogSchools();
-  const catalogOfferings = getCatalogOfferings();
+  options: SearchDirectoryOptions,
+): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
+  const { schoolSlug, type = "all" } = options;
+  const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
+    getDirectorySchools(),
+    getCatalogSchools(),
+    getCatalogOfferings(),
+  ]);
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
   const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
   const courseLookup = new Map(
     catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
   );
   const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
-  const schoolHits = buildSchoolSearchHits(allSchools).filter(
+  const schoolHits = (await buildSchoolSearchHits(allSchools)).filter(
     (hit) => !schoolSlug || hit.slug === schoolSlug,
   );
+  let catalogHits = (await buildCatalogSearchHits(schoolSlug)).filter(
+    (hit) => type === "all" || hit.type === type,
+  );
+  if (!query.trim() && (type === "professor" || type === "all")) {
+    catalogHits = dedupeProfessorHitsForBrowse(catalogHits, offeringLookup);
+  }
   const hits = [
     ...(type === "all" || type === "school" ? schoolHits : []),
-    ...(type === "all" || type === "course" || type === "professor"
-      ? buildCatalogSearchHits(schoolSlug).filter(
-          (hit) => type === "all" || hit.type === type,
-        )
-      : []),
+    ...(type === "all" || type === "course" || type === "professor" ? catalogHits : []),
   ];
 
   const queryLooksSpecific =
     /\d/.test(query) || query.trim().length >= 4 || /\s/.test(query.trim());
 
-  return hits
+  const rows = hits
     .map((hit): ScoredSearchRow => {
       const school =
         hit.type === "school"
@@ -448,12 +430,17 @@ export async function searchDirectory(
       ];
 
       if (hit.type === "school") {
+        const textScore =
+          scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
+          schoolMatchBoost(query, hit, school);
+
+        if (query.trim() && textScore < minimumSchoolTextScore(query)) {
+          return { hit, score: 0 };
+        }
+
         return {
           hit,
-          score:
-            scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
-            qualityBoost(hit, offeringLookup, courseLookup) +
-            schoolMatchBoost(query, hit, school),
+          score: textScore + qualityBoost(hit, offeringLookup, courseLookup),
         };
       }
 
@@ -471,16 +458,20 @@ export async function searchDirectory(
           : { type: "professor", offering };
 
       const parts = computeCatalogSearchScoreParts(query, ctx, aliasList, offering);
+      const textScore = parts.base + parts.courseBoost + parts.fuzzyBonus;
+
+      if (
+        query.trim() &&
+        textScore < minimumCatalogTextScore(query, hit.type, Boolean(schoolSlug))
+      ) {
+        return { hit, score: 0, parts, offering };
+      }
 
       return {
         hit,
         parts,
         offering,
-        score:
-          parts.base +
-          parts.courseBoost +
-          parts.fuzzyBonus +
-          qualityBoost(hit, offeringLookup, courseLookup),
+        score: textScore + qualityBoost(hit, offeringLookup, courseLookup),
       };
     })
     .filter((item) => item.score > 0)
@@ -490,29 +481,86 @@ export async function searchDirectory(
         return order[left.hit.type] - order[right.hit.type];
       }
 
+      const bothProfessor =
+        left.hit.type === "professor" && right.hit.type === "professor";
+      const browseAlphaProf = bothProfessor && !query.trim();
+      const cmpLast = (a: ScoredSearchRow, b: ScoredSearchRow) => {
+        const c = professorLastNameSortKey(a.hit.label).localeCompare(
+          professorLastNameSortKey(b.hit.label),
+          undefined,
+          { sensitivity: "base" },
+        );
+        if (c !== 0) return c;
+        return a.hit.label.localeCompare(b.hit.label, undefined, { sensitivity: "base" });
+      };
+
+      if (browseAlphaProf) {
+        return cmpLast(left, right);
+      }
+
       if (right.score !== left.score) {
         return right.score - left.score;
+      }
+
+      if (bothProfessor) {
+        return cmpLast(left, right);
       }
 
       if (order[left.hit.type] !== order[right.hit.type]) {
         return order[left.hit.type] - order[right.hit.type];
       }
 
-      return left.hit.label.localeCompare(right.hit.label);
-    })
-    .slice(0, limit)
-    .map((row) => finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, query));
+      return left.hit.label.localeCompare(right.hit.label, undefined, { sensitivity: "base" });
+    });
+
+  return { rows, schoolsWithCatalogRows };
+}
+
+export async function searchDirectoryWithTotal(
+  query: string,
+  options: SearchDirectoryOptions = {},
+): Promise<{ results: SearchHit[]; total: number }> {
+  const limit = options.limit ?? 12;
+  const offset = options.offset ?? 0;
+  const { rows, schoolsWithCatalogRows } = await collectSortedSearchRows(query, options);
+  const total = rows.length;
+  const paged = rows.slice(offset, offset + limit);
+  const results = paged.map((row) =>
+    finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, query),
+  );
+  return { results, total };
+}
+
+export async function searchDirectory(
+  query: string,
+  options: SearchDirectoryOptions = {},
+): Promise<SearchHit[]> {
+  const { results } = await searchDirectoryWithTotal(query, options);
+  return results;
 }
 
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
   return searchDirectory("", { limit: 8, ...options });
 }
 
-export async function getSchoolHub(slug: string) {
-  const school = getDirectorySchools().find((item) => item.slug === slug);
+export async function getSchoolHub(slug: string): Promise<
+  | {
+      school: School;
+      offerings: ProfessorCourseSummary[];
+      courses: CourseGroup[];
+      trending: ProfessorCourseSummary[];
+      departments: DepartmentAggregate[];
+      hiddenGems: ProfessorCourseSummary[];
+    }
+  | undefined
+> {
+  const [school, catalogSchool] = await Promise.all([
+    getDirectorySchoolBySlug(slug),
+    getCatalogSchoolBySlug(slug),
+  ]);
   if (!school) return undefined;
 
-  if (!getCatalogSchoolBySlug(slug)) {
+  if (!catalogSchool) {
     return {
       school,
       offerings: [],
@@ -520,11 +568,14 @@ export async function getSchoolHub(slug: string) {
       trending: [],
       departments: [],
       hiddenGems: [],
-      };
+    };
   }
 
-  const schoolOfferings = getCatalogOfferings().filter((item) => item.schoolSlug === slug);
-  const spotlight = getSchoolTrendSpotlight(slug);
+  const [schoolOfferings, spotlight, hiddenGems] = await Promise.all([
+    getCatalogOfferingsForSchool(slug),
+    getSchoolTrendSpotlight(slug),
+    getHiddenGemsForSchool(slug),
+  ]);
 
   return {
     school,
@@ -532,6 +583,6 @@ export async function getSchoolHub(slug: string) {
     courses: spotlight?.courses ?? [],
     trending: spotlight?.trending ?? [],
     departments: spotlight?.departments ?? [],
-    hiddenGems: getHiddenGemsForSchool(slug),
+    hiddenGems,
   };
 }
