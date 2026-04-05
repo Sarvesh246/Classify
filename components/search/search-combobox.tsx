@@ -14,6 +14,7 @@ import {
   useListNavigation,
   useRole,
 } from "@floating-ui/react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   useCallback,
   useDeferredValue,
@@ -32,6 +33,7 @@ import { type SearchHit, type SearchHitType } from "@/lib/types";
 import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { useDelayedShown } from "@/hooks/use-delayed-shown";
+import { pushRecentSearch } from "@/lib/recent-searches";
 
 interface SearchComboboxProps {
   initialQuery?: string;
@@ -256,6 +258,7 @@ export function SearchCombobox({
 
   function handleSelect(item: SearchHit) {
     setOpen(false);
+    pushRecentSearch(item);
     if (clearOnSelect) {
       setQuery("");
     } else {
@@ -370,38 +373,82 @@ export function SearchCombobox({
         </button>
       </form>
 
-      {open ? (
-        isMobileSheet ? (
-          <FloatingPortal>
-            <div className="overlay-layer fixed inset-0 z-[240]">
-              <button
-                type="button"
-                className="absolute inset-0 bg-deep-ink/45"
-                onClick={() => setOpen(false)}
-                aria-label="Close search suggestions"
-              />
-              <div
+      <AnimatePresence>
+        {open ? (
+          isMobileSheet ? (
+            <FloatingPortal>
+              <div className="overlay-layer fixed inset-0 z-[240]">
+                <motion.button
+                  type="button"
+                  className="absolute inset-0 bg-deep-ink/50"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close search suggestions"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+                <div className="absolute inset-x-0 bottom-0 flex max-h-full items-end">
+                  <motion.div
+                    ref={setFloatingRef}
+                    className="mobile-sheet-shell w-full rounded-t-[30px] bg-background"
+                    initial={{ y: 46, opacity: 0.86 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 28, opacity: 0 }}
+                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                    {...getFloatingProps()}
+                  >
+                    <div className="soft-panel mobile-app-scroll max-h-[min(78dvh,44rem)] overflow-y-auto rounded-t-[30px] border-b-0 p-3 pb-6">
+                      <div className="mx-auto mb-3 h-1.5 w-14 rounded-full bg-border/90" />
+                      <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 border-b border-border/60 bg-[linear-gradient(180deg,rgba(246,241,232,0.98),rgba(246,241,232,0.92))] px-5 pb-3 pt-4 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="eyebrow">Search results</p>
+                            <p className="mt-1 text-sm text-muted">
+                              Tap a result to keep moving without losing your flow.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setOpen(false)}
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink shadow-sm"
+                            aria-label="Dismiss search results"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <SearchResultsPanel
+                        query={query}
+                        groupedSections={groupedSections}
+                        results={results}
+                        activeIndex={activeIndex}
+                        setActiveIndex={setActiveIndex}
+                        onSelect={handleSelect}
+                        onLinkSelect={() => setOpen(false)}
+                        getItemProps={getItemProps}
+                        listRef={listRef}
+                        emptyMessage={emptyMessage}
+                        fetchError={fetchError}
+                        linkResults={!onSelect}
+                      />
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </FloatingPortal>
+          ) : (
+            <FloatingPortal>
+              <motion.div
                 ref={setFloatingRef}
-                className="mobile-sheet-shell absolute inset-x-0 bottom-0 rounded-t-[30px] bg-background"
+                style={floatingStyles}
+                className="overlay-layer"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.2 }}
                 {...getFloatingProps()}
               >
-                <div className="soft-panel mobile-app-scroll max-h-[min(72dvh,42rem)] overflow-y-auto rounded-t-[30px] border-b-0 p-3 pb-6">
-                  <div className="mb-3 flex items-center justify-between gap-3 px-2 pt-2">
-                    <div>
-                      <p className="eyebrow">Search results</p>
-                      <p className="mt-1 text-sm text-muted">
-                        Tap a result to keep moving without leaving the app flow.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setOpen(false)}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink"
-                      aria-label="Dismiss search results"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
+                <div className="soft-panel overflow-hidden rounded-[28px]">
                   <SearchResultsPanel
                     query={query}
                     groupedSections={groupedSections}
@@ -417,37 +464,11 @@ export function SearchCombobox({
                     linkResults={!onSelect}
                   />
                 </div>
-              </div>
-            </div>
-          </FloatingPortal>
-        ) : (
-          <FloatingPortal>
-            <div
-              ref={setFloatingRef}
-              style={floatingStyles}
-              className="overlay-layer"
-              {...getFloatingProps()}
-            >
-              <div className="soft-panel overflow-hidden rounded-[28px]">
-                <SearchResultsPanel
-                  query={query}
-                  groupedSections={groupedSections}
-                  results={results}
-                  activeIndex={activeIndex}
-                  setActiveIndex={setActiveIndex}
-                  onSelect={handleSelect}
-                  onLinkSelect={() => setOpen(false)}
-                  getItemProps={getItemProps}
-                  listRef={listRef}
-                  emptyMessage={emptyMessage}
-                  fetchError={fetchError}
-                  linkResults={!onSelect}
-                />
-              </div>
-            </div>
-          </FloatingPortal>
-        )
-      ) : null}
+              </motion.div>
+            </FloatingPortal>
+          )
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

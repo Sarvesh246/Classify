@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import { ArrowRight, LineChart, Search, SlidersHorizontal } from "lucide-react";
 import { SearchCombobox } from "@/components/search/search-combobox";
+import { MobileHomeLaunchpad } from "@/components/home/mobile-home-launchpad";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { HomeScene } from "@/components/home/home-scene";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
@@ -92,7 +93,12 @@ export function HomeExperience({
         {useCanvas ? (
           <HomeScene progress={progress} />
         ) : (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(88,199,184,0.18),transparent_28%),radial-gradient(circle_at_70%_30%,rgba(201,138,87,0.12),transparent_24%),linear-gradient(180deg,#07111F_0%,#0A1C31_50%,#08111F_100%)]" />
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="mobile-ambient-backdrop absolute inset-0" />
+            <div className="mobile-ambient-orb mobile-ambient-orb-a" />
+            <div className="mobile-ambient-orb mobile-ambient-orb-b" />
+            <div className="mobile-ambient-grid absolute inset-0 opacity-40" />
+          </div>
         )}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.42),rgba(7,17,31,0.82)_36%,rgba(7,17,31,0.95)_100%)]" />
       </div>
@@ -105,11 +111,16 @@ export function HomeExperience({
             transition={{ duration: 0.6 }}
             className="mx-auto w-full max-w-5xl"
           >
-            <div className="mx-auto max-w-4xl">
+            <MobileHomeLaunchpad
+              featured={featured}
+              schools={spotlights.map((item) => item.school)}
+            />
+
+            <div className="mx-auto hidden max-w-4xl md:block">
               <SearchCombobox placeholder="Search a school, course code, or professor" />
             </div>
 
-            <div className="mx-auto mt-6 max-w-3xl text-center">
+            <div className="mx-auto mt-6 hidden max-w-3xl text-center md:block">
               <h1 className="display-title text-4xl font-semibold leading-[0.94] tracking-[-0.07em] text-balance sm:text-6xl">
                 Find the professor who actually gives A&apos;s.
               </h1>
@@ -118,15 +129,56 @@ export function HomeExperience({
               </p>
             </div>
 
-            <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82">
+            <div className="mx-auto mt-6 hidden max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82 md:flex">
               <InlineStat label="Searchable schools" value={coverage.trackedSchools} />
               <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
               <InlineStat label="Tracked course options" value={coverage.trackedCourses} />
             </div>
+
+            <div className="mt-4 grid gap-3 md:hidden">
+              <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+                <p className="eyebrow text-white/72">Why it feels different</p>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  <MobileProof value={coverage.trackedSchools} label="schools" />
+                  <MobileProof value={coverage.plannerReadySchools} label="planner-ready" />
+                  <MobileProof value={coverage.trackedCourses} label="course rows" />
+                </div>
+              </div>
+              {spotlight ? (
+                <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="eyebrow text-white/72">Active school spotlight</p>
+                      <p className="mt-1 text-base font-semibold text-white">
+                        {spotlight.school.shortName}
+                      </p>
+                    </div>
+                    <CoverageBadge tier={spotlight.school.coverageTier} variant="onDark" />
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-white/72">
+                    {spotlight.school.sourceStatus.note}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/schools/${spotlight.school.slug}`}
+                      className="inline-flex min-h-11 items-center rounded-full bg-ivory px-4 text-sm font-medium !text-deep-ink"
+                    >
+                      Open school hub
+                    </Link>
+                    <Link
+                      href="/compare"
+                      className="inline-flex min-h-11 items-center rounded-full border border-white/16 bg-white/8 px-4 text-sm font-medium text-white"
+                    >
+                      Compare options
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </motion.div>
         </section>
 
-        <section className="section-shell py-20 sm:py-28">
+        <section className="section-shell hidden py-12 sm:py-28 md:block">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
               <p className="eyebrow">Why it beats RMP</p>
@@ -183,7 +235,7 @@ export function HomeExperience({
           </div>
         </section>
 
-        <section className="section-shell py-20 sm:py-28">
+        <section className="section-shell hidden py-20 sm:py-28 md:block">
           <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
               <p className="eyebrow">National school graph</p>
@@ -282,7 +334,7 @@ export function HomeExperience({
           </div>
         </section>
 
-        <section className="section-shell py-20 sm:py-28">
+        <section className="section-shell hidden py-20 sm:py-28 md:block">
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
               <div className="flex items-center gap-3 text-sm uppercase tracking-[0.18em] text-muted">
@@ -365,6 +417,15 @@ function InlineStat({ label, value }: { label: string; value: number }) {
     <div className="rounded-full border border-white/10 bg-white/6 px-4 py-2">
       <span className="font-semibold text-ivory">{value}</span>{" "}
       <span className="text-ivory/68">{label}</span>
+    </div>
+  );
+}
+
+function MobileProof({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[20px] border border-white/10 bg-white/8 px-3 py-3">
+      <p className="text-lg font-semibold text-white">{value}</p>
+      <p className="mt-1 text-[0.68rem] uppercase tracking-[0.16em] text-white/62">{label}</p>
     </div>
   );
 }

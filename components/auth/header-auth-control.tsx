@@ -5,11 +5,18 @@ import { useCombinedAuth } from "@/components/auth/use-combined-auth";
 import { cn } from "@/lib/utils";
 import { signOutAll } from "@/utils/supabase/sign-out";
 
-export function HeaderAuthControl({ isHome }: { isHome: boolean }) {
+export function HeaderAuthControl({
+  isHome,
+  compact = false,
+}: {
+  isHome: boolean;
+  compact?: boolean;
+}) {
   const { user, hydrated: authReady } = useCombinedAuth();
 
   const loginClass = cn(
-    "inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out",
+    "inline-flex items-center rounded-full text-sm font-medium transition-all duration-200 ease-out",
+    compact ? "min-h-11 px-3.5 py-2" : "px-4 py-2",
     "hover:-translate-y-px hover:shadow-md active:translate-y-0 active:shadow-sm",
     "motion-reduce:transform-none motion-reduce:hover:shadow-none",
     isHome
@@ -20,7 +27,7 @@ export function HeaderAuthControl({ isHome }: { isHome: boolean }) {
   if (!authReady) {
     return (
       <span className={cn(loginClass, "cursor-default opacity-70")} aria-hidden>
-        …
+        ...
       </span>
     );
   }
@@ -41,6 +48,7 @@ export function HeaderAuthControl({ isHome }: { isHome: boolean }) {
       <span
         className={cn(
           "hidden max-w-[9rem] truncate text-sm font-medium sm:inline",
+          compact && "sm:hidden",
           isHome ? "text-ivory/92" : "text-ink",
         )}
         title={user.email ?? undefined}
@@ -51,13 +59,14 @@ export function HeaderAuthControl({ isHome }: { isHome: boolean }) {
         type="button"
         onClick={() => void signOutAll()}
         className={cn(
-          "rounded-full px-3 py-2 text-sm font-medium transition-all duration-200",
+          "rounded-full text-sm font-medium transition-all duration-200",
+          compact ? "min-h-11 px-3.5 py-2" : "px-3 py-2",
           isHome
             ? "text-ivory/90 underline-offset-4 hover:text-white hover:underline"
             : "text-muted underline-offset-4 hover:text-ink hover:underline",
         )}
       >
-        Sign out
+        {compact ? "Account" : "Sign out"}
       </button>
     </div>
   );

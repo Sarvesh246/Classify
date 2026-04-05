@@ -588,18 +588,18 @@ export function MyCoursesPlanner({
         ) : null}
 
         {selectedSlugs.length ? (
-          <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <button
               type="button"
               onClick={() => void copyShareLink()}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink"
             >
               <Copy className="h-4 w-4" />
               {copyState === "copied" ? "Link copied" : copyState === "error" ? "Copy failed" : "Copy share link"}
             </button>
             <Link
               href={`/schools/${schoolSlug}/instructors`}
-              className="inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
             >
               Browse all instructors
             </Link>
@@ -882,7 +882,7 @@ export function MyCoursesPlanner({
                       </h2>
                       <p className="mt-1 text-sm text-muted">{course.department}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                       {selectionLookup.get(course.courseSlug)?.section?.hasMeetingTime ? (
                         <span className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-3 py-1.5 text-xs text-muted">
                           <CalendarDays className="h-3.5 w-3.5" />
@@ -891,7 +891,7 @@ export function MyCoursesPlanner({
                       ) : null}
                       <Link
                         href={`/schools/${schoolSlug}/courses/${course.courseSlug}`}
-                        className="rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                          className="min-h-11 w-full rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink sm:w-auto"
                       >
                         Open course page
                       </Link>
@@ -936,16 +936,16 @@ export function MyCoursesPlanner({
                             />
                           </div>
 
-                          <div className="flex flex-col gap-2 lg:items-end">
+                          <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:items-end">
                             <Link
                               href={`/schools/${schoolSlug}/professors/${item.professorSlug}`}
-                              className="rounded-full bg-deep-ink px-4 py-2 text-center text-sm font-medium text-ivory"
+                              className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-center text-sm font-medium text-ivory"
                             >
                               Open profile
                             </Link>
                             <Link
                               href={`/compare?ids=${encodeURIComponent(item.id)}&school=${encodeURIComponent(item.schoolSlug)}`}
-                              className="rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink"
+                              className="min-h-11 rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink"
                             >
                               Compare
                             </Link>
@@ -970,11 +970,11 @@ export function MyCoursesPlanner({
           className="soft-panel fixed inset-x-3 z-20 rounded-[24px] border border-border/80 p-3 md:hidden"
           style={{ bottom: "calc(var(--mobile-nav-height) + var(--safe-bottom) + 0.75rem)" }}
         >
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => void copyShareLink()}
-              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
             >
               {copyState === "copied"
                 ? "Link copied"
@@ -987,14 +987,14 @@ export function MyCoursesPlanner({
                 type="button"
                 onClick={() => void saveDraft()}
                 disabled={draftBusy || !selectedSlugs.length}
-                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full bg-deep-ink px-3 text-sm font-semibold text-ivory disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-3 text-sm font-semibold text-ivory disabled:opacity-50"
               >
                 {draftBusy ? "Saving..." : "Save"}
               </button>
             ) : (
               <Link
                 href="/login"
-                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
               >
                 Sign in
               </Link>
@@ -1002,10 +1002,10 @@ export function MyCoursesPlanner({
             <button
               type="button"
               onClick={jumpToRecommendations}
-              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
-            >
-              View picks
-            </button>
+                className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+              >
+                View picks
+              </button>
           </div>
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { MobileSearchCommand } from "@/components/search/mobile-search-command";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import { SearchScopeChips } from "@/components/search/search-scope-chips";
 import { SiteHeader } from "@/components/site-header";
@@ -77,8 +78,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-10">
-        <section className="soft-panel rounded-[34px] p-6 sm:p-8">
+      <div className="page-shell pt-4 md:pt-10">
+        <MobileSearchCommand
+          query={query}
+          schoolSlug={schoolParam}
+          filterType={filterType}
+          schoolShortName={schoolShortName}
+        />
+
+        <section className="soft-panel hidden rounded-[34px] p-6 sm:p-8 md:block">
           <p className="eyebrow">Universal search</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">
             Search schools, courses, and professors in one place
@@ -135,7 +143,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ) : null}
 
             {grouped.school.length ? (
-              <div className="soft-panel rounded-[30px] p-5 sm:p-6">
+              <div className="soft-panel rounded-[28px] p-4 sm:rounded-[30px] sm:p-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
                     <Search className="h-4 w-4" />
@@ -152,12 +160,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     <Link
                       key={item.id}
                       href={item.href}
-                      className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 transition hover:bg-white"
+                      className="flex flex-col gap-3 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white sm:rounded-[24px] sm:py-4"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <h3 className="text-lg font-semibold text-ink">{item.label}</h3>
-                          <p className="text-sm text-muted">{item.school}</p>
+                          <h3 className="text-base font-semibold text-ink sm:text-lg">{item.label}</h3>
+                          <p className="text-xs text-muted sm:text-sm">{item.school}</p>
                         </div>
                         <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
                       </div>
@@ -181,7 +189,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
             {(["course", "professor"] as const).map((key) =>
               grouped[key].length ? (
-                <div key={key} className="soft-panel rounded-[30px] p-5 sm:p-6">
+                <div key={key} className="soft-panel rounded-[28px] p-4 sm:rounded-[30px] sm:p-6">
                   <div className="flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
                       <Search className="h-4 w-4" />
@@ -208,9 +216,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                             <Link
                               key={item.id}
                               href={item.href}
-                              className="flex flex-col gap-2 rounded-[24px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white"
+                              className="flex flex-col gap-2 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white sm:rounded-[24px]"
                             >
-                              <h3 className="text-lg font-semibold text-ink">{item.label}</h3>
+                              <h3 className="text-base font-semibold text-ink sm:text-lg">{item.label}</h3>
                               {item.rankHints?.length ? (
                                 <div className="flex flex-wrap gap-2">
                                   {item.rankHints.map((hint) => (
@@ -278,7 +286,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ) : null}
           </section>
         ) : (
-          <section className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <section className="mt-8 hidden gap-6 lg:grid-cols-[1.05fr_0.95fr] md:grid">
             <div className="soft-panel rounded-[30px] p-5 sm:p-6">
               <p className="eyebrow">Search cues</p>
               <h2 className="mt-3 text-3xl font-semibold text-ink">

@@ -192,6 +192,50 @@ a:focus:not(:focus-visible) {
   overscroll-behavior-y: contain;
 }
 
+.mobile-ambient-backdrop {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(88, 199, 184, 0.22), transparent 26%),
+    radial-gradient(circle at 78% 18%, rgba(201, 138, 87, 0.16), transparent 28%),
+    linear-gradient(180deg, #07111f 0%, #0a1c31 52%, #08111f 100%);
+}
+
+.mobile-ambient-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
+}
+
+.mobile-ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(10px);
+  opacity: 0.68;
+  will-change: transform, opacity;
+  animation: classify-ambient-drift 14s ease-in-out infinite;
+}
+
+.mobile-ambient-orb-a {
+  top: -6rem;
+  left: -3rem;
+  height: 18rem;
+  width: 18rem;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(88, 199, 184, 0.38), rgba(88, 199, 184, 0.04) 68%, transparent 82%);
+}
+
+.mobile-ambient-orb-b {
+  right: -5rem;
+  top: 22%;
+  height: 16rem;
+  width: 16rem;
+  background:
+    radial-gradient(circle at 45% 45%, rgba(201, 138, 87, 0.34), rgba(201, 138, 87, 0.06) 66%, transparent 82%);
+  animation-duration: 18s;
+  animation-direction: alternate;
+}
+
 /* Branded loader: grade-distribution style bars (not a spinner) */
 @keyframes classify-wave {
   0%,
@@ -202,6 +246,18 @@ a:focus:not(:focus-visible) {
   50% {
     transform: scaleY(1);
     opacity: 1;
+  }
+}
+
+@keyframes classify-ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.58;
+  }
+  50% {
+    transform: translate3d(0.85rem, 1.15rem, 0) scale(1.06);
+    opacity: 0.82;
   }
 }
 
@@ -216,6 +272,11 @@ a:focus:not(:focus-visible) {
     animation: none;
     opacity: 0.75;
     transform: scaleY(0.62);
+  }
+
+  .mobile-ambient-orb {
+    animation: none;
+    opacity: 0.7;
   }
 }
 
@@ -257,6 +318,10 @@ a:focus:not(:focus-visible) {
 
   .page-shell {
     padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 2rem);
+  }
+
+  .mobile-sheet-shell {
+    padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 0.5rem);
   }
 }
 

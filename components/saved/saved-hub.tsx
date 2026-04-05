@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowUpRight, BookOpen, Cloud, FolderHeart, Layers3 } from "lucide-react";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
 import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/lib/me-api-client";
 
 export function SavedHub() {
-  const { supabaseUserId, hydrated } = useCombinedAuth();
+  const { user, supabaseUserId, hydrated } = useCombinedAuth();
   const [items, setItems] = useState<SavedItemRow[] | null>(null);
   const [sets, setSets] = useState<CompareSetRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +70,42 @@ export function SavedHub() {
   }
 
   if (!supabaseUserId) {
-    return (
-      <div className="rounded-[28px] border border-dashed border-border bg-white/50 px-6 py-12 text-center text-sm text-muted">
-        Sign in with <strong className="text-ink">email</strong>{" "}to sync saved professors,
-        courses, and compare sets across devices. Google sign-in alone doesn&apos;t enable cloud
-        saves yet.
+    return user ? (
+      <div className="space-y-4">
+        <LibraryPreview />
+        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted">
+          <div className="flex items-start gap-3">
+            <Cloud className="mt-0.5 h-5 w-5 text-deep-ink" />
+            <div>
+              <p className="font-semibold text-ink">Library sync is almost on</p>
+              <p className="mt-1 leading-6">
+                You&apos;re signed in, but cross-device saves still use Classify email
+                sign-in for now.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div className="space-y-4">
+        <LibraryPreview />
+        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-ink">Turn on cloud saves</p>
+              <p className="mt-1 leading-6">
+                Sign in with <strong className="text-ink">email</strong> to sync professors,
+                courses, compare sets, and planner drafts across devices.
+              </p>
+            </div>
+            <Link
+              href="/login"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -94,27 +126,49 @@ export function SavedHub() {
 
   if (!hasAny) {
     return (
-      <div className="soft-panel rounded-[28px] px-6 py-14 text-center text-muted">
-        <p className="text-ink">Nothing saved yet.</p>
-        <p className="mt-2 text-sm">
-          Open a professor or course page and tap <strong className="text-ink">Save</strong>, or
-          save a comparison from the compare page.
-        </p>
-        <Link
-          href="/search"
-          className="mt-6 inline-flex rounded-full bg-deep-ink px-5 py-2.5 text-sm font-medium !text-ivory"
-        >
-          Browse search
-        </Link>
+      <div className="space-y-4">
+        <div className="soft-panel rounded-[28px] px-6 py-10 text-left text-muted">
+          <p className="text-lg font-semibold text-ink">Your library is ready.</p>
+          <p className="mt-2 text-sm leading-6">
+            Save a professor, course, compare set, or planner draft and it will show up here.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <Link
+              href="/search"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-5 text-sm font-medium !text-ivory"
+            >
+              Browse search
+            </Link>
+            <Link
+              href="/compare"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/80 px-5 text-sm font-medium text-ink"
+            >
+              Open compare
+            </Link>
+          </div>
+        </div>
+        <LibraryPreview compact />
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
-      {sets && sets.length > 0 ? (
+    <div className="space-y-6">
+      <section className="grid gap-3 sm:grid-cols-3">
+        <SummaryCard label="Compare sets" value={sets.length} />
+        <SummaryCard label="Saved items" value={items.length} />
+        <SummaryCard label="Sync" value="On" muted="Email-linked" />
+      </section>
+
+      {sets.length > 0 ? (
         <section>
-          <h2 className="text-lg font-semibold text-ink">Compare sets</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-ink">Compare sets</h2>
+            <Link href="/compare" className="inline-flex items-center gap-1 text-sm font-medium text-ink">
+              Open compare
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
           <ul className="mt-4 space-y-3">
             {sets.map((s) => (
               <li
@@ -149,9 +203,15 @@ export function SavedHub() {
         </section>
       ) : null}
 
-      {items && items.length > 0 ? (
+      {items.length > 0 ? (
         <section>
-          <h2 className="text-lg font-semibold text-ink">Professors & courses</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-ink">Saved picks</h2>
+            <Link href="/search" className="inline-flex items-center gap-1 text-sm font-medium text-ink">
+              Browse more
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
           <ul className="mt-4 space-y-3">
             {items.map((item) => (
               <li
@@ -194,5 +254,70 @@ export function SavedHub() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  muted,
+}: {
+  label: string;
+  value: number | string;
+  muted?: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-border/70 bg-white/70 px-4 py-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-muted">{label}</p>
+      <p className="mt-2 text-xl font-semibold text-ink">{value}</p>
+      {muted ? <p className="mt-1 text-sm text-muted">{muted}</p> : null}
+    </div>
+  );
+}
+
+function LibraryPreview({ compact = false }: { compact?: boolean }) {
+  const sections = [
+    {
+      icon: <FolderHeart className="h-4 w-4" />,
+      title: "Saved professors",
+      body: "Keep strong instructor options close.",
+    },
+    {
+      icon: <BookOpen className="h-4 w-4" />,
+      title: "Saved courses",
+      body: "Return to important classes without starting over.",
+    },
+    {
+      icon: <Layers3 className="h-4 w-4" />,
+      title: "Compare sets & drafts",
+      body: "Store side-by-side picks and planning work.",
+    },
+  ];
+
+  return (
+    <section className="rounded-[28px] border border-border/70 bg-white/56 p-4">
+      <p className="eyebrow">Library preview</p>
+      {!compact ? (
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Classify remembers the work you want to come back to during course selection.
+        </p>
+      ) : null}
+      <div className="mt-4 grid gap-2">
+        {sections.map((section) => (
+          <div
+            key={section.title}
+            className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-background/82 px-4 py-4"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
+              {section.icon}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-ink">{section.title}</p>
+              <p className="mt-1 text-xs leading-5 text-muted">{section.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -208,28 +208,28 @@ export function CompareBuilder({
   return (
     <div className="space-y-6">
       <div className="soft-panel sticky top-[calc(var(--safe-top)+4.75rem)] z-30 rounded-[28px] p-4 lg:hidden">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="eyebrow">Compare builder</p>
             <p className="mt-2 truncate text-lg font-semibold text-ink">
               {activeSchool?.schoolName ?? activeSchoolMeta.name ?? "Choose a school"}
             </p>
             <p className="mt-1 text-sm text-muted">
-              Open the builder when you want to add picks. The comparison stays in view.
+              Start with a school, add up to four options, then compare without losing context.
             </p>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
               onClick={() => setBuilderOpen(true)}
-              className="min-h-11 rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
+              className="min-h-11 min-w-[6.75rem] rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
             >
               Build
             </button>
             <button
               type="button"
               onClick={() => setCatalogOpen(true)}
-              className="min-h-11 rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+              className="min-h-11 min-w-[6.75rem] rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
             >
               Browse
             </button>
@@ -245,6 +245,14 @@ export function CompareBuilder({
             />
           </div>
         ) : null}
+        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+          <span className="rounded-full border border-border bg-white/70 px-3 py-1.5">
+            {selected.length}/4 filled
+          </span>
+          <span className="rounded-full border border-border bg-white/70 px-3 py-1.5">
+            {activeCourseSlug ? "Course filtered" : "All compare-ready rows"}
+          </span>
+        </div>
       </div>
 
       <div className="soft-panel sticky top-24 z-30 hidden rounded-[30px] p-4 sm:p-5 lg:block">
@@ -393,13 +401,36 @@ export function CompareBuilder({
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+      {!selected.length ? (
+        <div className="soft-panel rounded-[28px] p-4 lg:hidden">
+          <p className="eyebrow">How compare works</p>
+          <div className="mt-3 grid gap-2">
+            {[
+              "Pick a school to keep the compare set coherent.",
+              "Add professor-course rows that teach the class you care about.",
+              "Use compare first, then plan the winning option.",
+            ].map((step, index) => (
+              <div
+                key={step}
+                className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-ink text-xs font-semibold text-ivory">
+                  {index + 1}
+                </span>
+                <p className="text-sm leading-6 text-muted">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
         {selected.map((item) => (
-          <article key={item.id} className="soft-panel rounded-[28px] p-5">
+          <article key={item.id} className="soft-panel rounded-[28px] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <CoverageBadge tier={item.coverageTier} />
-                <h3 className="mt-3 text-xl font-semibold text-ink">{item.professorName}</h3>
+                <h3 className="mt-3 text-lg font-semibold text-ink sm:text-xl">{item.professorName}</h3>
                 <p className="text-sm text-muted">
                   {item.courseCode} - {item.courseName}
                 </p>
@@ -415,7 +446,7 @@ export function CompareBuilder({
               </button>
             </div>
 
-            <div className="mt-5 space-y-3 text-sm">
+            <div className="mt-4 grid gap-2 text-sm sm:mt-5">
               <MetricRow
                 label="Classify"
                 value={scoreToLabel(item.classifyScore)}
@@ -435,7 +466,7 @@ export function CompareBuilder({
               />
             </div>
 
-            <div className="mt-5 rounded-[24px] border border-border/80 bg-white/65 p-4">
+            <div className="mt-4 rounded-[24px] border border-border/80 bg-white/65 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Trend</p>
               <TrendSparkline trend={item.trend} className="mt-3" />
             </div>
@@ -471,21 +502,24 @@ export function CompareBuilder({
             key={`empty-${index}`}
             type="button"
             onClick={() => (isMobile ? setBuilderOpen(true) : setCatalogOpen(true))}
-            className="soft-panel flex min-h-[24rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-white/55"
+            className="soft-panel flex min-h-[18rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-white/55 sm:min-h-[24rem]"
           >
+            <span className="rounded-full border border-border bg-white/72 px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted">
+              Slot {selected.length + index + 1}
+            </span>
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-white/72 text-deep-ink">
               <Plus className="h-5 w-5" />
             </div>
             <p className="mt-4 text-lg font-semibold text-ink">Add a professor</p>
             <p className="mt-2 max-w-[18ch] text-sm">
-              Browse the active school catalog to fill the remaining compare slots.
+              Fill this slot from the active school and keep the compare board balanced.
             </p>
           </button>
         ))}
       </div>
 
       <div className="soft-panel rounded-[28px] p-4 lg:hidden">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="eyebrow">Catalog</p>
             <p className="mt-1 text-sm text-muted">
@@ -495,7 +529,7 @@ export function CompareBuilder({
           <button
             type="button"
             onClick={() => setCatalogOpen(true)}
-            className="min-h-11 rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+            className="min-h-11 w-full rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
           >
             Browse catalog
           </button>
@@ -695,7 +729,7 @@ export function CompareBuilder({
                     setActiveCourseSlug("");
                     sync(selectedIds, undefined);
                   }}
-                  className="mt-3 rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                  className="mt-3 min-h-11 w-full rounded-full border border-border px-4 py-2 text-sm font-medium text-ink sm:w-auto"
                 >
                   Clear school
                 </button>
@@ -730,7 +764,7 @@ export function CompareBuilder({
                       ))}
                     </select>
                   </label>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       disabled={!loadSetId}
@@ -738,7 +772,7 @@ export function CompareBuilder({
                         loadSavedCompare();
                         setBuilderOpen(false);
                       }}
-                      className="flex-1 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
+                      className="min-h-11 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
                     >
                       Load
                     </button>
@@ -746,7 +780,7 @@ export function CompareBuilder({
                       type="button"
                       disabled={saveBusy || selectedIds.length === 0}
                       onClick={() => void saveCompareSnapshot()}
-                      className="flex-1 rounded-full bg-deep-ink px-4 py-2 text-sm font-semibold text-ivory disabled:opacity-50"
+                      className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-sm font-semibold text-ivory disabled:opacity-50"
                     >
                       {saveBusy ? "Saving..." : "Save"}
                     </button>
@@ -827,7 +861,7 @@ export function CompareBuilder({
                             GPA {formatGpa(item.expectedGpa)}
                           </span>
                         </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                           <button
                             type="button"
                             disabled={atLimit}
@@ -841,7 +875,7 @@ export function CompareBuilder({
                                 setCatalogOpen(false);
                               }
                             }}
-                            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory disabled:cursor-not-allowed disabled:bg-deep-ink/40"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory disabled:cursor-not-allowed disabled:bg-deep-ink/40"
                           >
                             {selectedAlready ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                             {selectedAlready
@@ -852,7 +886,7 @@ export function CompareBuilder({
                           </button>
                           <Link
                             href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
-                            className="inline-flex min-h-11 items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
                           >
                             Plan
                           </Link>
