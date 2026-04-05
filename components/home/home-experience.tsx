@@ -136,7 +136,7 @@ export function HomeExperience({
             </div>
 
             <div className="mt-4 grid gap-3 md:hidden">
-              <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+              <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
                 <p className="eyebrow text-white/72">Why it feels different</p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                   <MobileProof value={coverage.trackedSchools} label="schools" />
@@ -145,7 +145,7 @@ export function HomeExperience({
                 </div>
               </div>
               {spotlight ? (
-                <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+                <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="eyebrow text-white/72">Active school spotlight</p>
@@ -158,19 +158,19 @@ export function HomeExperience({
                   <p className="mt-2 text-sm leading-6 text-white/72">
                     {spotlight.school.sourceStatus.note}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Link
-                      href={`/schools/${spotlight.school.slug}`}
-                      className="inline-flex min-h-11 items-center rounded-full bg-ivory px-4 text-sm font-medium !text-deep-ink"
-                    >
-                      Open school hub
-                    </Link>
-                    <Link
-                      href="/compare"
-                      className="inline-flex min-h-11 items-center rounded-full border border-white/16 bg-white/8 px-4 text-sm font-medium text-white"
-                    >
-                      Compare options
-                    </Link>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Link
+                        href={`/schools/${spotlight.school.slug}`}
+                        className="inline-flex min-h-11 items-center rounded-full bg-ivory px-4 text-sm font-medium !text-deep-ink"
+                      >
+                        Open school hub
+                      </Link>
+                      <Link
+                        href="/compare"
+                        className="inline-flex min-h-11 items-center rounded-full border border-white/16 bg-white/8 px-4 text-sm font-medium !text-white"
+                      >
+                        Compare options
+                      </Link>
                   </div>
                 </div>
               ) : null}
@@ -423,7 +423,7 @@ function InlineStat({ label, value }: { label: string; value: number }) {
 
 function MobileProof({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-[20px] border border-white/10 bg-white/8 px-3 py-3">
+    <div className="rounded-[20px] border border-white/10 bg-white/8 px-3 py-3 text-white">
       <p className="text-lg font-semibold text-white">{value}</p>
       <p className="mt-1 text-[0.68rem] uppercase tracking-[0.16em] text-white/62">{label}</p>
     </div>

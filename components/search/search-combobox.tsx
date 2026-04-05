@@ -323,7 +323,7 @@ export function SearchCombobox({
           handleSubmit();
         }}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-deep-ink text-ivory">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-deep-ink text-ivory">
           {showListLoading ? (
             <ClassifyLoadingMark
               size="sm"
@@ -361,15 +361,17 @@ export function SearchCombobox({
         />
         <button
           type="submit"
-          className="min-h-11 rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237]"
+          className="inline-flex min-h-11 min-w-[6.5rem] shrink-0 items-center justify-center rounded-full bg-deep-ink px-4 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237] sm:min-w-[7.25rem] sm:px-5"
         >
-          {isPending || isLoading
-            ? "Searching..."
-            : fetchError
-              ? "Retry"
-              : onSelect
-                ? "Add"
-                : "Explore"}
+          <span className="inline-flex items-center justify-center">
+            {isPending || isLoading
+              ? "Working"
+              : fetchError
+                ? "Retry"
+                : onSelect
+                  ? "Add"
+                  : "Explore"}
+          </span>
         </button>
       </form>
 

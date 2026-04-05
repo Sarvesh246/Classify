@@ -37,7 +37,7 @@ export function MobileBottomNav() {
               href={item.href}
               className={cn(
                 "relative flex min-h-[3.55rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.35rem] px-1 py-1",
-                active ? "text-ivory" : "text-muted",
+                active ? "!text-ivory" : "text-muted",
               )}
               aria-current={active ? "page" : undefined}
             >
@@ -53,6 +53,7 @@ export function MobileBottomNav() {
                 transition={{ type: "spring", stiffness: 520, damping: 28 }}
                 className={cn(
                   "relative z-10 flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.15rem] px-2 py-2 text-[0.72rem] font-medium",
+                  active && "!text-ivory",
                   !active && "transition-colors duration-200 hover:bg-white/78 hover:text-ink",
                 )}
               >
@@ -62,6 +63,7 @@ export function MobileBottomNav() {
                     scale: active ? 1.08 : 1,
                   }}
                   transition={{ type: "spring", stiffness: 420, damping: 26 }}
+                  className={cn(active && "!text-ivory")}
                 >
                   <Icon className="h-4 w-4" />
                 </motion.span>
@@ -71,6 +73,7 @@ export function MobileBottomNav() {
                     y: active ? -0.5 : 0,
                   }}
                   transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                  className={cn(active && "!text-ivory")}
                 >
                   {item.label}
                 </motion.span>

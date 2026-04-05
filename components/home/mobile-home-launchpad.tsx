@@ -19,7 +19,7 @@ export function MobileHomeLaunchpad({
 }) {
   return (
     <div className="space-y-4 md:hidden">
-      <div className="rounded-[30px] border border-white/10 bg-white/7 p-4 shadow-[0_20px_40px_rgba(7,17,31,0.12)] backdrop-blur-xl">
+      <div className="rounded-[30px] border border-white/10 bg-white/7 p-4 text-white shadow-[0_20px_40px_rgba(7,17,31,0.12)] backdrop-blur-xl">
         <p className="eyebrow text-white/72">Launchpad</p>
         <h1 className="display-title mt-2 text-[2.3rem] font-semibold leading-[0.94] tracking-[-0.08em] text-white">
           Find the professor who actually gives A&apos;s.
@@ -45,7 +45,7 @@ export function MobileHomeLaunchpad({
       />
 
       <div className="grid gap-3">
-        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow text-white/72">Quick starts</p>
@@ -53,12 +53,12 @@ export function MobileHomeLaunchpad({
             </div>
             <Sparkles className="h-4 w-4 text-teal" />
           </div>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {schools.slice(0, 5).map((school) => (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {schools.slice(0, 4).map((school) => (
               <Link
                 key={school.slug}
                 href={`/schools/${school.slug}`}
-                className="shrink-0 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm font-medium text-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-[20px] border border-white/12 bg-white/8 px-3 py-2 text-center text-sm font-medium !text-white"
               >
                 {school.shortName}
               </Link>
@@ -66,13 +66,13 @@ export function MobileHomeLaunchpad({
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 backdrop-blur-xl">
+        <div className="rounded-[28px] border border-white/10 bg-white/7 p-4 text-white backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow text-white/72">Return-worthy picks</p>
               <p className="mt-1 text-sm text-white/72">Fast openings into strong current options.</p>
             </div>
-            <Link href="/search" className="inline-flex items-center gap-1 text-sm font-medium text-white/88">
+            <Link href="/search" className="inline-flex items-center gap-1 text-sm font-medium !text-white/88">
               Open all
               <ArrowUpRight className="h-4 w-4" />
             </Link>
@@ -87,7 +87,7 @@ export function MobileHomeLaunchpad({
               >
                 <Link
                   href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                  className="flex items-center gap-3 rounded-[24px] border border-white/10 bg-white/8 px-3 py-3"
+                  className="flex items-center gap-3 rounded-[24px] border border-white/10 bg-white/8 px-3 py-3 !text-white"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export function MobileHomeLaunchpad({
                       {item.courseCode} - {item.courseName}
                     </p>
                   </div>
-                  <div className="text-right text-xs text-white/76">
+                  <div className="w-[4.6rem] shrink-0 text-right text-xs text-white/76">
                     <p className="font-semibold text-white">{scoreToLabel(item.classifyScore)}</p>
                     <p>{formatGpa(item.expectedGpa)} GPA</p>
                     <p>{formatPercent(item.aRate)}</p>
@@ -125,7 +125,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="inline-flex min-h-[3.35rem] flex-col items-center justify-center gap-1 rounded-[20px] border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white"
+      className="inline-flex min-h-[3.35rem] flex-col items-center justify-center gap-1 rounded-[20px] border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium !text-white"
     >
       {icon}
       <span>{label}</span>
