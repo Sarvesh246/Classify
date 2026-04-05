@@ -13,7 +13,10 @@ import type {
   EvidenceSourceKind,
   GradeDistributionSeries,
   PlannerReadiness,
+  ProfessorCoverageLevel,
   ProfessorCourseSummary,
+  ProfessorDirectoryRow,
+  ProfessorStatsAvailability,
   PublishedCatalogSnapshot,
   School,
   SectionMeeting,
@@ -335,6 +338,111 @@ function buildSummaryCopy(courseCode: string, courseName: string, professorName:
     professorSummary: `Published evidence for ${professorName} in this course set.`,
     courseSummary: `Compare published instructor outcomes for ${courseCode} ${courseName}.`.trim(),
   };
+}
+
+function round(value: number, digits = 2) {
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+function weightedAverage(values: number[], weights: number[]) {
+  const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+  if (!totalWeight) return null;
+  const total = values.reduce((sum, value, index) => sum + value * (weights[index] ?? 0), 0);
+  return total / totalWeight;
+}
+
+function coverageRank(tier: CoverageTier) {
+  switch (tier) {
+    case "institutional_plus_rmp":
+      return 3;
+    case "institutional_only":
+      return 2;
+    case "rmp_only":
+    default:
+      return 1;
+  }
+}
+
+function aggregateProfessorTrend(
+  trendSets: Array<{ trend: TrendPoint[]; sampleSize: number }>,
+): TrendPoint[] {
+  const grouped = new Map<
+    string,
+    {
+      avgGpaValues: number[];
+      avgGpaWeights: number[];
+      aPctValues: number[];
+      aPctWeights: number[];
+      classifyScoreValues: number[];
+      classifyScoreWeights: number[];
+    }
+  >();
+
+  for (const item of trendSets) {
+    const weight = Math.max(Math.round(item.sampleSize / Math.max(item.trend.length, 1)), 1);
+    for (const point of item.trend) {
+      const current = grouped.get(point.term) ?? {
+        avgGpaValues: [],
+        avgGpaWeights: [],
+        aPctValues: [],
+        aPctWeights: [],
+        classifyScoreValues: [],
+        classifyScoreWeights: [],
+      };
+      if (point.avgGpa != null) {
+        current.avgGpaValues.push(point.avgGpa);
+        current.avgGpaWeights.push(weight);
+      }
+      if (point.aPct != null) {
+        current.aPctValues.push(point.aPct);
+        current.aPctWeights.push(weight);
+      }
+      if (point.classifyScore != null) {
+        current.classifyScoreValues.push(point.classifyScore);
+        current.classifyScoreWeights.push(weight);
+      }
+      grouped.set(point.term, current);
+    }
+  }
+
+  return [...grouped.entries()].map(([term, item]) => ({
+    term,
+    avgGpa:
+      item.avgGpaValues.length && item.avgGpaWeights.length
+        ? round(weightedAverage(item.avgGpaValues, item.avgGpaWeights) ?? 0, 2)
+        : null,
+    aPct:
+      item.aPctValues.length && item.aPctWeights.length
+        ? round(weightedAverage(item.aPctValues, item.aPctWeights) ?? 0, 1)
+        : null,
+    rmpRating: null,
+    rmpDifficulty: null,
+    classifyScore:
+      item.classifyScoreValues.length && item.classifyScoreWeights.length
+        ? round(weightedAverage(item.classifyScoreValues, item.classifyScoreWeights) ?? 0, 1)
+        : null,
+  }));
+}
+
+function deriveProfessorStatsAvailability(
+  hasInstitutionalStats: boolean,
+  hasRmp: boolean,
+): ProfessorStatsAvailability {
+  if (hasInstitutionalStats && hasRmp) return "full";
+  if (hasInstitutionalStats) return "partial";
+  if (hasRmp) return "rmp_only";
+  return "none";
+}
+
+function deriveProfessorCoverageLevel(
+  hasIdentity: boolean,
+  statsAvailability: ProfessorStatsAvailability,
+): ProfessorCoverageLevel {
+  if (!hasIdentity) return "directory_only";
+  if (statsAvailability === "full") return "stats_full";
+  if (statsAvailability === "partial" || statsAvailability === "rmp_only") return "stats_partial";
+  return "instructor_directory_ready";
 }
 
 function describeError(error: unknown) {
@@ -748,6 +856,158 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
       }];
     });
 
+    const professorDirectory: ProfessorDirectoryRow[] = professors.flatMap((professor) => {
+      const school = schoolById.get(professor.school_id);
+      if (!school) {
+        return [];
+      }
+
+      const professorOfferings = offerings.filter((item) => item.professorSlug === professor.slug && item.schoolSlug === school.slug);
+      const professorSections = sections.filter((item) => item.professor_id === professor.id);
+      const relatedMeetings = dbSectionMeetings.filter((meeting) =>
+        professorSections.some((section) => section.id === meeting.sectionId),
+      );
+      const relatedCourses = new Map(
+        professorSections
+          .map((section) => courseById.get(section.course_id))
+          .filter((row): row is DbCourseRow => Boolean(row))
+          .map((row) => [row.id, row]),
+      );
+      for (const offering of professorOfferings) {
+        const summaryCourse = courses.find(
+          (course) => course.slug === offering.courseSlug && course.school_id === professor.school_id,
+        );
+        if (summaryCourse) {
+          relatedCourses.set(summaryCourse.id, summaryCourse);
+        }
+      }
+
+      const departments = [
+        ...new Set(
+          [
+            professor.department,
+            ...professorOfferings.map((item) => item.department),
+            ...[...relatedCourses.values()].map((course) => course.department),
+          ].filter(Boolean),
+        ),
+      ] as string[];
+      const coursePrefixes = [
+        ...new Set(
+          [...relatedCourses.values()]
+            .map((course) => course.code.split(/\s+/)[0]?.trim().toUpperCase())
+            .filter(Boolean),
+        ),
+      ].sort();
+      const courseCodes = [
+        ...new Set(
+          [...relatedCourses.values()].map((course) => course.code).filter(Boolean),
+        ),
+      ].sort();
+      const hasInstitutionalStats = professorOfferings.some(
+        (item) => item.expectedGpa != null || item.aRate != null,
+      );
+      const hasRmp = Boolean(
+        professorOfferings.some(
+          (item) => item.rmpRating != null || item.rmpDifficulty != null || item.tags.length > 0,
+        ) || rmpByProfessorId.get(professor.id),
+      );
+      const statsAvailability = deriveProfessorStatsAvailability(
+        hasInstitutionalStats,
+        hasRmp,
+      );
+      const courseCount = new Set([
+        ...professorOfferings.map((item) => item.courseSlug),
+        ...[...relatedCourses.values()].map((course) => course.slug),
+      ]).size;
+      const sampleSize = professorOfferings.reduce((sum, item) => sum + item.sampleSize, 0);
+      const rmp = rmpByProfessorId.get(professor.id);
+
+      return [{
+        id: `profdir:${school.slug}:${professor.slug}`,
+        schoolSlug: school.slug,
+        schoolName: school.name,
+        professorSlug: professor.slug,
+        professorName: professor.name,
+        professorTitle: professor.title ?? professor.department ?? "Instructor",
+        departments,
+        coursePrefixes,
+        courseCodes,
+        courseCount,
+        sectionCount: professorSections.length,
+        coverageTier: professorOfferings.reduce<CoverageTier>(
+          (best, item) =>
+            coverageRank(item.coverageTier) > coverageRank(best) ? item.coverageTier : best,
+          professorOfferings[0]?.coverageTier ?? (hasRmp ? "rmp_only" : "institutional_only"),
+        ),
+        coverageLevel: deriveProfessorCoverageLevel(true, statsAvailability),
+        statsAvailability,
+        evidenceFreshness:
+          professorOfferings[0]?.freshness ??
+          formatFreshness(null, school.sourceStatus.freshness),
+        sourceKinds: [
+          ...new Set<EvidenceSourceKind>([
+            "catalog",
+            ...(relatedMeetings.length ? (["schedule"] as EvidenceSourceKind[]) : []),
+            ...(hasInstitutionalStats ? (["official_grades"] as EvidenceSourceKind[]) : []),
+            ...(hasRmp ? (["rmp"] as EvidenceSourceKind[]) : []),
+            ...professorOfferings.flatMap((item) => item.evidenceProfile?.sourceKinds ?? []),
+          ]),
+        ],
+        hasInstitutionalStats,
+        hasRmp,
+        hasSchedulePresence: relatedMeetings.length > 0,
+        expectedGpa:
+          weightedAverage(
+            professorOfferings
+              .filter((item) => item.expectedGpa != null)
+              .map((item) => item.expectedGpa as number),
+            professorOfferings
+              .filter((item) => item.expectedGpa != null)
+              .map((item) => Math.max(item.sampleSize, 1)),
+          ) ?? null,
+        aRate:
+          weightedAverage(
+            professorOfferings
+              .filter((item) => item.aRate != null)
+              .map((item) => item.aRate as number),
+            professorOfferings
+              .filter((item) => item.aRate != null)
+              .map((item) => Math.max(item.sampleSize, 1)),
+          ) ?? null,
+        classifyScore:
+          weightedAverage(
+            professorOfferings
+              .filter((item) => item.classifyScore != null)
+              .map((item) => item.classifyScore as number),
+            professorOfferings
+              .filter((item) => item.classifyScore != null)
+              .map((item) => Math.max(item.sampleSize, 1)),
+          ) ?? null,
+        rmpRating:
+          professorOfferings.find((item) => item.rmpRating != null)?.rmpRating ??
+          rmp?.rating ??
+          null,
+        rmpDifficulty:
+          professorOfferings.find((item) => item.rmpDifficulty != null)?.rmpDifficulty ??
+          rmp?.difficulty ??
+          null,
+        sampleSize,
+        trend: aggregateProfessorTrend(
+          professorOfferings.map((item) => ({ trend: item.trend, sampleSize: item.sampleSize })),
+        ),
+        tags: [
+          ...new Set([
+            ...professorOfferings.flatMap((item) => item.tags),
+            ...arrayOfStrings(rmp?.tags ?? []),
+          ]),
+        ],
+        summary:
+          courseCodes.length > 0
+            ? `Teaches ${courseCodes.slice(0, 3).join(", ")}${courseCodes.length > 3 ? ", and more" : ""}.`
+            : `${professor.name} is in the published instructor directory for ${school.shortName}.`,
+      }];
+    });
+
     const dbDepartmentAggregates: DepartmentAggregate[] = departments.flatMap((row) => {
       const school = schoolById.get(row.school_id);
       if (!school) {
@@ -802,12 +1062,13 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
         .at(-1) ??
       new Date().toISOString();
 
-    return {
-      updatedAt,
-      schools: [...schoolById.values()],
-      offerings,
-      departmentAggregates: dbDepartmentAggregates,
-      gradeDistributionSeries: dbGradeSeries,
+      return {
+        updatedAt,
+        schools: [...schoolById.values()],
+        offerings,
+        professorDirectory,
+        departmentAggregates: dbDepartmentAggregates,
+        gradeDistributionSeries: dbGradeSeries,
       sectionMeetings: dbSectionMeetings,
       publishMetadata: {
         runId: health.activeSnapshotId ?? "db-active-run-unavailable",

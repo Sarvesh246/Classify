@@ -13,10 +13,14 @@ import type {
   CourseGroup,
   DepartmentAggregate,
   EvidenceProfile,
+  EvidenceSourceKind,
   GradeDistributionSeries,
   ProfessorCourseSummary,
+  ProfessorCoverageLevel,
   ProfessorDelta,
+  ProfessorDirectoryRow,
   ProfessorProfile,
+  ProfessorStatsAvailability,
   PublishedCatalogSnapshot,
   RankingMode,
   School,
@@ -31,6 +35,7 @@ import {
   readPublishedCatalogSnapshot,
 } from "@/lib/published-catalog-source";
 import { formatProfessorDisplayName } from "@/lib/professor-display";
+import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { serverLog } from "@/lib/server-logger";
 import {
   buildSchoolAliases,
@@ -241,10 +246,43 @@ function buildEvidenceProfile(
   };
 }
 
+function deriveProfessorStatsAvailability(
+  hasInstitutionalStats: boolean,
+  hasRmp: boolean,
+): ProfessorStatsAvailability {
+  if (hasInstitutionalStats && hasRmp) {
+    return "full";
+  }
+  if (hasInstitutionalStats) {
+    return "partial";
+  }
+  if (hasRmp) {
+    return "rmp_only";
+  }
+  return "none";
+}
+
+function deriveProfessorCoverageLevel(
+  hasIdentity: boolean,
+  statsAvailability: ProfessorStatsAvailability,
+): ProfessorCoverageLevel {
+  if (!hasIdentity) {
+    return "directory_only";
+  }
+  if (statsAvailability === "full") {
+    return "stats_full";
+  }
+  if (statsAvailability === "partial" || statsAvailability === "rmp_only") {
+    return "stats_partial";
+  }
+  return "instructor_directory_ready";
+}
+
 function buildSchoolSupportProfile(
   school: School,
   offerings: ProfessorCourseSummary[],
   sectionMeetings: SectionMeeting[],
+  professorDirectory: ProfessorDirectoryRow[] = [],
 ): SchoolSupportProfile {
   const hasCatalog = offerings.length > 0;
   const hasSections = sectionMeetings.length > 0;
@@ -293,12 +331,22 @@ function buildSchoolSupportProfile(
         : plannerReadiness === "catalog_ready"
           ? "Courses and instructors are published, but section timing is still incomplete."
           : "Only school-directory coverage is published so far.";
+  const professorCoverageLevel = professorDirectory.some(
+    (item) => item.coverageLevel === "stats_full",
+  )
+    ? "stats_full"
+    : professorDirectory.some((item) => item.coverageLevel === "stats_partial")
+      ? "stats_partial"
+      : professorDirectory.length
+        ? "instructor_directory_ready"
+        : "directory_only";
 
   return {
     plannerReadiness,
     hasCatalog,
     hasSections,
-    hasInstructorDirectory: hasCatalog,
+    hasInstructorDirectory: professorDirectory.length > 0,
+    professorCoverageLevel,
     hasPlanner: true,
     hasOfficialGrades,
     hasRmp,
@@ -575,9 +623,11 @@ function finalizeOfferingsPipeline(
   schools: School[],
   mergedOfferings: ProfessorCourseSummary[],
   sectionMeetings: SectionMeeting[],
+  seededProfessorDirectory: ProfessorDirectoryRow[] = [],
 ): {
   offerings: ProfessorCourseSummary[];
   departmentAggregates: DepartmentAggregate[];
+  professorDirectory: ProfessorDirectoryRow[];
 } {
   const enriched = enrichAllOfferings(mergedOfferings);
   const deduped = dedupeOfferingsByProfessorCourse(enriched).map((offering) => {
@@ -597,13 +647,19 @@ function finalizeOfferingsPipeline(
   });
   const departmentAggregates = deriveDepartmentAggregates(schools, deduped);
   const offerings = attachDepartmentDeltas(deduped, departmentAggregates);
-  return { offerings, departmentAggregates };
+  const professorDirectory = buildProfessorDirectoryFromOfferings(
+    schools,
+    offerings,
+    sectionMeetings,
+    seededProfessorDirectory,
+  );
+  return { offerings, departmentAggregates, professorDirectory };
 }
 
 function buildFallbackSnapshot(): PublishedCatalogSnapshot {
   const baseSchools = getSeedSchools();
   const sectionMeetings: SectionMeeting[] = [];
-  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+  const { offerings, departmentAggregates, professorDirectory } = finalizeOfferingsPipeline(
     baseSchools,
     getSeedOfferings(),
     sectionMeetings,
@@ -613,6 +669,7 @@ function buildFallbackSnapshot(): PublishedCatalogSnapshot {
       school,
       offerings.filter((item) => item.schoolSlug === school.slug),
       sectionMeetings.filter((item) => item.schoolSlug === school.slug),
+      professorDirectory.filter((item) => item.schoolSlug === school.slug),
     );
 
     return normalizeSchoolPresentation(
@@ -628,6 +685,7 @@ function buildFallbackSnapshot(): PublishedCatalogSnapshot {
     updatedAt: new Date().toISOString(),
     schools,
     offerings,
+    professorDirectory,
     departmentAggregates,
     gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
     sectionMeetings,
@@ -656,16 +714,18 @@ function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
   }
 
   const mergedSchools = mergeByKey(directorySchools, seedSnap.schools, (s) => s.slug);
-  const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+  const { offerings, departmentAggregates, professorDirectory } = finalizeOfferingsPipeline(
     mergedSchools,
     seedSnap.offerings,
     seedSnap.sectionMeetings ?? [],
+    seedSnap.professorDirectory ?? [],
   );
   const schools = mergedSchools.map((school) => {
     const supportProfile = buildSchoolSupportProfile(
       school,
       offerings.filter((item) => item.schoolSlug === school.slug),
       (seedSnap.sectionMeetings ?? []).filter((item) => item.schoolSlug === school.slug),
+      professorDirectory.filter((item) => item.schoolSlug === school.slug),
     );
 
     return normalizeSchoolPresentation(
@@ -683,6 +743,7 @@ function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
       ...seedSnap,
       schools,
       offerings,
+      professorDirectory,
       departmentAggregates,
       gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
     };
@@ -692,6 +753,7 @@ function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
     ...seedSnap,
     schools,
     offerings,
+    professorDirectory,
     departmentAggregates,
     gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
     publishMetadata: {
@@ -713,6 +775,7 @@ function buildDirectoryOnlySnapshot(): PublishedCatalogSnapshot {
     updatedAt: new Date().toISOString(),
     schools,
     offerings: [],
+    professorDirectory: [],
     departmentAggregates: [],
     gradeDistributionSeries: [],
     sectionMeetings: [],
@@ -812,16 +875,18 @@ async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
         snapshot.offerings,
         (item) => item.id,
       );
-      const { offerings, departmentAggregates } = finalizeOfferingsPipeline(
+      const { offerings, departmentAggregates, professorDirectory } = finalizeOfferingsPipeline(
         schools,
         mergedOfferings,
         sectionMeetings,
+        snapshot.professorDirectory ?? [],
       );
       const schoolsWithSupport = schools.map((school) => {
         const supportProfile = buildSchoolSupportProfile(
           school,
           offerings.filter((item) => item.schoolSlug === school.slug),
           sectionMeetings.filter((item) => item.schoolSlug === school.slug),
+          professorDirectory.filter((item) => item.schoolSlug === school.slug),
         );
 
         return normalizeSchoolPresentation(
@@ -837,6 +902,7 @@ async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
         updatedAt: snapshot.updatedAt ?? fallback.updatedAt,
         schools: schoolsWithSupport,
         offerings,
+        professorDirectory,
         departmentAggregates,
         gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
         sectionMeetings,
@@ -883,6 +949,10 @@ export async function getCatalogOfferings() {
   return (await getSnapshot()).offerings;
 }
 
+export async function getProfessorDirectoryRows() {
+  return (await getSnapshot()).professorDirectory ?? [];
+}
+
 export async function getCatalogCoverageStats() {
   const snapshot = await getSnapshot();
   const searchableSchools = snapshot.schools.length;
@@ -905,7 +975,7 @@ export async function getCatalogCoverageStats() {
     snapshot.offerings.map((item) => `${item.schoolSlug}:${item.courseSlug}`),
   ).size;
   const trackedProfessors = new Set(
-    snapshot.offerings.map((item) => `${item.schoolSlug}:${item.professorSlug}`),
+    (snapshot.professorDirectory ?? snapshot.offerings).map((item) => `${item.schoolSlug}:${item.professorSlug}`),
   ).size;
 
   return {
@@ -967,6 +1037,10 @@ export async function getCatalogOfferingsForSchool(schoolSlug: string) {
   return (await getCatalogOfferings()).filter((offering) => offering.schoolSlug === schoolSlug);
 }
 
+export async function getProfessorDirectoryRowsForSchool(schoolSlug: string) {
+  return (await getProfessorDirectoryRows()).filter((row) => row.schoolSlug === schoolSlug);
+}
+
 export async function getCatalogSectionMeetingsForSchool(schoolSlug: string) {
   return ((await getSnapshot()).sectionMeetings ?? []).filter(
     (item) => item.schoolSlug === schoolSlug,
@@ -1020,16 +1094,21 @@ export async function getProfessorProfile(
   professorSlug: string,
 ): Promise<ProfessorProfile | undefined> {
   const school = await getCatalogSchoolBySlug(schoolSlug);
-  const matches = (await getCatalogOfferings()).filter(
+  const [directoryRows, offerings] = await Promise.all([
+    getProfessorDirectoryRowsForSchool(schoolSlug),
+    getCatalogOfferings(),
+  ]);
+  const professor = directoryRows.find((row) => row.professorSlug === professorSlug);
+  const matches = offerings.filter(
     (offering) =>
       offering.schoolSlug === schoolSlug &&
       offering.professorSlug === professorSlug,
   );
-  if (!school || matches.length === 0) {
+  if (!school || !professor) {
     return undefined;
   }
 
-  return { school, offerings: matches, professor: matches[0] };
+  return { school, offerings: matches, professor };
 }
 
 export async function getDepartmentAggregatesForSchool(schoolSlug: string) {
@@ -1188,6 +1267,186 @@ function aggregateTrend(
           )
         : null,
   }));
+}
+
+function compareProfessorCoverageLevel(
+  left: ProfessorCoverageLevel,
+  right: ProfessorCoverageLevel,
+) {
+  const order: Record<ProfessorCoverageLevel, number> = {
+    directory_only: 0,
+    instructor_directory_ready: 1,
+    stats_partial: 2,
+    stats_full: 3,
+  };
+  return order[left] - order[right];
+}
+
+function mergeCoverageTier(
+  current: ProfessorCourseSummary["coverageTier"],
+  next: ProfessorCourseSummary["coverageTier"],
+) {
+  return coverageRank(next) > coverageRank(current) ? next : current;
+}
+
+function buildProfessorDirectoryFromOfferings(
+  schools: School[],
+  offerings: ProfessorCourseSummary[],
+  sectionMeetings: SectionMeeting[],
+  seededRows: ProfessorDirectoryRow[] = [],
+) {
+  const byKey = new Map<string, ProfessorDirectoryRow>();
+  const schoolBySlug = new Map(schools.map((school) => [school.slug, school]));
+
+  for (const seeded of seededRows) {
+    byKey.set(`${seeded.schoolSlug}:${seeded.professorSlug}`, seeded);
+  }
+
+  const grouped = new Map<string, ProfessorCourseSummary[]>();
+  for (const offering of offerings) {
+    const key = `${offering.schoolSlug}:${offering.professorSlug}`;
+    grouped.set(key, [...(grouped.get(key) ?? []), offering]);
+  }
+
+  for (const [key, professorOfferings] of grouped.entries()) {
+    const top = [...professorOfferings].sort(
+      (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
+    )[0];
+    const school = schoolBySlug.get(top.schoolSlug);
+    if (!school) {
+      continue;
+    }
+
+    const departments = [...new Set(professorOfferings.map((item) => item.department).filter(Boolean))];
+    const coursePrefixes = [
+      ...new Set(
+        professorOfferings
+          .map((item) => item.courseCode.split(/\s+/)[0]?.trim().toUpperCase())
+          .filter(Boolean),
+      ),
+    ].sort();
+    const courseCodes = [
+      ...new Set(professorOfferings.map((item) => item.courseCode).filter(Boolean)),
+    ].sort();
+    const courseCount = new Set(professorOfferings.map((item) => item.courseSlug)).size;
+    const relevantMeetings = sectionMeetings.filter(
+      (meeting) =>
+        meeting.schoolSlug === top.schoolSlug &&
+        professorOfferings.some(
+          (item) =>
+            item.courseSlug === meeting.courseSlug &&
+            formatProfessorDisplayName(meeting.instructorName ?? "").toLowerCase() ===
+              top.professorName.toLowerCase(),
+        ),
+    );
+    const hasInstitutionalStats = professorOfferings.some(
+      (item) => item.expectedGpa != null || item.aRate != null,
+    );
+    const hasRmp = professorOfferings.some(
+      (item) => item.rmpRating != null || item.rmpDifficulty != null || item.tags.length > 0,
+    );
+    const statsAvailability = deriveProfessorStatsAvailability(
+      hasInstitutionalStats,
+      hasRmp,
+    );
+    const coverageLevel = deriveProfessorCoverageLevel(true, statsAvailability);
+    const sourceKinds = [
+      ...new Set(
+        professorOfferings.flatMap(
+          (item) => item.evidenceProfile?.sourceKinds ?? (["catalog"] as EvidenceSourceKind[]),
+        ),
+      ),
+    ];
+    const current = byKey.get(key);
+    const merged: ProfessorDirectoryRow = {
+      id: current?.id ?? key,
+      schoolSlug: top.schoolSlug,
+      schoolName: school.name,
+      professorSlug: top.professorSlug,
+      professorName: top.professorName,
+      professorTitle: top.professorTitle || current?.professorTitle || departments[0] || "Instructor",
+      departments,
+      coursePrefixes,
+      courseCodes,
+      courseCount,
+      sectionCount: Math.max(current?.sectionCount ?? 0, relevantMeetings.length),
+      coverageTier: current ? mergeCoverageTier(current.coverageTier, top.coverageTier) : top.coverageTier,
+      coverageLevel:
+        current && compareProfessorCoverageLevel(current.coverageLevel, coverageLevel) > 0
+          ? current.coverageLevel
+          : coverageLevel,
+      statsAvailability:
+        current && current.statsAvailability === "full"
+          ? current.statsAvailability
+          : statsAvailability,
+      evidenceFreshness: current?.evidenceFreshness ?? top.freshness,
+      sourceKinds: [...new Set([...(current?.sourceKinds ?? []), ...sourceKinds])],
+      hasInstitutionalStats: (current?.hasInstitutionalStats ?? false) || hasInstitutionalStats,
+      hasRmp: (current?.hasRmp ?? false) || hasRmp,
+      hasSchedulePresence: (current?.hasSchedulePresence ?? false) || relevantMeetings.length > 0,
+      expectedGpa:
+        weightedAverage(
+          professorOfferings
+            .filter((item) => item.expectedGpa != null)
+            .map((item) => item.expectedGpa as number),
+          professorOfferings
+            .filter((item) => item.expectedGpa != null)
+            .map((item) => Math.max(item.sampleSize, 1)),
+        ) ?? current?.expectedGpa ?? null,
+      aRate:
+        weightedAverage(
+          professorOfferings
+            .filter((item) => item.aRate != null)
+            .map((item) => item.aRate as number),
+          professorOfferings
+            .filter((item) => item.aRate != null)
+            .map((item) => Math.max(item.sampleSize, 1)),
+        ) ?? current?.aRate ?? null,
+      classifyScore:
+        weightedAverage(
+          professorOfferings
+            .filter((item) => item.classifyScore != null)
+            .map((item) => item.classifyScore as number),
+          professorOfferings
+            .filter((item) => item.classifyScore != null)
+            .map((item) => Math.max(item.sampleSize, 1)),
+        ) ?? current?.classifyScore ?? null,
+      rmpRating: top.rmpRating ?? current?.rmpRating ?? null,
+      rmpDifficulty: top.rmpDifficulty ?? current?.rmpDifficulty ?? null,
+      sampleSize:
+        professorOfferings.reduce((sum, item) => sum + item.sampleSize, 0) ||
+        current?.sampleSize ||
+        0,
+      trend: aggregateTrend(
+        professorOfferings.map((offering) => ({
+          trend: offering.trend,
+          sampleSize: offering.sampleSize,
+        })),
+      ),
+      tags: [...new Set([...(current?.tags ?? []), ...professorOfferings.flatMap((item) => item.tags)])],
+      summary:
+        current?.summary ??
+        (courseCodes.length
+          ? `Teaches ${courseCodes.slice(0, 3).join(", ")}${courseCodes.length > 3 ? ", and more" : ""}.`
+          : `${top.professorName} appears in ${courseCount} course${
+              courseCount === 1 ? "" : "s"
+            } across ${departments[0] ?? "published"} data.`),
+    };
+
+    byKey.set(key, merged);
+  }
+
+  return [...byKey.values()].sort((left, right) => {
+    const coverage = compareProfessorCoverageLevel(right.coverageLevel, left.coverageLevel);
+    if (coverage !== 0) {
+      return coverage;
+    }
+    return professorLastNameSortKey(left.professorName).localeCompare(
+      professorLastNameSortKey(right.professorName),
+      undefined,
+      { sensitivity: "base" },
+    );
+  });
 }
 
 export async function getCourseTrend(

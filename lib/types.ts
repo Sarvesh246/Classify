@@ -32,11 +32,24 @@ export type DataCompleteness =
   | "rmp_only"
   | "directory_only";
 
+export type ProfessorCoverageLevel =
+  | "directory_only"
+  | "instructor_directory_ready"
+  | "stats_partial"
+  | "stats_full";
+
+export type ProfessorStatsAvailability =
+  | "none"
+  | "rmp_only"
+  | "partial"
+  | "full";
+
 export interface SchoolSupportProfile {
   plannerReadiness: PlannerReadiness;
   hasCatalog: boolean;
   hasSections: boolean;
   hasInstructorDirectory: boolean;
+  professorCoverageLevel?: ProfessorCoverageLevel;
   hasPlanner: boolean;
   hasOfficialGrades: boolean;
   hasRmp: boolean;
@@ -140,6 +153,37 @@ export interface ProfessorCourseSummary {
   departmentDelta?: ProfessorDelta;
 }
 
+export interface ProfessorDirectoryRow {
+  id: string;
+  schoolSlug: string;
+  schoolName: string;
+  professorSlug: string;
+  professorName: string;
+  professorTitle: string;
+  departments: string[];
+  coursePrefixes: string[];
+  courseCodes: string[];
+  courseCount: number;
+  sectionCount: number;
+  coverageTier: CoverageTier;
+  coverageLevel: ProfessorCoverageLevel;
+  statsAvailability: ProfessorStatsAvailability;
+  evidenceFreshness: string;
+  sourceKinds: EvidenceSourceKind[];
+  hasInstitutionalStats: boolean;
+  hasRmp: boolean;
+  hasSchedulePresence: boolean;
+  expectedGpa: number | null;
+  aRate: number | null;
+  classifyScore: number | null;
+  rmpRating: number | null;
+  rmpDifficulty: number | null;
+  sampleSize: number;
+  trend: TrendPoint[];
+  tags: string[];
+  summary: string;
+}
+
 export interface School {
   id: string;
   slug: string;
@@ -180,7 +224,7 @@ export interface CourseGroup {
 export interface ProfessorProfile {
   school: School;
   offerings: ProfessorCourseSummary[];
-  professor: ProfessorCourseSummary;
+  professor: ProfessorDirectoryRow;
 }
 
 export interface ScoreBreakdownRow {
@@ -330,6 +374,7 @@ export interface PublishedCatalogSnapshot {
   updatedAt: string;
   schools: School[];
   offerings: ProfessorCourseSummary[];
+  professorDirectory?: ProfessorDirectoryRow[];
   departmentAggregates?: DepartmentAggregate[];
   gradeDistributionSeries?: GradeDistributionSeries[];
   sectionMeetings?: SectionMeeting[];

@@ -9,10 +9,11 @@ import { SaveItemButton } from "@/components/saved/save-item-button";
 import { SiteHeader } from "@/components/site-header";
 import { getProfessorProfile } from "@/lib/catalog";
 import {
-  confidenceToLabel,
   formatFreshnessLabel,
   formatGpa,
   formatPercent,
+  formatProfessorCoverageLevel,
+  formatProfessorStatsAvailability,
   formatRating,
   formatScore,
   scoreToLabel,
@@ -31,8 +32,10 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
   if (!profile) notFound();
 
   const primary = profile.professor;
-  const deptGpaAvg = getPlaceholderDepartmentGpa(primary.department);
+  const primaryDepartment = primary.departments[0] ?? "General";
+  const deptGpaAvg = getPlaceholderDepartmentGpa(primaryDepartment);
   const deptARateAvg = 38;
+  const hasTrend = primary.trend.length > 0;
 
   return (
     <main className="min-h-screen bg-background">
@@ -46,7 +49,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                 {primary.professorName}
               </h1>
               <p className="mt-2 text-base text-muted">{primary.professorTitle}</p>
-              <p className="app-lead mt-4">{primary.professorSummary}</p>
+              <p className="app-lead mt-4">{primary.summary}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-3">
               <SaveItemButton
@@ -58,7 +61,18 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             </div>
           </div>
 
-          <DataTrustBanner offering={primary} className="mt-6" />
+          {profile.offerings.length ? (
+            <DataTrustBanner offering={profile.offerings[0]} className="mt-6" />
+          ) : (
+            <div className="mt-6 rounded-[22px] border border-border/80 bg-deep-ink/[0.04] px-4 py-3 text-sm">
+              <p className="font-semibold text-ink">What this profile is built from</p>
+              <p className="mt-1.5 leading-relaxed text-muted">
+                This instructor is published from school directory, catalog, section, and matched
+                evidence sources where available. Institutional GPA and trend modules appear only
+                when real local evidence exists.
+              </p>
+            </div>
+          )}
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
@@ -77,16 +91,29 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               meta={`dept avg ~${deptARateAvg}%`}
             />
             <StatCard
-              label="Data quality"
-              value={confidenceToLabel(primary.confidence)}
-              meta="Based on sample size, term coverage, and source mix"
+              label="Profile status"
+              value={formatProfessorStatsAvailability(primary.statsAvailability)}
+              meta={formatProfessorCoverageLevel(primary.coverageLevel)}
             />
           </div>
         </section>
 
-        <div className="mt-8">
-          <ProfessorGradeTabs offerings={profile.offerings} />
-        </div>
+        {profile.offerings.length ? (
+          <div className="mt-8">
+            <ProfessorGradeTabs offerings={profile.offerings} />
+          </div>
+        ) : (
+          <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
+            <p className="eyebrow">Evidence expanding</p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">
+              This profile is live before full grade aggregates
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Identity, departments, course coverage, and any matched RMP-style signals are live.
+              GPA, A-rate, and compare-ready aggregates appear here as official local evidence is published.
+            </p>
+          </section>
+        )}
 
         {primary.tags.length ? (
           <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
@@ -110,27 +137,36 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <h2 className="mt-2 text-2xl font-semibold text-ink">
               How the A-rate has moved over time
             </h2>
-            <TrendSparkline trend={primary.trend} className="mt-6" />
-            <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
-              <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                Freshness {formatFreshnessLabel(primary.freshness)}
-              </span>
-              <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                Latest term {primary.latestTerm}
-              </span>
-              <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                Sample size {primary.sampleSize}
-              </span>
-              <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
-                RMP {formatRating(primary.rmpRating)} / diff {formatRating(primary.rmpDifficulty)}
-              </span>
-            </div>
+            {hasTrend ? (
+              <>
+                <TrendSparkline trend={primary.trend} className="mt-6" />
+                <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
+                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                    Freshness {formatFreshnessLabel(primary.evidenceFreshness)}
+                  </span>
+                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                    Courses {primary.courseCount}
+                  </span>
+                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                    Sample size {primary.sampleSize || "Unavailable"}
+                  </span>
+                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                    RMP {formatRating(primary.rmpRating)} / diff {formatRating(primary.rmpDifficulty)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <p className="mt-6 text-sm leading-6 text-muted">
+                Term-by-term grade trend data has not been published for this instructor yet. The
+                profile stays live with identity, course coverage, and any matched external signals.
+              </p>
+            )}
           </div>
 
           <div className="soft-panel rounded-[30px] p-5 sm:p-6">
             <p className="eyebrow">Year-by-year A%</p>
             <div className="mt-5 space-y-3">
-              {primary.trend.map((point) => {
+              {hasTrend ? primary.trend.map((point) => {
                 const value = point.aPct ?? 0;
                 const color =
                   value > 50 ? "#639922" : value >= 30 ? "#EF9F27" : "#F0997B";
@@ -152,7 +188,12 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                     </span>
                   </div>
                 );
-              })}
+              }) : (
+                <p className="text-sm leading-6 text-muted">
+                  A-rate history appears here when official grade or sufficiently rich evidence is
+                  available for this instructor.
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -160,13 +201,35 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
         <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
           <p className="eyebrow">Courses taught</p>
           <ProfessorCoursesList offerings={profile.offerings} schoolSlug={slug} />
+          {!profile.offerings.length ? (
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
+              {primary.departments.map((department) => (
+                <span
+                  key={department}
+                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                >
+                  {department}
+                </span>
+              ))}
+              {primary.coursePrefixes.map((prefix) => (
+                <span
+                  key={prefix}
+                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                >
+                  {prefix}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href={`/compare?ids=${primary.id}&school=${primary.schoolSlug}`}
-              className="inline-flex min-w-[8.75rem] items-center justify-center whitespace-nowrap rounded-full bg-deep-ink px-5 py-3 text-center text-sm font-medium !text-ivory"
-            >
-              Add to compare
-            </Link>
+            {profile.offerings.length ? (
+              <Link
+                href={`/compare?ids=${profile.offerings[0].id}&school=${primary.schoolSlug}`}
+                className="inline-flex min-w-[8.75rem] items-center justify-center whitespace-nowrap rounded-full bg-deep-ink px-5 py-3 text-center text-sm font-medium !text-ivory"
+              >
+                Add to compare
+              </Link>
+            ) : null}
             <Link
               href={`/schools/${slug}`}
               className="inline-flex min-w-[8.75rem] items-center justify-center whitespace-nowrap rounded-full border border-border px-5 py-3 text-center text-sm font-medium !text-ink"

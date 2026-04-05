@@ -2,6 +2,7 @@ import {
   type CourseGroup,
   type DataCompleteness,
   type ProfessorCourseSummary,
+  type ProfessorDirectoryRow,
   type ProfessorProfile,
   type School,
   type SearchHit,
@@ -753,7 +754,50 @@ export function getProfessorProfile(
       offering.professorSlug === professorSlug,
   );
   if (!school || matches.length === 0) return undefined;
-  return { school, offerings: matches, professor: matches[0] };
+  const first = matches[0];
+  const professor: ProfessorDirectoryRow = {
+    id: `seed-profdir:${schoolSlug}:${professorSlug}`,
+    schoolSlug,
+    schoolName: school.name,
+    professorSlug,
+    professorName: first.professorName,
+    professorTitle: first.professorTitle,
+    departments: [...new Set(matches.map((item) => item.department))],
+    coursePrefixes: [
+      ...new Set(matches.map((item) => item.courseCode.split(/\s+/)[0]?.trim().toUpperCase()).filter(Boolean)),
+    ],
+    courseCodes: [...new Set(matches.map((item) => item.courseCode))],
+    courseCount: new Set(matches.map((item) => item.courseSlug)).size,
+    sectionCount: 0,
+    coverageTier: first.coverageTier,
+    coverageLevel:
+      first.expectedGpa != null || first.aRate != null
+        ? "stats_full"
+        : first.rmpRating != null
+          ? "stats_partial"
+          : "instructor_directory_ready",
+    statsAvailability:
+      first.expectedGpa != null || first.aRate != null
+        ? "full"
+        : first.rmpRating != null
+          ? "rmp_only"
+          : "none",
+    evidenceFreshness: first.freshness,
+    sourceKinds: first.evidenceProfile?.sourceKinds ?? ["catalog"],
+    hasInstitutionalStats: first.expectedGpa != null || first.aRate != null,
+    hasRmp: first.rmpRating != null || first.rmpDifficulty != null,
+    hasSchedulePresence: Boolean(first.hasSectionPlanning),
+    expectedGpa: first.expectedGpa,
+    aRate: first.aRate,
+    classifyScore: first.classifyScore,
+    rmpRating: first.rmpRating,
+    rmpDifficulty: first.rmpDifficulty,
+    sampleSize: matches.reduce((sum, item) => sum + item.sampleSize, 0),
+    trend: first.trend,
+    tags: [...new Set(matches.flatMap((item) => item.tags))],
+    summary: first.professorSummary,
+  };
+  return { school, offerings: matches, professor };
 }
 
 export function getOfferingById(id: string) {

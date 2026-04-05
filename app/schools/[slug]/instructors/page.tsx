@@ -2,14 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
-import { getCatalogOfferingsForSchool } from "@/lib/catalog";
+import { getProfessorDirectoryRowsForSchool } from "@/lib/catalog";
 import { getDirectorySchoolBySlug } from "@/lib/server-directory";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { slugify } from "@/lib/utils";
-import type { ProfessorCourseSummary } from "@/lib/types";
+import type { ProfessorDirectoryRow } from "@/lib/types";
 import {
   formatGpa,
   formatPercent,
+  formatProfessorCoverageLevel,
+  formatProfessorStatsAvailability,
   formatRating,
   formatScore,
   scoreToLabel,
@@ -32,13 +34,13 @@ type InstructorsPageProps = {
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-type CatalogOffering = ProfessorCourseSummary;
+type CatalogOffering = ProfessorDirectoryRow;
 
 const instructorNumericSorters = {
   classify: (item: CatalogOffering) => item.classifyScore ?? -1,
   gpa: (item: CatalogOffering) => item.expectedGpa ?? -1,
   arate: (item: CatalogOffering) => item.aRate ?? -1,
-  trend: (item: CatalogOffering) => item.trendDelta ?? -999,
+  trend: (item: CatalogOffering) => item.trend.at(-1)?.classifyScore ?? item.classifyScore ?? -999,
   rating: (item: CatalogOffering) => item.rmpRating ?? -1,
 };
 
@@ -77,7 +79,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
   const sp = await searchParams;
   const [school, allRows] = await Promise.all([
     getDirectorySchoolBySlug(slug),
-    getCatalogOfferingsForSchool(slug),
+    getProfessorDirectoryRowsForSchool(slug),
   ]);
   if (!school) notFound();
 
@@ -94,29 +96,27 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
   let rows = [...allRows];
 
   if (deptFilter) {
-    rows = rows.filter((item) => slugify(item.department) === deptFilter);
+    rows = rows.filter((item) =>
+      item.departments.some((department) => slugify(department) === deptFilter),
+    );
   }
   if (q) {
     rows = rows.filter((item) => {
-      const hay = `${item.professorName} ${item.courseCode} ${item.courseName} ${item.department}`.toLowerCase();
+      const hay = `${item.professorName} ${item.departments.join(" ")} ${item.coursePrefixes.join(" ")}`.toLowerCase();
       return hay.includes(q);
     });
   }
   if (evidenceFilter === "official") {
-    rows = rows.filter((item) => item.evidenceProfile?.hasOfficialGrades);
+    rows = rows.filter((item) => item.hasInstitutionalStats);
   } else if (evidenceFilter === "mixed") {
-    rows = rows.filter(
-      (item) =>
-        !item.evidenceProfile?.hasOfficialGrades &&
-        Boolean(item.evidenceProfile?.hasRmp || item.evidenceProfile?.hasCommunityEvidence),
-    );
+    rows = rows.filter((item) => !item.hasInstitutionalStats && item.hasRmp);
   } else if (evidenceFilter === "limited") {
-    rows = rows.filter((item) => !item.evidenceProfile?.hasOfficialGrades);
+    rows = rows.filter((item) => !item.hasInstitutionalStats);
   }
   if (planningFilter === "schedule") {
-    rows = rows.filter((item) => item.hasSectionPlanning);
+    rows = rows.filter((item) => item.hasSchedulePresence);
   } else if (planningFilter === "catalog") {
-    rows = rows.filter((item) => !item.hasSectionPlanning);
+    rows = rows.filter((item) => !item.hasSchedulePresence);
   }
 
   rows.sort((left, right) => compareInstructorRows(left, right, sortKey));
@@ -128,7 +128,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
   const pageRows = rows.slice(start, start + PAGE_SIZE);
 
   const departments = [
-    ...new Set(allRows.map((o) => o.department)),
+    ...new Set(allRows.flatMap((o) => o.departments)),
   ].sort((a, b) => a.localeCompare(b));
 
   const sortLinks = [
@@ -169,9 +169,9 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
           <p className="eyebrow">{school.shortName}</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">All instructors</h1>
           <p className="app-lead mt-4">
-            Browse every professor-course row we publish for this school ({total} total). Default
-            order is A-Z by professor last name; you can also sort by outcomes. Filter by department
-            or search - no need to know a name first.
+            Browse every professor identity we publish for this school ({total} total). Default
+            order is A-Z by professor last name; you can also sort by outcomes, evidence, and
+            schedule support.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -197,7 +197,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               <input
                 name="q"
                 defaultValue={sp.q ?? ""}
-                placeholder="Name, course code, department..."
+                placeholder="Name, course prefix, department..."
                 className="h-11 min-w-[14rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
               />
             </label>
@@ -224,9 +224,9 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 className="h-11 min-w-[11rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
               >
                 <option value="">All evidence</option>
-                <option value="official">Official grades</option>
-                <option value="mixed">Mixed signals</option>
-                <option value="limited">Limited evidence</option>
+                <option value="official">Institutional stats</option>
+                <option value="mixed">RMP-backed only</option>
+                <option value="limited">Identity only / thin stats</option>
               </select>
             </label>
             <label className="flex flex-col gap-2 text-sm">
@@ -279,7 +279,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                     <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
                   </div>
                   <p className="mt-1 text-sm text-muted">
-                    {item.courseCode} | {item.courseName} | {item.department}
+                    {item.departments.join(" • ") || "Department pending"} | {item.coursePrefixes.join(", ") || "Course mix expanding"}
                   </p>
                   <p className="mt-2 line-clamp-2 text-sm text-ink/78">{item.summary}</p>
                 </div>
@@ -297,7 +297,13 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                     RMP {formatRating(item.rmpRating)}
                   </span>
                   <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted">
-                    {item.hasSectionPlanning ? "Section timing ready" : "Catalog only"}
+                    {item.hasSchedulePresence ? "Section timing ready" : "Directory only"}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted">
+                    {formatProfessorStatsAvailability(item.statsAvailability)}
+                  </span>
+                  <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted">
+                    {formatProfessorCoverageLevel(item.coverageLevel)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-2 md:items-end">
@@ -311,7 +317,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                     href={`/compare?ids=${item.id}`}
                     className="rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink"
                   >
-                    Compare
+                    Open profile
                   </Link>
                 </div>
               </div>
@@ -320,7 +326,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
             <div className="soft-panel rounded-[24px] px-6 py-14 text-center text-muted">
               {total
                 ? "No rows match these filters. Clear search or try another department."
-                : "This school page is live, but instructor rows have not been published locally yet. The same directory route will fill in automatically once catalog or schedule data is imported."}
+                : "This school page is live, but instructor identities have not been published locally yet. The directory fills in automatically once catalog or schedule data identifies faculty."}
             </div>
           )}
         </section>

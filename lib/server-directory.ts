@@ -3,6 +3,7 @@ import "server-only";
 import {
   getCatalogOfferings,
   getCatalogOfferingsForSchool,
+  getProfessorDirectoryRows,
   getCatalogSchoolBySlug,
   getCatalogSchools,
   getHiddenGemsForSchool,
@@ -10,8 +11,10 @@ import {
 } from "@/lib/catalog";
 import type {
   CourseGroup,
+  DataCompleteness,
   DepartmentAggregate,
   ProfessorCourseSummary,
+  ProfessorDirectoryRow,
   SearchHit,
   SearchHitType,
   School,
@@ -224,19 +227,28 @@ function qualityBoost(
   hit: SearchHit,
   offeringLookup: Map<string, ProfessorCourseSummary>,
   courseLookup: Map<string, ProfessorCourseSummary>,
+  professorLookup: Map<string, ProfessorDirectoryRow>,
 ) {
   const base = dataCompletenessBoost(hit) + recencyBoost(hit.freshness);
 
   if (hit.type === "professor") {
     const offering = offeringLookup.get(hit.id);
-    if (!offering) {
-      return base;
+    if (offering) {
+      return (
+        base +
+        Math.min(offering.sampleSize / 18, 16) +
+        Math.min(offering.matchConfidence / 12, 8)
+      );
     }
 
+    const professor = professorLookup.get(hit.id);
+    if (!professor) {
+      return base;
+    }
     return (
       base +
-      Math.min(offering.sampleSize / 18, 16) +
-      Math.min(offering.matchConfidence / 12, 8)
+      Math.min(professor.sampleSize / 18, 16) +
+      (professor.hasInstitutionalStats ? 8 : professor.hasRmp ? 4 : 0)
     );
   }
 
@@ -375,34 +387,53 @@ async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]>
     },
   }));
 
-  const professorHits = offerings.map((offering) => ({
-    type: "professor" as const,
-    id: offering.id,
-    label: offering.professorName,
-    school: schoolLookup.get(offering.schoolSlug)?.shortName ?? offering.schoolSlug,
-    slug: offering.professorSlug,
-    href: `/schools/${offering.schoolSlug}/professors/${offering.professorSlug}`,
-    coverageTier: offering.coverageTier,
-    highlight: `${offering.courseCode} - ${offering.courseName}`,
-    secondaryMetrics: [
-      offering.classifyScore == null
-        ? "Classify unavailable"
-        : `Classify ${Math.round(offering.classifyScore)}`,
-      offering.expectedGpa == null
-        ? "No GPA data yet"
-        : `Expected GPA ${offering.expectedGpa.toFixed(2)}`,
-    ],
-    freshness: offering.freshness,
-    sourceLabels: offering.sourceLabels,
-    dataCompleteness: offering.dataCompleteness,
-    context: {
-      schoolSlug: offering.schoolSlug,
-      schoolShortName:
-        schoolLookup.get(offering.schoolSlug)?.shortName ?? offering.schoolSlug,
-      contextLabel: `${offering.courseCode} - ${offering.courseName}`,
-      searchScope: "professor_course" as const,
-    },
-  }));
+  const professorDirectory = [...(await getProfessorDirectoryRows())]
+    .filter((row) => !schoolSlug || row.schoolSlug === schoolSlug);
+
+  const professorHits = professorDirectory.map((professor) => {
+    const dataCompleteness: DataCompleteness = professor.hasInstitutionalStats
+      ? "institutional_partial"
+      : professor.hasRmp
+        ? "rmp_only"
+        : "directory_only";
+
+    return {
+      type: "professor" as const,
+      id: professor.id,
+      label: professor.professorName,
+      school: schoolLookup.get(professor.schoolSlug)?.shortName ?? professor.schoolSlug,
+      slug: professor.professorSlug,
+      href: `/schools/${professor.schoolSlug}/professors/${professor.professorSlug}`,
+      coverageTier: professor.coverageTier,
+      highlight:
+        professor.courseCodes.length > 0
+          ? `${professor.courseCodes.slice(0, 2).join(" / ")}${professor.courseCodes.length > 2 ? " +" : ""}`
+          : professor.summary,
+      secondaryMetrics: [
+        professor.classifyScore == null
+          ? "Classify unavailable"
+          : `Classify ${Math.round(professor.classifyScore)}`,
+        professor.expectedGpa == null
+          ? professor.hasRmp
+            ? "RMP-backed profile"
+            : "Stats expanding"
+          : `Expected GPA ${professor.expectedGpa.toFixed(2)}`,
+      ],
+      freshness: professor.evidenceFreshness,
+      sourceLabels: professor.sourceKinds,
+      dataCompleteness,
+      context: {
+        schoolSlug: professor.schoolSlug,
+        schoolShortName:
+          schoolLookup.get(professor.schoolSlug)?.shortName ?? professor.schoolSlug,
+        contextLabel:
+          professor.courseCodes.length > 0
+            ? `${professor.courseCodes.slice(0, 2).join(", ")}`
+            : professor.departments[0] ?? "Instructor directory",
+        searchScope: "professor_course" as const,
+      },
+    };
+  });
 
   return [...courseHits, ...professorHits];
 }
@@ -442,10 +473,14 @@ async function collectSortedSearchRows(
     getCatalogSchools(),
     getCatalogOfferings(),
   ]);
+  const professorDirectory = await getProfessorDirectoryRows();
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
   const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
   const courseLookup = new Map(
     catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
+  );
+  const professorLookup = new Map(
+    professorDirectory.map((item) => [item.id, item]),
   );
   const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
   const schoolHits = (await buildSchoolSearchHits(allSchools)).filter(
@@ -490,7 +525,7 @@ async function collectSortedSearchRows(
 
         return {
           hit,
-          score: textScore + qualityBoost(hit, offeringLookup, courseLookup),
+          score: textScore + qualityBoost(hit, offeringLookup, courseLookup, professorLookup),
         };
       }
 
@@ -498,6 +533,25 @@ async function collectSortedSearchRows(
         hit.type === "course"
           ? courseLookup.get(hit.id)
           : offeringLookup.get(hit.id);
+      if (!offering && hit.type === "professor") {
+        const textScore = scoreMatch(
+          query,
+          `${hit.label} ${hit.highlight} ${hit.context.contextLabel}`,
+          aliasList,
+        );
+        if (
+          query.trim() &&
+          textScore < minimumCatalogTextScore(query, hit.type, Boolean(schoolSlug))
+        ) {
+          return { hit, score: 0 };
+        }
+
+        return {
+          hit,
+          score: textScore + qualityBoost(hit, offeringLookup, courseLookup, professorLookup),
+        };
+      }
+
       if (!offering) {
         return { hit, score: 0 };
       }
@@ -521,7 +575,7 @@ async function collectSortedSearchRows(
         hit,
         parts,
         offering,
-        score: textScore + qualityBoost(hit, offeringLookup, courseLookup),
+        score: textScore + qualityBoost(hit, offeringLookup, courseLookup, professorLookup),
       };
     })
     .filter((item) => item.score > 0);

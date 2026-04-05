@@ -34,8 +34,20 @@ describe("catalog aggregates", () => {
   it("attaches department deltas to professor profiles", async () => {
     const { getProfessorProfile } = catalog;
     const profile = await getProfessorProfile("texas-am", "s-lupoli");
-    expect(profile?.professor.departmentDelta?.classifyScoreDelta).not.toBeNull();
-    expect(profile?.professor.departmentDelta?.baselineLabel).toContain("department");
+    expect(profile?.offerings[0]?.departmentDelta?.classifyScoreDelta).not.toBeNull();
+    expect(profile?.offerings[0]?.departmentDelta?.baselineLabel).toContain("department");
+  });
+
+  it("builds professor directory rows separately from course-level offerings", async () => {
+    const { getProfessorDirectoryRowsForSchool } = catalog;
+    const rows = await getProfessorDirectoryRowsForSchool("texas-am");
+    const professor = rows.find((item) => item.professorSlug === "s-lupoli");
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(professor?.professorName).toBe("S. Lupoli");
+    expect(professor?.courseCount).toBeGreaterThan(0);
+    expect(Array.isArray(professor?.departments)).toBe(true);
+    expect(professor?.coverageLevel).toBeDefined();
   });
 
   it("exposes grade distribution series for course pages", async () => {

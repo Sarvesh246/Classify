@@ -80,6 +80,36 @@ export function formatPlannerReadiness(value: string) {
   }
 }
 
+export function formatProfessorCoverageLevel(value: string) {
+  switch (value) {
+    case "directory_only":
+      return "Directory only";
+    case "instructor_directory_ready":
+      return "Instructor directory live";
+    case "stats_partial":
+      return "Stats expanding";
+    case "stats_full":
+      return "Institutional outcomes live";
+    default:
+      return value.replace(/_/g, " ");
+  }
+}
+
+export function formatProfessorStatsAvailability(value: string) {
+  switch (value) {
+    case "none":
+      return "Identity only";
+    case "rmp_only":
+      return "RMP signals";
+    case "partial":
+      return "Partial stats";
+    case "full":
+      return "Full stats";
+    default:
+      return value.replace(/_/g, " ");
+  }
+}
+
 export function formatEvidenceSource(value: string) {
   switch (value) {
     case "official_grades":

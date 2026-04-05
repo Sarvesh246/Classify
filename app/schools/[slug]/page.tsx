@@ -9,6 +9,7 @@ import {
   formatEvidenceSource,
   formatFreshnessLabel,
   formatGpa,
+  formatProfessorCoverageLevel,
   formatPlannerReadiness,
   formatPercent,
   formatScore,
@@ -32,7 +33,6 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
   const topProfessors = [...offerings]
     .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0))
     .slice(0, 4);
-  const offeringCount = offerings.length;
 
   return (
     <main className="min-h-screen bg-background">
@@ -56,11 +56,17 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             <CoverageBadge tier={school.coverageTier} />
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard
               label="Planner readiness"
               value={formatPlannerReadiness(
                 supportProfile?.plannerReadiness ?? "directory_ready",
+              )}
+            />
+            <InfoCard
+              label="Professor coverage"
+              value={formatProfessorCoverageLevel(
+                supportProfile?.professorCoverageLevel ?? "directory_only",
               )}
             />
             <InfoCard label="Primary source" value={school.sourceStatus.primary} />
@@ -84,9 +90,13 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
               href={`/schools/${slug}/instructors`}
               className="inline-flex rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
             >
-              {offeringCount
-                ? `Browse all ${offeringCount} instructor-course rows`
-                : "Browse instructor directory"}
+              {supportProfile?.professorCoverageLevel === "stats_full"
+                ? "Instructor outcomes live"
+                : supportProfile?.professorCoverageLevel === "stats_partial"
+                  ? "Instructor stats expanding"
+                  : supportProfile?.professorCoverageLevel === "instructor_directory_ready"
+                    ? "Instructor directory live"
+                    : "Browse instructor directory"}
             </Link>
             <Link
               href={`/schools/${slug}/my-courses`}
@@ -191,8 +201,8 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
               <EmptyCard>
                 <p>
                   This school is live in the national directory, but no published instructor
-                  rows are attached yet. Classify will attach local catalog, section, and
-                  evidence rows here without changing the workflow students use.
+                  identities are attached yet. Classify will attach local catalog, section,
+                  and evidence rows here without changing the workflow students use.
                 </p>
                 <p className="mt-4">
                   <Link
