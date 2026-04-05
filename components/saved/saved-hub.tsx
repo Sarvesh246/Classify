@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
+import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import {
   deleteCompareSet,
   deleteSavedItem,
@@ -71,8 +71,9 @@ export function SavedHub() {
   if (!supabaseUserId) {
     return (
       <div className="rounded-[28px] border border-dashed border-border bg-white/50 px-6 py-12 text-center text-sm text-muted">
-        Sign in with <strong className="text-ink">email</strong> to sync saved professors, courses,
-        and compare sets across devices. Google sign-in alone doesn&apos;t enable cloud saves yet.
+        Sign in with <strong className="text-ink">email</strong>{" "}to sync saved professors,
+        courses, and compare sets across devices. Google sign-in alone doesn&apos;t enable cloud
+        saves yet.
       </div>
     );
   }
@@ -96,8 +97,8 @@ export function SavedHub() {
       <div className="soft-panel rounded-[28px] px-6 py-14 text-center text-muted">
         <p className="text-ink">Nothing saved yet.</p>
         <p className="mt-2 text-sm">
-          Open a professor or course page and tap <strong className="text-ink">Save</strong>, or save a
-          comparison from the compare page.
+          Open a professor or course page and tap <strong className="text-ink">Save</strong>, or
+          save a comparison from the compare page.
         </p>
         <Link
           href="/search"

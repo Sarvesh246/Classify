@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
-import { signOutAll } from "@/utils/supabase/sign-out";
 import { cn } from "@/lib/utils";
+import { signOutAll } from "@/utils/supabase/sign-out";
 
 export function HeaderAuthControl({ isHome }: { isHome: boolean }) {
   const { user, hydrated: authReady } = useCombinedAuth();

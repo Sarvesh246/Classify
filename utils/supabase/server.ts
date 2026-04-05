@@ -3,13 +3,20 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { getSupabasePublicUrlAndKey } from "@/utils/supabase/public-env";
 
 export async function createClient() {
+  const config = getSupabasePublicUrlAndKey();
+  if (!config) {
+    throw new Error(
+      "Supabase server client: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY " +
+        "(or legacy NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY). Required for auth and /api/me/*.",
+    );
+  }
+
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl!, supabaseKey!, {
+  return createServerClient(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

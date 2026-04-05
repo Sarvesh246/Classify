@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -12,15 +11,11 @@ import {
 import { ArrowRight, LineChart, Search, SlidersHorizontal } from "lucide-react";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { HomeScene } from "@/components/home/home-scene";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
 import { useAppRuntime } from "@/hooks/use-app-runtime";
 import type { CourseGroup, ProfessorCourseSummary, School } from "@/lib/types";
 import { formatGpa, formatPercent, formatScore, scoreToLabel } from "@/lib/utils";
-
-const HomeScene = dynamic(
-  () => import("@/components/home/home-scene").then((mod) => mod.HomeScene),
-  { ssr: false },
-);
 
 type HomeExperienceProps = {
   coverage: {
@@ -83,6 +78,13 @@ export function HomeExperience({
     ],
     [],
   );
+
+  function cleanCourseSummary(course: CourseGroup) {
+    const summary = course.summary.trim();
+    return summary
+      .replace(`${course.courseCode} ${course.courseCode}`, course.courseCode)
+      .replace(`${course.courseName} ${course.courseName}`, course.courseName);
+  }
 
   return (
     <div className="relative overflow-x-hidden bg-deep-ink text-ivory">
@@ -239,7 +241,9 @@ export function HomeExperience({
                         <p className="text-lg font-semibold text-white">
                           {course.courseCode} - {course.courseName}
                         </p>
-                        <p className="mt-1 text-sm text-white/72">{course.summary}</p>
+                        <p className="mt-1 text-sm text-white/72">
+                          {cleanCourseSummary(course)}
+                        </p>
                         <p className="mt-3 text-sm text-white/82">
                           Top pick: {course.topProfessorName}
                         </p>

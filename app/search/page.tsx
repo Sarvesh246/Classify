@@ -290,8 +290,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   entry point, and instructor directory.
                 </div>
                 <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
-                  Try a course code like <code>CS 312</code> if your question is
-                  &nbsp;&quot;who teaches this class and gives the best outcomes?&quot;
+                  Try a course code like <code>CS 312</code>{" "}if your question is{" "}
+                  &quot;who teaches this class and gives the best outcomes?&quot;
                 </div>
                 <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
                   Try a professor name if you already know the person and want a

@@ -1,8 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { getSupabasePublicUrlAndKey } from "@/utils/supabase/public-env";
 
 /**
  * Refreshes the Supabase auth session and forwards cookies on the response.
@@ -13,11 +12,12 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  if (!supabaseUrl || !supabaseKey) {
+  const config = getSupabasePublicUrlAndKey();
+  if (!config) {
     return supabaseResponse;
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  const supabase = createServerClient(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -1,12 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const FirebaseAnalytics = dynamic(
-  () =>
-    import("@/components/firebase-analytics").then((m) => m.FirebaseAnalytics),
-  { ssr: false },
-);
+import { FirebaseAnalytics } from "@/components/firebase-analytics";
 
 export function FirebaseAnalyticsLoader() {
   return <FirebaseAnalytics />;

@@ -44,7 +44,7 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
           <Link href="/methodology" className={navLinkClassName}>
             Methodology
           </Link>
-          <Link href="/search?q=UT" className={navLinkClassName}>
+          <Link href="/search" className={navLinkClassName}>
             Schools
           </Link>
         </nav>
