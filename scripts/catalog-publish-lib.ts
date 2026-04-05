@@ -31,6 +31,7 @@ type SchoolRecord = {
   slug: string;
   name: string;
   shortName: string;
+  aliases?: string[];
   city: string;
   state: string;
   kind: "Public" | "Private";
@@ -116,6 +117,7 @@ type DbSchoolRow = {
   slug: string;
   name: string;
   short_name: string;
+  aliases: string[];
   city: string;
   state: string;
   kind: string;
@@ -255,6 +257,7 @@ type PublishPayload = {
 
 type LegacyDbSchoolRow = Omit<
   DbSchoolRow,
+  | "aliases"
   | "catalog_completeness_pct"
   | "section_completeness_pct"
   | "meeting_time_completeness_pct"
@@ -274,9 +277,47 @@ type TableKey =
 
 const ROOT = path.join(process.cwd());
 const SNAPSHOT_PATH = path.join(ROOT, "etl", "output", "published_catalog.json");
+const DIRECTORY_SNAPSHOT_PATH = path.join(
+  ROOT,
+  "etl",
+  "output",
+  "college_scorecard_schools.json",
+);
 const BATCH_SIZE = 500;
 const LEGACY_SCHOOL_SCHEMA_REGEX =
-  /catalog_completeness_pct|section_completeness_pct|meeting_time_completeness_pct|evidence_completeness_pct|readiness_reason/i;
+  /aliases|catalog_completeness_pct|section_completeness_pct|meeting_time_completeness_pct|evidence_completeness_pct|readiness_reason/i;
+
+type DirectorySchoolRecord = {
+  school_id: number;
+  slug: string;
+  name: string;
+  alias?: string | null;
+  city: string;
+  state: string;
+  control?: string | null;
+};
+
+const SCORECARD_SCHOOL_SLUG_CANONICAL: Record<string, string> = {
+  "the-university-of-texas-at-austin": "ut-austin",
+  "texas-a-m-university-college-station": "texas-am",
+  "university-of-california-berkeley": "uc-berkeley",
+  "university-of-wisconsin-madison": "uw-madison",
+  "the-ohio-state-university-main-campus": "ohio-state",
+  "university-of-north-carolina-at-chapel-hill": "unc-chapel-hill",
+  "university-of-washington-seattle-campus": "university-of-washington",
+  "university-of-illinois-urbana-champaign": "uiuc",
+};
+
+const SCORECARD_SCHOOL_ALIAS_EXTRAS: Record<string, string[]> = {
+  "ut-austin": ["UT", "UT Austin", "University of Texas", "Texas Austin"],
+  "texas-am": ["Texas A&M", "Texas A and M", "TAMU", "A&M", "Texas AM"],
+  "uc-berkeley": ["UC Berkeley", "Berkeley", "Cal"],
+  "uw-madison": ["UW-Madison", "UW Madison", "Wisconsin", "Madison"],
+  "ohio-state": ["Ohio State", "OSU", "The Ohio State University"],
+  "unc-chapel-hill": ["UNC", "UNC Chapel Hill", "Carolina"],
+  "university-of-washington": ["UW", "University of Washington", "Washington Seattle"],
+  uiuc: ["UIUC", "Illinois", "U of I", "University of Illinois"],
+};
 
 function loadLocalEnvFile(filename: string) {
   const filePath = path.join(process.cwd(), filename);
@@ -318,6 +359,115 @@ function round(value: number, digits = 2) {
 
 function clampPct(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function canonicalScorecardSchoolSlug(rawSlug: string) {
+  return SCORECARD_SCHOOL_SLUG_CANONICAL[rawSlug] ?? rawSlug;
+}
+
+function directorySchoolToRecord(row: DirectorySchoolRecord): SchoolRecord {
+  const slug = canonicalScorecardSchoolSlug(row.slug);
+  const aliases = [
+    ...new Set(
+      [row.name, row.alias, ...(SCORECARD_SCHOOL_ALIAS_EXTRAS[slug] ?? [])]
+        .filter((value): value is string => Boolean(value))
+        .map(normalizeWhitespace),
+    ),
+  ];
+  const shortName = normalizeWhitespace(row.alias || row.name);
+
+  return {
+    id: `scorecard:${row.school_id}`,
+    slug,
+    name: normalizeWhitespace(row.name),
+    shortName,
+    aliases,
+    city: normalizeWhitespace(row.city),
+    state: normalizeWhitespace(row.state),
+    kind: row.control?.includes("Private") ? "Private" : "Public",
+    coverageTier: "rmp_only",
+    sourceStatus: {
+      primary: "College Scorecard directory",
+      fallback: "Rate My Professors",
+      freshness: "Directory coverage active",
+      note: "This school profile is live. Catalog, schedule, and evidence layers attach as local data is published.",
+    },
+    supportProfile: {
+      plannerReadiness: "directory_ready",
+      hasCatalog: false,
+      hasSections: false,
+      hasInstructorDirectory: false,
+      hasPlanner: true,
+      hasOfficialGrades: false,
+      hasRmp: false,
+      hasCommunityEvidence: false,
+      evidenceFreshness: "Directory coverage active",
+      sourceAvailability: [],
+      catalogCompletenessPct: 0,
+      sectionCompletenessPct: 0,
+      meetingTimeCompletenessPct: 0,
+      evidenceCompletenessPct: 0,
+      readinessReason:
+        "School directory is live, but local catalog and schedule data have not been published yet.",
+    },
+  };
+}
+
+function loadDirectorySchoolRecords(): SchoolRecord[] {
+  if (!fs.existsSync(DIRECTORY_SNAPSHOT_PATH)) {
+    return [];
+  }
+
+  const payload = JSON.parse(
+    fs.readFileSync(DIRECTORY_SNAPSHOT_PATH, "utf8"),
+  ) as DirectorySchoolRecord[];
+
+  return payload.map(directorySchoolToRecord);
+}
+
+function mergeDirectorySchools(snapshot: PublishedCatalogSnapshot): PublishedCatalogSnapshot {
+  const directorySchools = loadDirectorySchoolRecords();
+  if (!directorySchools.length) {
+    return snapshot;
+  }
+
+  const bySlug = new Map<string, SchoolRecord>();
+  for (const school of directorySchools) {
+    bySlug.set(school.slug, school);
+  }
+  for (const school of snapshot.schools) {
+    const existing = bySlug.get(school.slug);
+    bySlug.set(school.slug, {
+      ...existing,
+      ...school,
+      aliases: [
+        ...new Set([...(existing?.aliases ?? []), ...(school.aliases ?? [])]),
+      ],
+    });
+  }
+
+  const publishMetadata = snapshot.publishMetadata
+    ? {
+        ...snapshot.publishMetadata,
+        summary: {
+          schoolCount: [...bySlug.values()].length,
+          offeringCount: snapshot.offerings.length,
+          sectionCount: snapshot.publishMetadata.summary?.sectionCount ?? 0,
+          evidenceReadySchoolCount:
+            snapshot.publishMetadata.summary?.evidenceReadySchoolCount ?? 0,
+        },
+      }
+    : undefined;
+
+  return {
+    ...snapshot,
+    schools: [...bySlug.values()],
+    publishMetadata,
+  };
 }
 
 export function readSnapshot(snapshotPath = SNAPSHOT_PATH): PublishedCatalogSnapshot {
@@ -452,6 +602,8 @@ function deriveSchoolSupport(school: SchoolRecord, offerings: OfferingRecord[]) 
 }
 
 export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload {
+  const mergedSchools = mergeDirectorySchools(snapshot).schools;
+
   const offeringsBySchool = new Map<string, OfferingRecord[]>();
   for (const offering of snapshot.offerings) {
     offeringsBySchool.set(offering.schoolSlug, [
@@ -460,8 +612,8 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
     ]);
   }
 
-  const schoolIdBySlug = new Map(snapshot.schools.map((school) => [school.slug, school.id]));
-  const schools: DbSchoolRow[] = snapshot.schools.map((school) => {
+  const schoolIdBySlug = new Map(mergedSchools.map((school) => [school.slug, school.id]));
+  const schools: DbSchoolRow[] = mergedSchools.map((school) => {
     const offerings = offeringsBySchool.get(school.slug) ?? [];
     const support = deriveSchoolSupport(school, offerings);
     return {
@@ -469,6 +621,7 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
       slug: school.slug,
       name: school.name,
       short_name: school.shortName,
+      aliases: school.aliases ?? [],
       city: school.city,
       state: school.state,
       kind: school.kind,
@@ -701,6 +854,7 @@ function toLegacySchoolRows(rows: DbSchoolRow[]): LegacyDbSchoolRow[] {
     slug: row.slug,
     name: row.name,
     short_name: row.short_name,
+    aliases: row.aliases,
     city: row.city,
     state: row.state,
     kind: row.kind,
@@ -916,7 +1070,8 @@ export async function publishSnapshotToSupabase(
   snapshot: PublishedCatalogSnapshot,
   options?: { snapshotId?: string },
 ) {
-  const payload = buildPayload(snapshot);
+  const materializedSnapshot = mergeDirectorySchools(snapshot);
+  const payload = buildPayload(materializedSnapshot);
   const schoolIds = payload.schools.map((row) => row.id);
   const runId = options?.snapshotId ?? `published-catalog:${new Date().toISOString()}`;
 
@@ -944,8 +1099,8 @@ export async function publishSnapshotToSupabase(
     school_id: null,
     source_key: "published_catalog_run",
     source_type: "json",
-    fetched_at: snapshot.updatedAt,
-    payload: snapshot,
+    fetched_at: materializedSnapshot.updatedAt,
+    payload: materializedSnapshot,
   }, { onConflict: "id", ignoreDuplicates: false });
   if (snapshotError) throw new Error(`Failed saving published snapshot artifact: ${snapshotError.message}`);
 
@@ -965,7 +1120,7 @@ export async function publishSnapshotToSupabase(
     finished_at: new Date().toISOString(),
     detail: {
       snapshot_id: runId,
-      published_at: snapshot.updatedAt,
+      published_at: materializedSnapshot.updatedAt,
       counts: {
         schools: payload.schools.length,
         professors: payload.professors.length,

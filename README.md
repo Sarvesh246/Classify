@@ -105,7 +105,8 @@ The first live path is now implemented for:
 
 Set `COLLEGE_SCORECARD_API_KEY` in `.env` before using the school importer.
 The app automatically reads `etl/output/college_scorecard_schools.json` for
-nationwide school search, dev catalog merge (with seed), and merge/publish of extra school rows.
+nationwide school search, dev catalog merge (with seed), and merge/publish of extra
+directory-only school rows into the DB-backed `schools` table.
 That path is gitignored until you generate it—use a live import or, for offline verification:
 
 ```bash
@@ -114,9 +115,21 @@ npm run catalog:directory:fixture
 
 (`python -m etl.scripts.import_school_directory --fixture` — no API key.)
 
+For the full nationwide import, run:
+
+```bash
+python -m etl.scripts.import_school_directory --output etl/output/college_scorecard_schools.json
+npm run catalog:publish:supabase
+```
+
+By default, the importer targets undergraduate-serving public/private institutions
+using College Scorecard ownership and predominant-award filters. Once the JSON is
+present, the publish step folds those schools into the main `schools` table even if
+they do not have local catalog, section, or evidence depth yet.
+
 With the JSON present, `npm run catalog:merge` can emit `published_catalog.json` containing seed
 plus directory-only schools even when no reconciled offerings exist; `/api/health/catalog` reports
-`mergedCounts.catalogSchoolCount` vs `mergedCounts.directorySchoolCount`.
+searchable, catalog-ready, schedule-ready, and evidence-ready school counts separately.
 
 Set `RMP_GRAPHQL_ENDPOINT` before using the RMP sync script.
 

@@ -3,6 +3,7 @@ create table schools (
   slug text not null unique,
   name text not null,
   short_name text not null,
+  aliases jsonb not null default '[]'::jsonb,
   city text not null,
   state text not null,
   kind text not null,

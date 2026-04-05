@@ -866,6 +866,22 @@ export async function getCatalogOfferings() {
 
 export async function getCatalogCoverageStats() {
   const snapshot = await getSnapshot();
+  const searchableSchools = snapshot.schools.length;
+  const evidenceReadySchools = snapshot.schools.filter(
+    (school) => school.supportProfile?.plannerReadiness === "evidence_ready",
+  ).length;
+  const scheduleReadySchools = snapshot.schools.filter(
+    (school) => school.supportProfile?.plannerReadiness === "schedule_ready",
+  ).length;
+  const catalogReadySchools = snapshot.schools.filter(
+    (school) => school.supportProfile?.plannerReadiness === "catalog_ready",
+  ).length;
+  const plannerReadySchools = snapshot.schools.filter(
+    (school) =>
+      school.supportProfile?.plannerReadiness === "catalog_ready" ||
+      school.supportProfile?.plannerReadiness === "schedule_ready" ||
+      school.supportProfile?.plannerReadiness === "evidence_ready",
+  ).length;
   const trackedCourses = new Set(
     snapshot.offerings.map((item) => `${item.schoolSlug}:${item.courseSlug}`),
   ).size;
@@ -874,13 +890,15 @@ export async function getCatalogCoverageStats() {
   ).size;
 
   return {
-    trackedSchools: snapshot.schools.length,
+    searchableSchools,
+    trackedSchools: searchableSchools,
     institutionalSchools: snapshot.schools.filter(
       (school) => school.supportProfile?.hasOfficialGrades,
     ).length,
-    plannerReadySchools: snapshot.schools.filter(
-      (school) => school.supportProfile?.hasCatalog,
-    ).length,
+    plannerReadySchools,
+    catalogReadySchools,
+    scheduleReadySchools,
+    evidenceReadySchools,
     trackedCourses,
     trackedProfessors,
   };

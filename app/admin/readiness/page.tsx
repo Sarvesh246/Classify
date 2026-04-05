@@ -44,7 +44,7 @@ export default async function AdminReadinessPage() {
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <StatCard label="Effective source" value={trace.publishedDataFrom} meta={`Updated ${formatFreshnessLabel(updatedAt)}`} />
             <StatCard label="DB path" value={dbHealth.requiredTablesOk ? "Healthy" : "Fallback"} meta={dbHealth.requiredTablesOk ? "Required tables reachable" : `${dbHealth.missingRequiredTables.length} required tables missing`} />
-            <StatCard label="Evidence-ready schools" value={String(readiness.evidenceReady)} meta={`${readiness.totalSchools} total schools`} />
+            <StatCard label="Searchable schools" value={String(readiness.totalSchools)} meta={`${readiness.evidenceReady} evidence-ready`} />
             <StatCard label="Active publish run" value={publishMetadata?.runId ?? "Unavailable"} meta={publishMetadata ? `Activated ${formatFreshnessLabel(publishMetadata.activatedAt)}` : "No publish metadata loaded"} />
           </div>
         </section>

@@ -20,9 +20,13 @@ import { formatGpa, formatPercent, formatScore, scoreToLabel } from "@/lib/utils
 
 type HomeExperienceProps = {
   coverage: {
+    searchableSchools: number;
     trackedSchools: number;
     institutionalSchools: number;
     plannerReadySchools: number;
+    catalogReadySchools?: number;
+    scheduleReadySchools?: number;
+    evidenceReadySchools?: number;
     trackedCourses: number;
     trackedProfessors: number;
   };
@@ -120,23 +124,23 @@ export function HomeExperience({
                 Find the professor who actually gives A&apos;s.
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-ivory/76 sm:text-lg">
-                Grade distributions, not just opinions, for {coverage.trackedSchools} schools across the US.
+                Grade distributions, not just opinions, for {coverage.searchableSchools} searchable schools across the US.
               </p>
             </div>
 
             <div className="mx-auto mt-6 hidden max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82 md:flex">
-              <InlineStat label="Searchable schools" value={coverage.trackedSchools} />
+              <InlineStat label="Searchable schools" value={coverage.searchableSchools} />
               <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
-              <InlineStat label="Tracked course options" value={coverage.trackedCourses} />
+              <InlineStat label="Evidence-ready schools" value={coverage.evidenceReadySchools ?? 0} />
             </div>
 
             <div className="mt-4 grid gap-3 md:hidden">
               <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.72),rgba(8,25,44,0.56))] p-4 text-white shadow-[0_20px_44px_rgba(4,12,24,0.24)] backdrop-blur-xl">
                 <p className="eyebrow text-white/72">Why it feels different</p>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <MobileProof value={coverage.trackedSchools} label="schools" />
+                  <MobileProof value={coverage.searchableSchools} label="searchable" />
                   <MobileProof value={coverage.plannerReadySchools} label="planner-ready" />
-                  <MobileProof value={coverage.trackedCourses} label="course rows" />
+                  <MobileProof value={coverage.evidenceReadySchools ?? 0} label="evidence-ready" />
                 </div>
               </div>
               {spotlight ? (

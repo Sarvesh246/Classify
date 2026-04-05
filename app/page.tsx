@@ -16,7 +16,10 @@ export default async function HomePage() {
     getCatalogSchools(),
     getFeaturedOfferings(),
   ]);
-  const trackedSchools = Math.max(directorySchools.length, coverage.trackedSchools);
+  const searchableSchools = Math.max(
+    directorySchools.length,
+    coverage.searchableSchools ?? coverage.trackedSchools,
+  );
   const spotlightSlugs = catalogSchools
     .slice(0, 6)
     .map((school) => school.slug);
@@ -35,7 +38,8 @@ export default async function HomePage() {
       <HomeExperience
         coverage={{
           ...coverage,
-          trackedSchools,
+          searchableSchools,
+          trackedSchools: searchableSchools,
         }}
         featured={featured}
         spotlights={spotlights}

@@ -7,6 +7,7 @@ create table if not exists public.schools (
   slug text not null unique,
   name text not null,
   short_name text not null,
+  aliases jsonb not null default '[]'::jsonb,
   city text not null,
   state text not null,
   kind text not null,
@@ -32,6 +33,7 @@ alter table public.schools add column if not exists section_completeness_pct int
 alter table public.schools add column if not exists meeting_time_completeness_pct integer not null default 0;
 alter table public.schools add column if not exists evidence_completeness_pct integer not null default 0;
 alter table public.schools add column if not exists readiness_reason text;
+alter table public.schools add column if not exists aliases jsonb not null default '[]'::jsonb;
 
 create table if not exists public.professors (
   id text primary key,

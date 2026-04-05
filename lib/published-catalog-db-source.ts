@@ -23,6 +23,7 @@ type DbSchoolRow = {
   slug: string;
   name: string;
   short_name: string;
+  aliases: JsonValue | null;
   city: string;
   state: string;
   kind: string;
@@ -49,7 +50,7 @@ type DbSchoolRow = {
 };
 
 const SCHOOLS_SELECT_FULL =
-  "id, slug, name, short_name, city, state, kind, coverage_tier, source_primary, source_fallback, source_note, planner_readiness, has_catalog, has_sections, has_instructor_directory, has_planner, has_official_grades, has_rmp, has_community_evidence, evidence_freshness, source_availability, catalog_completeness_pct, section_completeness_pct, meeting_time_completeness_pct, evidence_completeness_pct, readiness_reason, refreshed_at";
+  "id, slug, name, short_name, aliases, city, state, kind, coverage_tier, source_primary, source_fallback, source_note, planner_readiness, has_catalog, has_sections, has_instructor_directory, has_planner, has_official_grades, has_rmp, has_community_evidence, evidence_freshness, source_availability, catalog_completeness_pct, section_completeness_pct, meeting_time_completeness_pct, evidence_completeness_pct, readiness_reason, refreshed_at";
 
 const SCHOOLS_SELECT_LEGACY =
   "id, slug, name, short_name, city, state, kind, coverage_tier, source_primary, source_fallback, source_note, planner_readiness, has_catalog, has_sections, has_instructor_directory, has_planner, has_official_grades, has_rmp, has_community_evidence, evidence_freshness, source_availability, refreshed_at";
@@ -272,7 +273,7 @@ function buildSchoolFromRow(row: DbSchoolRow): School {
     state: row.state,
     kind: row.kind.toLowerCase().includes("private") ? "Private" : "Public",
     coverageTier: row.coverage_tier,
-    aliases: [],
+    aliases: arrayOfStrings(row.aliases),
     directoryCount: 0,
     sourceStatus: {
       primary: row.source_primary,
@@ -404,7 +405,7 @@ async function selectAllSchools(
     return await selectAll<DbSchoolRow>(client, "schools", SCHOOLS_SELECT_FULL);
   } catch (err) {
     const error = describeError(err);
-    if (!/catalog_completeness_pct|section_completeness_pct|meeting_time_completeness_pct|evidence_completeness_pct|readiness_reason/i.test(error)) {
+    if (!/aliases|catalog_completeness_pct|section_completeness_pct|meeting_time_completeness_pct|evidence_completeness_pct|readiness_reason/i.test(error)) {
       throw err;
     }
 
