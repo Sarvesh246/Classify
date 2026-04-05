@@ -47,6 +47,8 @@ interface SearchComboboxProps {
   clearOnSelect?: boolean;
   onSelect?: (item: SearchHit) => void;
   syncSearchUrl?: boolean;
+  resultSurface?: "combobox" | "page";
+  liveSyncSearchPage?: boolean;
 }
 
 const iconMap = {
@@ -67,6 +69,8 @@ export function SearchCombobox({
   clearOnSelect = false,
   onSelect,
   syncSearchUrl = false,
+  resultSurface = "combobox",
+  liveSyncSearchPage = false,
 }: SearchComboboxProps) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
@@ -80,11 +84,21 @@ export function SearchCombobox({
   const [isMobileSheet, setIsMobileSheet] = useState(false);
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<Array<HTMLElement | null>>([]);
+  const lastSyncedHrefRef = useRef("");
   const showListLoading = useDelayedShown(isPending || isLoading, 380);
 
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    const trimmed = initialQuery.trim();
+    if (trimmed) params.set("q", trimmed);
+    if (schoolSlug?.trim()) params.set("school", schoolSlug.trim());
+    if (searchType !== "all") params.set("type", searchType);
+    lastSyncedHrefRef.current = params.toString() ? `/search?${params.toString()}` : "/search";
+  }, [initialQuery, schoolSlug, searchType]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -116,28 +130,28 @@ export function SearchCombobox({
     whileElementsMounted: autoUpdate,
     strategy: "fixed",
     placement: "bottom-start",
+    transform: false,
     middleware: [
       offset(12),
-      shift({ padding: 16 }),
+      shift({
+        padding: 16,
+        mainAxis: false,
+        crossAxis: true,
+      }),
       size({
         padding: 16,
-        apply({ availableHeight, elements, rects }) {
+        apply({ availableHeight, availableWidth, elements, rects }) {
+          const maxWidth = Math.min(availableWidth, 760);
           Object.assign(elements.floating.style, {
-            width: `${Math.max(rects.reference.width, 320)}px`,
-            maxHeight: `${Math.min(availableHeight, 448)}px`,
+            width: `${Math.min(Math.max(rects.reference.width, 320), maxWidth)}px`,
+            maxHeight: `${Math.min(availableHeight, 392)}px`,
           });
         },
       }),
     ],
   });
-  const setPositionReferenceRef = useCallback(
-    (node: HTMLFormElement | null) => {
-      refs.setPositionReference(node);
-    },
-    [refs],
-  );
   const setReferenceRef = useCallback(
-    (node: HTMLInputElement | null) => {
+    (node: HTMLFormElement | null) => {
       refs.setReference(node);
     },
     [refs],
@@ -176,6 +190,7 @@ export function SearchCombobox({
     if (schoolSlug) {
       params.set("schoolSlug", schoolSlug);
     }
+    params.set("surface", resultSurface);
     params.set("limit", String(limit));
 
     const endpoint = `/api/search?${params.toString()}`;
@@ -219,7 +234,48 @@ export function SearchCombobox({
     return () => {
       ignore = true;
     };
-  }, [deferredQuery, limit, schoolSlug, searchType, retryNonce]);
+  }, [deferredQuery, limit, resultSurface, schoolSlug, searchType, retryNonce]);
+
+  useEffect(() => {
+    if (!syncSearchUrl || !liveSyncSearchPage || onSelect) {
+      return;
+    }
+
+    const params = new URLSearchParams();
+    const trimmed = query.trim();
+    if (trimmed) params.set("q", trimmed);
+    if (schoolSlug?.trim()) params.set("school", schoolSlug.trim());
+    if (searchType !== "all") params.set("type", searchType);
+    const nextHref = params.toString() ? `/search?${params.toString()}` : "/search";
+
+    if (!query.length) {
+      lastSyncedHrefRef.current = nextHref;
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (lastSyncedHrefRef.current === nextHref) {
+        return;
+      }
+
+      lastSyncedHrefRef.current = nextHref;
+      startTransition(() => {
+        runDeferredNavigation(() => {
+          router.replace(nextHref, { scroll: false });
+        });
+      });
+    }, 220);
+
+    return () => window.clearTimeout(timeout);
+  }, [
+    liveSyncSearchPage,
+    onSelect,
+    query,
+    router,
+    schoolSlug,
+    searchType,
+    startTransition,
+    syncSearchUrl,
+  ]);
 
   const groupedSections = useMemo(() => {
     if (searchType !== "all") {
@@ -327,10 +383,10 @@ export function SearchCombobox({
   }
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn("relative z-[241] w-full", className)}>
       <form
-        ref={setPositionReferenceRef}
-        className="soft-panel flex items-center gap-2 rounded-[26px] p-1.5 sm:gap-3 sm:p-2"
+        ref={setReferenceRef}
+        className="soft-panel relative z-[241] flex items-center gap-2 rounded-[26px] p-1.5 sm:gap-3 sm:p-2"
         onSubmit={(event) => {
           event.preventDefault();
           handleSubmit();
@@ -349,7 +405,6 @@ export function SearchCombobox({
           )}
         </div>
         <input
-          ref={setReferenceRef}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -457,7 +512,7 @@ export function SearchCombobox({
                 transition={{ duration: 0.2 }}
                 {...getFloatingProps()}
               >
-                <div className="soft-panel overflow-hidden rounded-[28px]">
+                <div className="soft-panel overflow-hidden rounded-[28px] border border-border/80 shadow-[0_28px_72px_rgba(7,17,31,0.18)]">
                   <SearchResultsPanel
                     query={query}
                     groupedSections={groupedSections}
@@ -510,11 +565,11 @@ function SearchResultsPanel({
   linkResults: boolean;
 }) {
   return (
-    <div className="max-h-[28rem] overflow-y-auto p-3">
+    <div className="max-h-[18rem] overflow-y-auto p-2.5 sm:max-h-[20rem] sm:p-3">
       {groupedSections.map((section) =>
         section.items.length ? (
-          <div key={section.key} className="mb-4 last:mb-0">
-            <div className="px-3 pb-2 pt-1 text-[0.72rem] uppercase tracking-[0.18em] text-muted">
+          <div key={section.key} className="mb-3 last:mb-0">
+            <div className="px-3 pb-1.5 pt-1 text-[0.7rem] uppercase tracking-[0.18em] text-muted">
               {query.trim() ? section.label : `Suggested ${section.label.toLowerCase()}`}
             </div>
             <div className="space-y-1">
@@ -531,7 +586,7 @@ function SearchResultsPanel({
                     }}
                     href={item.href}
                     className={cn(
-                      "group flex items-start gap-3 rounded-[22px] px-3 py-3 transition",
+                      "group flex items-start gap-3 rounded-[20px] px-3 py-2.5 transition",
                       active ? "bg-white" : "hover:bg-white/78",
                     )}
                     {...getItemProps({
@@ -549,7 +604,7 @@ function SearchResultsPanel({
                     }}
                     type="button"
                     className={cn(
-                      "group flex w-full items-start gap-3 rounded-[22px] px-3 py-3 text-left transition",
+                      "group flex w-full items-start gap-3 rounded-[20px] px-3 py-2.5 text-left transition",
                       active ? "bg-white" : "hover:bg-white/78",
                     )}
                     {...getItemProps({
@@ -566,11 +621,11 @@ function SearchResultsPanel({
         ) : null,
       )}
       {fetchError ? (
-        <div className="rounded-[24px] border border-copper/40 bg-copper/10 px-4 py-6 text-center text-sm text-ink">
+        <div className="rounded-[22px] border border-copper/40 bg-copper/10 px-4 py-5 text-center text-sm text-ink">
           Couldn&apos;t load suggestions. Check your connection and try again.
         </div>
       ) : !results.length ? (
-        <div className="rounded-[24px] border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
+        <div className="rounded-[22px] border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
           {emptyMessage}
         </div>
       ) : null}
@@ -587,12 +642,14 @@ function ResultContent({
 }) {
   return (
     <>
-      <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-ink">{item.label}</span>
+          <span className="line-clamp-2 text-[0.96rem] font-medium leading-6 text-ink">
+            {item.label}
+          </span>
           <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
         </div>
         <p className="mt-1 text-sm text-muted">{item.school}</p>
@@ -610,7 +667,7 @@ function ResultContent({
           </div>
         ) : null}
         <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted">
-          {item.secondaryMetrics.map((metric) => (
+          {item.secondaryMetrics.slice(0, 3).map((metric) => (
             <span
               key={metric}
               className="rounded-full border border-border/80 bg-white/70 px-2.5 py-1"

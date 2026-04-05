@@ -2,6 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import type { School } from "@/lib/types";
+import {
+  buildSchoolAliases,
+  deriveSchoolShortName,
+  normalizeSchoolText,
+} from "@/lib/school-display";
 
 export const SCORECARD_DIRECTORY_JSON_PATH = path.join(
   process.cwd(),
@@ -45,42 +50,30 @@ const SCORECARD_SCHOOL_ALIAS_EXTRAS: Record<string, string[]> = {
   uiuc: ["UIUC", "Illinois", "U of I", "University of Illinois"],
 };
 
-function normalizeWhitespace(value: string) {
-  return value.replace(/\s+/g, " ").trim();
-}
-
 export function canonicalScorecardSchoolSlug(rawSlug: string): string {
   return SCORECARD_SCHOOL_SLUG_CANONICAL[rawSlug] ?? rawSlug;
 }
 
 function buildAliases(record: ScorecardDirectoryRecord, canonicalSlug: string) {
-  const aliases = new Set<string>();
-  aliases.add(record.name);
-
-  if (record.alias) {
-    aliases.add(record.alias);
-  }
-
-  for (const alias of SCORECARD_SCHOOL_ALIAS_EXTRAS[canonicalSlug] ?? []) {
-    aliases.add(alias);
-  }
-
-  return [...aliases]
-    .map((value) => normalizeWhitespace(value))
-    .filter(Boolean);
+  return buildSchoolAliases(
+    record.name,
+    record.alias,
+    SCORECARD_SCHOOL_ALIAS_EXTRAS[canonicalSlug] ?? [],
+    deriveSchoolShortName(record.name, record.alias),
+  );
 }
 
 function scorecardRecordToSchool(record: ScorecardDirectoryRecord): School {
   const canonicalSlug = canonicalScorecardSchoolSlug(record.slug);
-  const shortName = normalizeWhitespace(record.alias || record.name);
+  const shortName = deriveSchoolShortName(record.name, record.alias);
 
   return {
     id: `scorecard:${record.school_id}`,
     slug: canonicalSlug,
-    name: normalizeWhitespace(record.name),
+    name: normalizeSchoolText(record.name),
     shortName,
-    city: record.city,
-    state: record.state,
+    city: normalizeSchoolText(record.city),
+    state: normalizeSchoolText(record.state),
     kind: record.control?.includes("Private") ? "Private" : "Public",
     coverageTier: "rmp_only",
     aliases: buildAliases(record, canonicalSlug),

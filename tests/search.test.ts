@@ -15,6 +15,38 @@ describe("searchDirectory", () => {
     expect(results[0]?.label).toContain("UT Austin");
   });
 
+  it("keeps school labels canonical instead of rendering alias blobs", async () => {
+    const results = await searchDirectory("UT Southwestern", { limit: 12 });
+    const schoolHit = results.find((item) => item.type === "school");
+
+    expect(schoolHit?.label).toBeDefined();
+    expect((schoolHit?.label?.length ?? 0) < 48).toBe(true);
+    expect(schoolHit?.label).not.toContain("Graduate School of Biomedical Sciences");
+  });
+
+  it("keeps school-name queries from leaking unrelated catalog rows into combobox suggestions", async () => {
+    const results = await searchDirectory("UT Southwestern", {
+      limit: 8,
+      surface: "combobox",
+    });
+
+    expect(results[0]?.type).toBe("school");
+    expect(results.every((item) => item.type === "school" || item.school === "UT Southwestern")).toBe(
+      true,
+    );
+  });
+
+  it("dedupes directory and published school hits that share the same visible label", async () => {
+    const results = await searchDirectory("Georgia Tech", {
+      limit: 10,
+      surface: "combobox",
+    });
+
+    expect(results.filter((item) => item.type === "school" && item.label === "Georgia Tech")).toHaveLength(
+      1,
+    );
+  });
+
   it("finds course-level and professor-level results for direct course searches", async () => {
     const results = await searchDirectory("CS 312", { limit: 10 });
     expect(results.some((item) => item.type === "course")).toBe(true);

@@ -34,6 +34,7 @@ export function MobileSearchCommand({
             searchType={filterType}
             schoolSlug={schoolSlug}
             syncSearchUrl
+            liveSyncSearchPage
           />
         </div>
         <SearchScopeChips

@@ -48,9 +48,20 @@ export function HomeExperience({
   const { scrollYProgress } = useScroll();
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [clientReady, setClientReady] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState(spotlights[0]?.school.slug ?? "");
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => setProgress(latest));
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setClientReady(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 960px)");
@@ -60,7 +71,8 @@ export function HomeExperience({
     return () => media.removeEventListener("change", update);
   }, []);
 
-  const useCanvas = !reduceMotion && !isMobile && !isStandalone;
+  // R3F Canvas has no WebGL on the server; wait for mount so SSR and first paint match.
+  const useCanvas = clientReady && !reduceMotion && !isMobile && !isStandalone;
   const spotlight = useMemo(
     () => spotlights.find((item) => item.school.slug === selectedSchool) ?? spotlights[0],
     [selectedSchool, spotlights],

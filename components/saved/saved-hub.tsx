@@ -61,6 +61,16 @@ export function SavedHub() {
     setSets((prev) => (prev ? prev.filter((x) => x.id !== id) : prev));
   }
 
+  function formatSavedSchool(slug: string | null | undefined) {
+    if (!slug) return "School";
+    return slug
+      .split("-")
+      .map((part) =>
+        part.length <= 3 ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1),
+      )
+      .join(" ");
+  }
+
   if (!hydrated) {
     return (
       <div className="flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-[28px] border border-border/70 bg-white/60 py-10">
@@ -73,7 +83,7 @@ export function SavedHub() {
     return user ? (
       <div className="space-y-4">
         <LibraryPreview />
-        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted">
+        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted shadow-[0_18px_34px_rgba(7,17,31,0.06)]">
           <div className="flex items-start gap-3">
             <Cloud className="mt-0.5 h-5 w-5 text-deep-ink" />
             <div>
@@ -89,7 +99,7 @@ export function SavedHub() {
     ) : (
       <div className="space-y-4">
         <LibraryPreview />
-        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted">
+        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted shadow-[0_18px_34px_rgba(7,17,31,0.06)]">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-ink">Turn on cloud saves</p>
@@ -127,7 +137,7 @@ export function SavedHub() {
   if (!hasAny) {
     return (
       <div className="space-y-4">
-        <div className="soft-panel rounded-[28px] px-6 py-10 text-left text-muted">
+        <div className="soft-panel rounded-[28px] px-6 py-8 text-left text-muted">
           <p className="text-lg font-semibold text-ink">Your library is ready.</p>
           <p className="mt-2 text-sm leading-6">
             Save a professor, course, compare set, or planner draft and it will show up here.
@@ -179,7 +189,7 @@ export function SavedHub() {
                   <p className="font-medium text-ink">{s.name}</p>
                   <p className="mt-1 text-sm text-muted">
                     {s.offering_ids.length} instructor{s.offering_ids.length === 1 ? "" : "s"}
-                    {s.school_slug ? ` · ${s.school_slug}` : ""}
+                    {s.school_slug ? ` · ${formatSavedSchool(s.school_slug)}` : ""}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -227,7 +237,7 @@ export function SavedHub() {
                       ? item.professor_slug?.replace(/-/g, " ")
                       : `${item.course_slug?.replace(/-/g, " ")}`}
                   </p>
-                  <p className="text-sm text-muted">{item.school_slug}</p>
+                  <p className="text-sm text-muted">{formatSavedSchool(item.school_slug)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Link

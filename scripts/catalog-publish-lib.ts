@@ -3,6 +3,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { estimateGradeBuckets } from "../lib/grade-distribution-estimate";
+import {
+  buildSchoolAliases,
+  deriveSchoolShortName,
+  isMalformedSchoolAlias,
+  normalizeSchoolText,
+} from "../lib/school-display";
 
 type CoverageTier = "institutional_plus_rmp" | "institutional_only" | "rmp_only";
 type PlannerReadiness = "evidence_ready" | "schedule_ready" | "catalog_ready" | "directory_ready";
@@ -361,33 +367,28 @@ function clampPct(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function normalizeWhitespace(value: string) {
-  return value.replace(/\s+/g, " ").trim();
-}
-
 function canonicalScorecardSchoolSlug(rawSlug: string) {
   return SCORECARD_SCHOOL_SLUG_CANONICAL[rawSlug] ?? rawSlug;
 }
 
 function directorySchoolToRecord(row: DirectorySchoolRecord): SchoolRecord {
   const slug = canonicalScorecardSchoolSlug(row.slug);
-  const aliases = [
-    ...new Set(
-      [row.name, row.alias, ...(SCORECARD_SCHOOL_ALIAS_EXTRAS[slug] ?? [])]
-        .filter((value): value is string => Boolean(value))
-        .map(normalizeWhitespace),
-    ),
-  ];
-  const shortName = normalizeWhitespace(row.alias || row.name);
+  const shortName = deriveSchoolShortName(row.name, row.alias);
+  const aliases = buildSchoolAliases(
+    row.name,
+    row.alias,
+    SCORECARD_SCHOOL_ALIAS_EXTRAS[slug] ?? [],
+    shortName,
+  );
 
   return {
     id: `scorecard:${row.school_id}`,
     slug,
-    name: normalizeWhitespace(row.name),
+    name: normalizeSchoolText(row.name),
     shortName,
     aliases,
-    city: normalizeWhitespace(row.city),
-    state: normalizeWhitespace(row.state),
+    city: normalizeSchoolText(row.city),
+    state: normalizeSchoolText(row.state),
     kind: row.control?.includes("Private") ? "Private" : "Public",
     coverageTier: "rmp_only",
     sourceStatus: {
@@ -981,6 +982,22 @@ export function validateSnapshot(snapshot: PublishedCatalogSnapshot, payload = b
   };
 
   const failures: string[] = [];
+  const malformedSchoolDisplayRows = snapshot.schools.filter((school) => {
+    if (!school.shortName?.trim()) return true;
+    return (
+      school.shortName.length > 72 ||
+      isMalformedSchoolAlias(school.shortName) ||
+      school.shortName === school.aliases?.join(" ")
+    );
+  });
+  if (malformedSchoolDisplayRows.length) {
+    failures.push(
+      `Malformed school shortName values detected for ${malformedSchoolDisplayRows
+        .slice(0, 4)
+        .map((school) => school.slug)
+        .join(", ")}`,
+    );
+  }
   if (!summary.required.schools) failures.push("No schools in snapshot.");
   if (!summary.required.professors) failures.push("No professors in snapshot.");
   if (!summary.required.courses) failures.push("No courses in snapshot.");

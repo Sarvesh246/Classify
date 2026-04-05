@@ -1,0 +1,116 @@
+- generic [ref=e1]:
+  - main [ref=e49]:
+    - generic [ref=e51]:
+      - link "Classify home" [ref=e52] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e53]:
+          - img [ref=e55]
+          - generic [ref=e60]:
+            - generic [ref=e61]: Classify
+            - generic [ref=e62]: Course Intelligence
+      - navigation [ref=e63]:
+        - link "Search" [ref=e64] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e65] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e66] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e67] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e68] [cursor=pointer]:
+          - /url: /search
+      - generic [ref=e69]:
+        - link "Search" [ref=e70] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e71]
+          - text: Search
+        - link "Log in" [ref=e74] [cursor=pointer]:
+          - /url: /login
+    - generic [ref=e75]:
+      - generic [ref=e76]:
+        - paragraph [ref=e77]: Universal search
+        - heading "Search schools, courses, and professors in one place" [level=1] [ref=e78]
+        - paragraph [ref=e79]: Any searchable school can land in the same Classify workflow. Start with a school, course, or professor and then narrow into the school hub, planner, course view, or instructor comparison surface.
+        - generic [ref=e80]:
+          - generic [ref=e82]:
+            - img [ref=e144]
+            - combobox "Search schools, courses, or professors" [ref=e91]
+            - button "Explore" [ref=e147] [cursor=pointer]:
+              - generic [ref=e93]: Explore
+          - generic [ref=e94]:
+            - link "All types" [ref=e95] [cursor=pointer]:
+              - /url: /search
+            - link "Schools" [ref=e96] [cursor=pointer]:
+              - /url: /search?type=school
+            - link "Courses" [ref=e97] [cursor=pointer]:
+              - /url: /search?type=course
+            - link "Professors" [ref=e98] [cursor=pointer]:
+              - /url: /search?type=professor
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - paragraph [ref=e101]: Search cues
+          - heading "What to search first" [level=2] [ref=e102]
+          - generic [ref=e103]:
+            - generic [ref=e104]: Try a school name first if you want the full school hub, planner entry point, and instructor directory.
+            - generic [ref=e105]:
+              - text: Try a course code like
+              - code [ref=e106]: CS 312
+              - text: if your question is "who teaches this class and gives the best outcomes?"
+            - generic [ref=e107]: Try a professor name if you already know the person and want a direct path into the profile page and compare flow.
+        - generic [ref=e108]:
+          - paragraph [ref=e109]: Featured course options
+          - generic [ref=e110]:
+            - link "J. Lopez COMM 410 - Communication AND Journalism Easy score 96" [ref=e111] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/lopez-j
+              - generic [ref=e112]:
+                - generic [ref=e113]:
+                  - paragraph [ref=e114]: J. Lopez
+                  - paragraph [ref=e115]: COMM 410 - Communication AND Journalism
+                - generic [ref=e116]:
+                  - paragraph [ref=e117]: Easy
+                  - paragraph [ref=e118]: score 96
+            - link "K. Anders ENGL 210 - English Easy score 96" [ref=e119] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/anders-k
+              - generic [ref=e120]:
+                - generic [ref=e121]:
+                  - paragraph [ref=e122]: K. Anders
+                  - paragraph [ref=e123]: ENGL 210 - English
+                - generic [ref=e124]:
+                  - paragraph [ref=e125]: Easy
+                  - paragraph [ref=e126]: score 96
+            - link "H. Salman STAT 683 - Statistics Easy score 96" [ref=e127] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/salman-h
+              - generic [ref=e128]:
+                - generic [ref=e129]:
+                  - paragraph [ref=e130]: H. Salman
+                  - paragraph [ref=e131]: STAT 683 - Statistics
+                - generic [ref=e132]:
+                  - paragraph [ref=e133]: Easy
+                  - paragraph [ref=e134]: score 96
+            - link "H. Benzina INST 363 - Educational Psychology Easy score 96" [ref=e135] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/benzina-h
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - paragraph [ref=e138]: H. Benzina
+                  - paragraph [ref=e139]: INST 363 - Educational Psychology
+                - generic [ref=e140]:
+                  - paragraph [ref=e141]: Easy
+                  - paragraph [ref=e142]: score 96
+  - generic [active]:
+    - menu "Next.js Dev Tools Items" [ref=e148]:
+      - generic [ref=e149]:
+        - menuitem "Route Static" [ref=e150] [cursor=pointer]:
+          - generic [ref=e151]: Route
+          - generic [ref=e152]: Static
+        - generic "Turbopack is enabled." [ref=e153]:
+          - generic [ref=e154]: Bundler
+          - generic [ref=e155]: Turbopack
+        - menuitem "Route Info" [ref=e156]:
+          - generic [ref=e157]: Route Info
+          - img [ref=e159]
+      - menuitem "Preferences" [ref=e162]:
+        - generic [ref=e163]: Preferences
+        - img [ref=e165]
+    - button "Close Next.js Dev Tools" [expanded] [ref=e167] [cursor=pointer]:
+      - img [ref=e46]
+  - alert [ref=e143]

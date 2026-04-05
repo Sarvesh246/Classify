@@ -102,6 +102,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               searchType={filterType}
               schoolSlug={schoolParam}
               syncSearchUrl
+              liveSyncSearchPage
             />
             <SearchScopeChips
               query={query}

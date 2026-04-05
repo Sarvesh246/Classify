@@ -1,0 +1,50 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e6]:
+        - link "Classify home" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e10]
+        - generic [ref=e15]:
+          - paragraph [ref=e16]: Saved
+          - paragraph [ref=e17]: Your academic workspace lives here.
+      - generic [ref=e18]:
+        - link "Browse" [ref=e19] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e20]
+          - generic [ref=e23]: Browse
+        - generic [ref=e24]: ...
+    - generic [ref=e27]:
+      - paragraph [ref=e28]: Opening Classify
+      - heading "Your course decision workspace is loading." [level=1] [ref=e29]
+      - paragraph [ref=e30]: Pulling school coverage, instructor picks, and planner-ready options.
+      - generic [ref=e31]:
+        - status "Loading" [ref=e32]
+        - generic [ref=e39]:
+          - paragraph [ref=e40]: Building your launchpad
+          - paragraph [ref=e41]: Search, compare, and saved work are getting ready.
+  - navigation [ref=e42]:
+    - generic [ref=e43]:
+      - link "Home" [ref=e44] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e45]:
+          - img [ref=e47]
+          - generic [ref=e50]: Home
+      - link "Search" [ref=e51] [cursor=pointer]:
+        - /url: /search
+        - generic [ref=e52]:
+          - img [ref=e54]
+          - generic [ref=e57]: Search
+      - link "Compare" [ref=e58] [cursor=pointer]:
+        - /url: /compare
+        - generic [ref=e59]:
+          - img [ref=e61]
+          - generic [ref=e65]: Compare
+      - link "Saved" [ref=e66] [cursor=pointer]:
+        - /url: /saved
+        - generic [ref=e68]:
+          - img [ref=e70]
+          - generic [ref=e72]: Saved
+  - button "Open Next.js Dev Tools" [ref=e78] [cursor=pointer]:
+    - img [ref=e79]
+  - alert [ref=e82]

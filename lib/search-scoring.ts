@@ -90,7 +90,13 @@ export function scoreMatch(query: string, target: string, aliases: string[] = []
   return normalized
     .split(/\s+/)
     .filter(Boolean)
-    .reduce((score, token) => score + (haystack.includes(token) ? 18 : 0), 0);
+    .reduce((score, token) => {
+      if (token.length <= 2) {
+        const exactWord = new RegExp(`(^|[^a-z0-9])${token}([^a-z0-9]|$)`, "i");
+        return score + (exactWord.test(haystack) ? 18 : 0);
+      }
+      return score + (haystack.includes(token) ? 18 : 0);
+    }, 0);
 }
 
 export type CatalogHitSearchContext =

@@ -41,7 +41,7 @@ function getRouteMeta(pathname: string): RouteMeta {
     return {
       kind: "tab",
       title: "Search",
-      subtitle: "Schools, courses, and professors in one place.",
+      subtitle: "Schools, courses, and professors together.",
       actionHref: "/compare",
       actionLabel: "Compare",
       actionIcon: "filters",
@@ -52,7 +52,7 @@ function getRouteMeta(pathname: string): RouteMeta {
     return {
       kind: "tab",
       title: "Compare",
-      subtitle: "Build a smarter side-by-side shortlist.",
+      subtitle: "Build a smarter shortlist.",
       actionHref: "/search",
       actionLabel: "Add",
       actionIcon: "search",
@@ -63,7 +63,7 @@ function getRouteMeta(pathname: string): RouteMeta {
     return {
       kind: "tab",
       title: "Saved",
-      subtitle: "Your academic workspace lives here.",
+      subtitle: "Your academic workspace.",
       actionHref: "/search",
       actionLabel: "Browse",
       actionIcon: "search",
@@ -83,9 +83,9 @@ function getRouteMeta(pathname: string): RouteMeta {
     const schoolRoot = schoolRootFromPath(pathname);
     if (pathname.includes("/my-courses")) {
       return {
-        kind: "deep",
-        title: "Planner",
-        subtitle: "Shortlist, compare, and build your term.",
+      kind: "deep",
+      title: "Planner",
+      subtitle: "Shortlist and build your term.",
         backHref: schoolRoot,
       };
     }
@@ -124,7 +124,7 @@ function getRouteMeta(pathname: string): RouteMeta {
     return {
       kind: "deep",
       title: "School",
-      subtitle: "Courses, instructors, and planning in one hub.",
+      subtitle: "Courses, instructors, and planning.",
       backHref: "/search",
     };
   }

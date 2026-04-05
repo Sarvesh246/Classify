@@ -57,8 +57,8 @@ export default async function MyCoursesPage({ params, searchParams }: MyCoursesP
           <h1 className="app-page-title mt-3 font-semibold text-ink">My courses</h1>
           <p className="app-lead mt-4">
             Build a shortlist of catalog courses and compare every published instructor row in one
-            place. Sort matches individual course pages; picks stay in this browser unless you open
-            a share link.
+            place. Shortlist matches feed individual course pages, and picks stay in this browser
+            unless you open a share link.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

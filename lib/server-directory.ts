@@ -32,6 +32,45 @@ type ScoredSearchRow = {
   offering?: ProfessorCourseSummary;
 };
 
+function dedupeSchoolRows(rows: ScoredSearchRow[]) {
+  const deduped = new Map<string, ScoredSearchRow>();
+
+  for (const row of rows) {
+    if (row.hit.type !== "school") {
+      deduped.set(`row:${deduped.size}:${row.hit.id}`, row);
+      continue;
+    }
+
+    const key = `${row.hit.label.toLowerCase()}|${row.hit.school.toLowerCase()}`;
+    const existing = deduped.get(key);
+    if (!existing || row.score > existing.score) {
+      deduped.set(key, row);
+    }
+  }
+
+  return [...deduped.values()];
+}
+
+function applyComboboxSchoolIntentFilter(
+  rows: ScoredSearchRow[],
+  query: string,
+  surface: "combobox" | "page",
+) {
+  const trimmed = query.trim().toLowerCase();
+  if (surface !== "combobox" || trimmed.length < 4 || !/\s/.test(trimmed)) {
+    return rows;
+  }
+
+  const topSchool = rows.find((row) => row.hit.type === "school");
+  if (!topSchool || topSchool.score < 72) {
+    return rows;
+  }
+
+  return rows.filter(
+    (row) => row.hit.type === "school" || row.hit.context.schoolSlug === topSchool.hit.slug,
+  );
+}
+
 function finalizeSearchHit(
   hit: SearchHit,
   schoolsWithCatalogRows: Set<string>,
@@ -80,19 +119,19 @@ function finalizeSearchHit(
   return { ...hit, rankHints, secondaryMetrics };
 }
 
-function minimumSchoolTextScore(query: string) {
+function minimumSchoolTextScore(query: string, surface: "combobox" | "page") {
   const trimmed = query.trim();
   if (!trimmed) {
     return 0;
   }
 
   if (trimmed.length <= 2) {
-    return 88;
+    return surface === "combobox" ? 92 : 88;
   }
   if (trimmed.length <= 3) {
-    return 72;
+    return surface === "combobox" ? 80 : 72;
   }
-  return 24;
+  return surface === "combobox" ? 32 : 24;
 }
 
 function minimumCatalogTextScore(
@@ -126,6 +165,7 @@ interface SearchDirectoryOptions {
   offset?: number;
   type?: SearchHitType | "all";
   schoolSlug?: string;
+  surface?: "combobox" | "page";
 }
 
 export async function getDirectorySchools() {
@@ -222,16 +262,25 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
     return 0;
   }
 
-  const aliases = [hit.label, ...(school?.aliases ?? [])].map((value) =>
-    value.toLowerCase().trim(),
-  );
+  const canonicalLabel = hit.label.toLowerCase().trim();
+  const aliases = (school?.aliases ?? [])
+    .map((value) => value.toLowerCase().trim())
+    .filter((value) => value !== canonicalLabel);
+
+  if (canonicalLabel === normalizedQuery) {
+    return 72;
+  }
+
+  if (canonicalLabel.startsWith(normalizedQuery)) {
+    return 42;
+  }
 
   if (aliases.some((value) => value === normalizedQuery)) {
-    return 48;
+    return 28;
   }
 
   if (aliases.some((value) => value.startsWith(normalizedQuery))) {
-    return 18;
+    return 12;
   }
 
   return 0;
@@ -387,6 +436,7 @@ async function collectSortedSearchRows(
   options: SearchDirectoryOptions,
 ): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
   const { schoolSlug, type = "all" } = options;
+  const surface = options.surface ?? "page";
   const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
     getDirectorySchools(),
     getCatalogSchools(),
@@ -434,7 +484,7 @@ async function collectSortedSearchRows(
           scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
           schoolMatchBoost(query, hit, school);
 
-        if (query.trim() && textScore < minimumSchoolTextScore(query)) {
+        if (query.trim() && textScore < minimumSchoolTextScore(query, surface)) {
           return { hit, score: 0 };
         }
 
@@ -474,7 +524,13 @@ async function collectSortedSearchRows(
         score: textScore + qualityBoost(hit, offeringLookup, courseLookup),
       };
     })
-    .filter((item) => item.score > 0)
+    .filter((item) => item.score > 0);
+
+  const dedupedRows = applyComboboxSchoolIntentFilter(
+    dedupeSchoolRows(rows),
+    query,
+    surface,
+  )
     .sort((left, right) => {
       const order = { school: 0, course: 1, professor: 2 };
       if (!queryLooksSpecific && order[left.hit.type] !== order[right.hit.type]) {
@@ -513,7 +569,7 @@ async function collectSortedSearchRows(
       return left.hit.label.localeCompare(right.hit.label, undefined, { sensitivity: "base" });
     });
 
-  return { rows, schoolsWithCatalogRows };
+  return { rows: dedupedRows, schoolsWithCatalogRows };
 }
 
 export async function searchDirectoryWithTotal(

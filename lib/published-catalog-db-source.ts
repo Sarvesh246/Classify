@@ -1,6 +1,11 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import {
+  buildSchoolAliases,
+  deriveSchoolShortName,
+  normalizeSchoolText,
+} from "@/lib/school-display";
 import type {
   CoverageTier,
   DataCompleteness,
@@ -264,16 +269,19 @@ function buildSchoolFromRow(row: DbSchoolRow): School {
           ? "Courses and instructors are published, but section timing is still incomplete."
           : "Only school-directory coverage is published so far.");
 
+  const shortName = deriveSchoolShortName(row.name, row.short_name);
+  const aliases = buildSchoolAliases(row.name, null, arrayOfStrings(row.aliases), shortName);
+
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
-    shortName: row.short_name,
-    city: row.city,
-    state: row.state,
+    name: normalizeSchoolText(row.name),
+    shortName,
+    city: normalizeSchoolText(row.city),
+    state: normalizeSchoolText(row.state),
     kind: row.kind.toLowerCase().includes("private") ? "Private" : "Public",
     coverageTier: row.coverage_tier,
-    aliases: arrayOfStrings(row.aliases),
+    aliases,
     directoryCount: 0,
     sourceStatus: {
       primary: row.source_primary,

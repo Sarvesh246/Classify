@@ -37,13 +37,13 @@ export function SavedPageIntro() {
 
   return (
     <p className="app-lead mt-4">
-      Save professors, courses, and compare work here.{" "}
+      Keep your professors, courses, compare sets, and planner picks in one library.{" "}
       <Link href="/login" className="font-medium text-ink underline underline-offset-2">
         Sign in
       </Link>{" "}
-      or{" "}
+      to sync it everywhere, or keep building from{" "}
       <Link href="/search" className="font-medium text-ink underline underline-offset-2">
-        keep browsing
+        search
       </Link>
       .
     </p>

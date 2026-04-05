@@ -32,6 +32,11 @@ import {
 } from "@/lib/published-catalog-source";
 import { formatProfessorDisplayName } from "@/lib/professor-display";
 import { serverLog } from "@/lib/server-logger";
+import {
+  buildSchoolAliases,
+  deriveSchoolShortName,
+  normalizeSchoolText,
+} from "@/lib/school-display";
 import { slugify } from "@/lib/utils";
 import { enrichSummary } from "@/lib/scoring";
 import {
@@ -51,6 +56,18 @@ function round(value: number, digits = 1) {
 
 function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function normalizeSchoolDisplay(school: School): School {
+  const shortName = deriveSchoolShortName(school.name, school.shortName);
+  return {
+    ...school,
+    name: normalizeSchoolText(school.name),
+    shortName,
+    city: normalizeSchoolText(school.city),
+    state: normalizeSchoolText(school.state),
+    aliases: buildSchoolAliases(school.name, null, school.aliases, shortName),
+  };
 }
 
 function clampPct(value: number) {
@@ -786,7 +803,9 @@ async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
         return fallback;
       }
 
-      const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug);
+      const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug).map(
+        normalizeSchoolDisplay,
+      );
       const sectionMeetings = snapshot.sectionMeetings ?? fallback.sectionMeetings ?? [];
       const mergedOfferings = mergeByKey(
         fallback.offerings,

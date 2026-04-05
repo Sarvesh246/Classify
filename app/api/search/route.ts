@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("type")?.trim() || undefined;
     const schoolSlug =
       request.nextUrl.searchParams.get("schoolSlug")?.trim() || undefined;
+    const surface =
+      request.nextUrl.searchParams.get("surface")?.trim() === "page"
+        ? "page"
+        : "combobox";
     const limit = clampLimit(request.nextUrl.searchParams.get("limit"));
     const options = {
       limit,
@@ -45,6 +49,7 @@ export async function GET(request: NextRequest) {
           ? type
           : "all",
       schoolSlug,
+      surface,
     } as const;
 
     const results = query
@@ -56,6 +61,7 @@ export async function GET(request: NextRequest) {
         query,
         type: options.type,
         schoolSlug: schoolSlug ?? null,
+        surface,
         resultCount: results.length,
         empty: results.length === 0,
       });
