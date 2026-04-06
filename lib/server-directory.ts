@@ -355,14 +355,15 @@ async function buildSchoolSearchHits(allSchools: School[]): Promise<SearchHit[]>
 async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]> {
   const catalogSchools = await getCatalogSchools();
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
-  const offerings = [...(await getCatalogOfferings())]
-    .filter((item) => !schoolSlug || item.schoolSlug === schoolSlug)
-    .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
+  const offerings = (await getCatalogOfferings()).filter(
+    (item) => !schoolSlug || item.schoolSlug === schoolSlug,
+  );
   const courseByKey = new Map<string, ProfessorCourseSummary>();
 
   for (const offering of offerings) {
     const key = `${offering.schoolSlug}:${offering.courseSlug}`;
-    if (!courseByKey.has(key)) {
+    const existing = courseByKey.get(key);
+    if (!existing || (offering.classifyScore ?? 0) > (existing.classifyScore ?? 0)) {
       courseByKey.set(key, offering);
     }
   }
@@ -490,6 +491,7 @@ async function collectSortedSearchRows(
   ]);
   const professorDirectory = await getProfessorDirectoryRows();
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
+  const directorySchoolLookup = new Map(allSchools.map((school) => [school.slug, school]));
   const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
   const courseLookup = new Map(
     catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
@@ -521,7 +523,7 @@ async function collectSortedSearchRows(
     .map((hit): ScoredSearchRow => {
       const school =
         hit.type === "school"
-          ? allSchools.find((item) => item.slug === hit.slug)
+          ? directorySchoolLookup.get(hit.slug)
           : schoolLookup.get(hit.context.schoolSlug);
 
       const aliasList = [

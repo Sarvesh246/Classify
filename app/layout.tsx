@@ -76,6 +76,12 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         suppressHydrationWarning
       >
+        <a
+          href="#main-content"
+          className="sr-only absolute left-3 top-3 z-[400] rounded-full bg-white px-4 py-2 text-sm font-medium text-ink shadow-lg focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-teal/35"
+        >
+          Skip to content
+        </a>
         <FirebaseAnalyticsLoader />
         <Suspense fallback={null}>
           <WebVitalsReporter />
@@ -86,7 +92,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <MobileInstallBanner />
         </Suspense>
-        {children}
+        <div id="main-content" className="contents">
+          {children}
+        </div>
         <Suspense fallback={null}>
           <MobileBottomNav />
         </Suspense>

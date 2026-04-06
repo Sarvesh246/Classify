@@ -69,7 +69,7 @@ export function CompareBuilder({
   const [loadSetId, setLoadSetId] = useState("");
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 1023px)");
+    const media = window.matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(media.matches);
     update();
     media.addEventListener("change", update);
@@ -110,14 +110,28 @@ export function CompareBuilder({
       return;
     }
 
+    const scrollY = window.scrollY;
     const htmlOverflow = document.documentElement.style.overflow;
     const bodyOverflow = document.body.style.overflow;
+    const bodyPosition = document.body.style.position;
+    const bodyTop = document.body.style.top;
+    const bodyWidth = document.body.style.width;
+    const bodyTouchAction = document.body.style.touchAction;
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.touchAction = "none";
 
     return () => {
       document.documentElement.style.overflow = htmlOverflow;
       document.body.style.overflow = bodyOverflow;
+      document.body.style.position = bodyPosition;
+      document.body.style.top = bodyTop;
+      document.body.style.width = bodyWidth;
+      document.body.style.touchAction = bodyTouchAction;
+      window.scrollTo(0, scrollY);
     };
   }, [builderOpen, catalogOpen, isMobile]);
 
@@ -226,7 +240,7 @@ export function CompareBuilder({
 
   return (
     <div className="space-y-6">
-      <div className="soft-panel sticky top-[calc(var(--safe-top)+4.75rem)] z-30 rounded-[28px] p-4 lg:hidden">
+      <div className="soft-panel sticky top-[calc(var(--safe-top)+var(--mobile-route-offset))] z-30 rounded-[28px] p-4 lg:hidden">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="eyebrow">Compare builder</p>
@@ -612,6 +626,8 @@ export function CompareBuilder({
             <button
               type="button"
               onClick={() => setCatalogOpen((value) => !value)}
+              aria-expanded={catalogOpen}
+              aria-controls="compare-catalog-panel"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink"
             >
               Browse {activeSchool?.schoolName ?? activeSchoolMeta.name ?? "school"} catalog
@@ -623,6 +639,7 @@ export function CompareBuilder({
         </div>
 
         {catalogOpen ? (
+          <div id="compare-catalog-panel">
           activeSchoolSlug ? (
             visibleCatalog.length ? (
               <div className="mt-5 space-y-2">
@@ -697,6 +714,7 @@ export function CompareBuilder({
               Choose a school above to reveal its compare-ready professor catalog.
             </div>
           )
+          </div>
         ) : null}
       </div>
 
@@ -783,7 +801,7 @@ export function CompareBuilder({
                       value={saveName}
                       onChange={(e) => setSaveName(e.target.value)}
                       placeholder="e.g. Fall picks"
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                     />
                   </label>
                   <label className="block text-sm">
@@ -791,7 +809,7 @@ export function CompareBuilder({
                     <select
                       value={loadSetId}
                       onChange={(e) => setLoadSetId(e.target.value)}
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                     >
                       <option value="">Choose a saved set...</option>
                       {compareSets.map((s) => (
@@ -849,7 +867,7 @@ export function CompareBuilder({
                   <select
                     value={activeCourseSlug}
                     onChange={(event) => setActiveCourseSlug(event.target.value)}
-                    className="h-11 w-full rounded-full border border-border bg-white/72 px-4 text-sm text-ink outline-none"
+                    className="h-11 w-full rounded-full border border-border bg-white/72 px-4 text-base text-ink outline-none"
                   >
                     <option value="">All courses</option>
                     {courseOptions.map((course) => (

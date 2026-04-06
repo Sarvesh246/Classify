@@ -52,6 +52,12 @@ function getSupabaseBrowserClient(): ReturnType<typeof createClient> | null {
   }
 }
 
+const SUPABASE_PUBLIC_CONFIGURED = Boolean(
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+    (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY?.trim()),
+);
+
 /** Tracks Firebase + Supabase sessions; Supabase wins when both exist. */
 export function useCombinedAuth(): {
   user: CombinedAuthUser | null | undefined;
@@ -62,7 +68,7 @@ export function useCombinedAuth(): {
 } {
   const [user, setUser] = useState<CombinedAuthUser | null | undefined>(undefined);
   const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
-  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionReady, setSessionReady] = useState(!SUPABASE_PUBLIC_CONFIGURED);
 
   useEffect(() => {
     let firebaseUser: FirebaseUser | null = null;
@@ -82,7 +88,6 @@ export function useCombinedAuth(): {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       merge();
-      setSessionReady(true);
       return () => {
         unsubFirebase();
       };

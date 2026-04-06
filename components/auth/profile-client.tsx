@@ -57,7 +57,7 @@ export function ProfileClient() {
 
       <div className="flex flex-col gap-1 border-b border-border/60 py-6">
         <p className="text-sm font-medium text-muted">Email</p>
-        <p className="text-base text-ink">{user.email ?? "—"}</p>
+        <p className="break-all text-base text-ink">{user.email ?? "—"}</p>
       </div>
 
       <div className="flex flex-col gap-1 py-6">

@@ -542,7 +542,7 @@ export function SearchCombobox({
           aria-busy={isLoading}
           aria-invalid={fetchError}
           className={cn(
-            "h-11 min-w-0 flex-1 bg-transparent pr-1 text-[0.95rem] text-ink outline-none placeholder:text-muted/75 sm:h-12 sm:pr-2 sm:text-lg",
+            "h-11 min-w-0 flex-1 rounded-xl bg-transparent pr-1 text-base text-ink outline-none placeholder:text-muted/75 focus-visible:ring-2 focus-visible:ring-teal/30 sm:h-12 sm:pr-2 sm:text-lg",
             inputClassName,
           )}
           {...getReferenceProps()}
@@ -615,6 +615,7 @@ export function SearchCombobox({
                         emptyMessage={emptyMessage}
                         fetchError={fetchError}
                         linkResults={!onSelect}
+                        panelMode="sheet"
                       />
                     </div>
                   </motion.div>
@@ -648,6 +649,7 @@ export function SearchCombobox({
                     emptyMessage={emptyMessage}
                     fetchError={fetchError}
                     linkResults={!onSelect}
+                    panelMode="popover"
                   />
                 </div>
               </motion.div>
@@ -673,6 +675,7 @@ function SearchResultsPanel({
   emptyMessage,
   fetchError,
   linkResults,
+  panelMode = "popover",
 }: {
   query: string;
   groupedSections: Array<{ key: string; label: string; items: SearchHit[] }>;
@@ -687,9 +690,15 @@ function SearchResultsPanel({
   emptyMessage: string;
   fetchError: boolean;
   linkResults: boolean;
+  panelMode?: "sheet" | "popover";
 }) {
   return (
-    <div className="max-h-[18rem] overflow-y-auto p-2.5 sm:max-h-[20rem] sm:p-3">
+    <div
+      className={cn(
+        "p-2.5 sm:p-3",
+        panelMode === "popover" && "max-h-[18rem] overflow-y-auto sm:max-h-[20rem]",
+      )}
+    >
       {groupedSections.map((section) =>
         section.items.length ? (
           <div key={section.key} className="mb-3 last:mb-0">

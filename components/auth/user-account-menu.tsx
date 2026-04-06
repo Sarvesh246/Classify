@@ -52,7 +52,7 @@ export function UserAccountMenu({
       <button
         type="button"
         id={`${menuId}-trigger`}
-        aria-haspopup="menu"
+        aria-haspopup="true"
         aria-expanded={open}
         aria-controls={`${menuId}-menu`}
         onClick={() => setOpen((o) => !o)}
@@ -68,7 +68,6 @@ export function UserAccountMenu({
       {open ? (
         <div
           id={`${menuId}-menu`}
-          role="menu"
           aria-labelledby={`${menuId}-trigger`}
           className={cn(
             "absolute right-0 top-[calc(100%+0.35rem)] z-[80] min-w-[12rem] rounded-[20px] border py-1 shadow-lg",
@@ -79,7 +78,6 @@ export function UserAccountMenu({
         >
           <Link
             href="/profile"
-            role="menuitem"
             className={cn(
               "flex items-center gap-2 px-4 py-3 text-sm font-medium transition",
               isHome ? "hover:bg-white/10" : "hover:bg-deep-ink/[0.06]",
@@ -91,7 +89,6 @@ export function UserAccountMenu({
           </Link>
           <button
             type="button"
-            role="menuitem"
             className={cn(
               "flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-medium transition",
               isHome ? "hover:bg-white/10" : "hover:bg-deep-ink/[0.06]",

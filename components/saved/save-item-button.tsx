@@ -97,6 +97,13 @@ export function SaveItemButton({
         type="button"
         onClick={() => void onSave()}
         disabled={saved || busy}
+        aria-label={
+          busy
+            ? "Saving item"
+            : saved
+              ? "Item saved"
+              : `Save ${itemType === "professor" ? "professor" : "course"}`
+        }
         className={cn(
           "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
           saved

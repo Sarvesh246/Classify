@@ -26,8 +26,13 @@ export function HeaderAuthControl({
 
   if (!authReady) {
     return (
-      <span className={cn(loginClass, "cursor-default opacity-70")} aria-hidden>
-        …
+      <span
+        className={cn(loginClass, "cursor-default opacity-70")}
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        Loading...
       </span>
     );
   }

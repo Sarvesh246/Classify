@@ -15,6 +15,7 @@ import type {
   PlannerSectionSliceResponse,
   PlannerSnapshotResponse,
   PlannerSolveResponse,
+  ProfessorCourseSummary,
   PublishedPlannerSchoolSnapshot,
   RankingMode,
   School,
@@ -455,11 +456,11 @@ export async function getPlannerSectionSlice(
 }
 
 async function sortOfferingsByMode(
-  schoolSlug: string,
+  schoolOfferings: ProfessorCourseSummary[],
   courseSlug: string,
   rankingMode: RankingMode,
 ) {
-  const offerings = [...(await getCatalogOfferingsForSchool(schoolSlug))].filter(
+  const offerings = [...schoolOfferings].filter(
     (item) => item.courseSlug === courseSlug,
   );
 
@@ -546,6 +547,7 @@ export async function solvePlannerSelection(options: {
   }
 
   const rankingMode = options.rankingMode ?? "planner_fit";
+  const schoolOfferings = await getCatalogOfferingsForSchool(options.schoolSlug);
   const warnings: string[] = [];
   const selections: Array<{
     courseSlug: string;
@@ -553,7 +555,7 @@ export async function solvePlannerSelection(options: {
   }> = [];
 
   for (const courseSlug of normalizedCourseSlugs) {
-    const ranked = await sortOfferingsByMode(options.schoolSlug, courseSlug, rankingMode);
+    const ranked = await sortOfferingsByMode(schoolOfferings, courseSlug, rankingMode);
     if (!ranked.length) {
       warnings.push(`No published course options are available yet for ${courseSlug}.`);
       selections.push({ courseSlug, section: null });

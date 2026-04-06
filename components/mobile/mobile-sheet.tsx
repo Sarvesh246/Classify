@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -15,6 +15,23 @@ export function MobileSheet({
   onClose: () => void;
   children: ReactNode;
 }) {
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="overlay-layer fixed inset-0 z-[240] md:hidden">
       <motion.button
@@ -27,6 +44,9 @@ export function MobileSheet({
         exit={{ opacity: 0 }}
       />
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mobile-sheet-shell absolute inset-x-0 bottom-0 max-h-[84dvh] overflow-hidden rounded-t-[30px] bg-background"
         initial={{ y: 40, opacity: 0.9 }}
         animate={{ y: 0, opacity: 1 }}
@@ -38,9 +58,12 @@ export function MobileSheet({
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <p className="eyebrow">{subtitle}</p>
-              <h3 className="mt-2 text-2xl font-semibold text-ink">{title}</h3>
+              <h3 id={titleId} className="mt-2 text-2xl font-semibold text-ink">
+                {title}
+              </h3>
             </div>
             <button
+              ref={closeRef}
               type="button"
               onClick={onClose}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink"
