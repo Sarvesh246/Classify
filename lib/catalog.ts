@@ -1056,12 +1056,44 @@ export async function getCatalogCoverageStats() {
   };
 }
 
+/** Top-K by classify score without sorting the full catalog (offerings can be very large). */
+function topOfferingsByClassifyScore(
+  offerings: ProfessorCourseSummary[],
+  k: number,
+): ProfessorCourseSummary[] {
+  if (!offerings.length) return [];
+  if (offerings.length <= k) {
+    return [...offerings].sort(
+      (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
+    );
+  }
+  const pool = offerings.slice();
+  const result: ProfessorCourseSummary[] = [];
+  for (let i = 0; i < k; i++) {
+    let bestIdx = 0;
+    let bestScore = pool[0] ? (pool[0].classifyScore ?? 0) : -Infinity;
+    for (let j = 1; j < pool.length; j++) {
+      const s = pool[j].classifyScore ?? 0;
+      if (s > bestScore) {
+        bestScore = s;
+        bestIdx = j;
+      }
+    }
+    result.push(pool[bestIdx]);
+    pool.splice(bestIdx, 1);
+  }
+  return result.sort(
+    (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
+  );
+}
+
 export async function getFeaturedOfferings() {
-  const offerings = await getCatalogOfferings();
+  "use cache";
+
+  applyCacheLife("minutes");
+  const offerings = (await getSnapshot()).offerings;
   return offerings.length
-    ? [...offerings]
-        .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0))
-        .slice(0, 6)
+    ? topOfferingsByClassifyScore(offerings, 6)
     : getSeedFeaturedOfferings();
 }
 

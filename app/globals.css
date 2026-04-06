@@ -135,6 +135,12 @@ a:focus:not(:focus-visible) {
   color: rgba(7, 17, 31, 0.58);
 }
 
+/* Deep-ink / gradient hero tiles: default eyebrow ink is illegible on dark glass */
+.home-dark-tile .eyebrow {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 2px rgba(7, 17, 31, 0.45);
+}
+
 .grid-fade {
   background-image:
     linear-gradient(rgba(7, 17, 31, 0.08) 1px, transparent 1px),

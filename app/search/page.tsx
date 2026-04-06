@@ -68,7 +68,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     results = batch.results;
   }
 
-  const featured = await getFeaturedOfferings();
+  const featured = shouldSearch ? [] : await getFeaturedOfferings();
   const grouped = {
     school: results.filter((item) => item.type === "school"),
     course: results.filter((item) => item.type === "course"),

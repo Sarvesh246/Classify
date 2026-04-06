@@ -162,10 +162,7 @@ export function HomeExperience({
       <div className="relative z-10">
         <section className="section-shell flex flex-col justify-start py-5 sm:py-8 md:min-h-[calc(100svh-4.5rem)] md:justify-center md:py-14">
           <div className="mx-auto w-full max-w-5xl">
-            <MobileHomeLaunchpad
-              featured={featured}
-              schools={spotlights.map((item) => item.school)}
-            />
+            <MobileHomeLaunchpad />
 
             <div className="mx-auto hidden max-w-4xl md:block">
               <SearchCombobox placeholder="Search a school, course code, or professor" />
@@ -184,47 +181,6 @@ export function HomeExperience({
               <InlineStat label="Searchable schools" value={coverage.searchableSchools} />
               <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
               <InlineStat label="Evidence-ready schools" value={coverage.evidenceReadySchools ?? 0} />
-            </div>
-
-            <div className="mt-4 grid gap-3 md:hidden">
-              <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.72),rgba(8,25,44,0.56))] p-4 text-white shadow-[0_20px_44px_rgba(4,12,24,0.24)] backdrop-blur-xl">
-                <p className="eyebrow text-white/72">Why it feels different</p>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <MobileProof value={coverage.searchableSchools} label="searchable" />
-                  <MobileProof value={coverage.plannerReadySchools} label="planner-ready" />
-                  <MobileProof value={coverage.evidenceReadySchools ?? 0} label="evidence-ready" />
-                </div>
-              </div>
-              {spotlight ? (
-                <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.72),rgba(8,25,44,0.56))] p-4 text-white shadow-[0_20px_44px_rgba(4,12,24,0.24)] backdrop-blur-xl">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="eyebrow text-white/72">Active school spotlight</p>
-                      <p className="mt-1 text-base font-semibold text-white">
-                        {spotlight.school.shortName}
-                      </p>
-                    </div>
-                    <CoverageBadge tier={spotlight.school.coverageTier} variant="onDark" />
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-white/72">
-                    {spotlight.school.sourceStatus.note}
-                  </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Link
-                        href={`/schools/${spotlight.school.slug}`}
-                        className="inline-flex min-h-11 items-center rounded-full bg-ivory px-4 text-sm font-medium !text-deep-ink"
-                      >
-                        Open school hub
-                      </Link>
-                      <Link
-                        href="/compare"
-                        className="inline-flex min-h-11 items-center rounded-full border border-white/16 bg-white/8 px-4 text-sm font-medium !text-white"
-                      >
-                        Compare options
-                      </Link>
-                  </div>
-                </div>
-              ) : null}
             </div>
           </div>
         </section>
@@ -472,11 +428,3 @@ function InlineStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-function MobileProof({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-[20px] border border-white/10 bg-white/8 px-3 py-3 text-white">
-      <p className="text-lg font-semibold text-white">{value}</p>
-      <p className="mt-1 text-[0.68rem] uppercase tracking-[0.16em] text-white/62">{label}</p>
-    </div>
-  );
-}

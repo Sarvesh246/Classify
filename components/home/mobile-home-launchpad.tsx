@@ -2,30 +2,22 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight, Bookmark, Scale, Search, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+import { Bookmark, Scale, Search } from "lucide-react";
 import { SearchCombobox } from "@/components/search/search-combobox";
-import { RecentSearchesPanel } from "@/components/search/recent-searches-panel";
-import { CoverageBadge } from "@/components/coverage-badge";
-import type { ProfessorCourseSummary, School } from "@/lib/types";
-import { formatGpa, formatPercent, scoreToLabel } from "@/lib/utils";
-
-export function MobileHomeLaunchpad({
-  featured,
-  schools,
-}: {
-  featured: ProfessorCourseSummary[];
-  schools: School[];
-}) {
+/**
+ * Mobile-only home hero: single focused card (search + shortcuts).
+ * Heavier modules (recent searches, school grids, featured lists) live on Search / hubs.
+ */
+export function MobileHomeLaunchpad() {
   return (
     <div className="space-y-4 md:hidden">
-      <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-4 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
-        <p className="eyebrow text-white/72">Launchpad</p>
+      <div className="home-dark-tile rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-4 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
+        <p className="eyebrow">Classify</p>
         <h1 className="display-title mt-2 text-[2.3rem] font-semibold leading-[0.94] tracking-[-0.08em] text-white">
           Find the professor who actually gives A&apos;s.
         </h1>
-        <p className="mt-2 text-sm leading-6 text-white/72">
-          Search fast, reopen recent checks, or jump straight into compare and saved work.
+        <p className="mt-2 text-sm leading-6 text-white/80">
+          Grade-backed outcomes and instructor context—search to get started.
         </p>
         <div className="mt-4">
           <SearchCombobox placeholder="Search a school, course, or professor" />
@@ -34,79 +26,6 @@ export function MobileHomeLaunchpad({
           <QuickAction href="/search" icon={<Search className="h-4 w-4" />} label="Search" />
           <QuickAction href="/compare" icon={<Scale className="h-4 w-4" />} label="Compare" />
           <QuickAction href="/saved" icon={<Bookmark className="h-4 w-4" />} label="Saved" />
-        </div>
-      </div>
-
-      <RecentSearchesPanel
-        compact
-        title="Pick up where you left off"
-        subtitle="Recent schools, courses, and professor checks appear here."
-        tone="dark"
-      />
-
-      <div className="grid gap-3">
-        <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.52))] p-4 text-white shadow-[0_18px_42px_rgba(4,12,24,0.24)] backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="eyebrow text-white/72">Quick starts</p>
-              <p className="mt-1 text-sm text-white/72">Open a school hub and keep moving.</p>
-            </div>
-            <Sparkles className="h-4 w-4 text-teal" />
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {schools.slice(0, 4).map((school) => (
-              <Link
-                key={school.slug}
-                href={`/schools/${school.slug}`}
-                className="inline-flex min-h-11 items-center justify-center rounded-[20px] border border-white/12 bg-white/10 px-3 py-2 text-center text-sm font-medium !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-              >
-                {school.shortName}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.52))] p-4 text-white shadow-[0_18px_42px_rgba(4,12,24,0.24)] backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="eyebrow text-white/72">Return-worthy picks</p>
-              <p className="mt-1 text-sm text-white/72">Fast openings into strong current options.</p>
-            </div>
-            <Link href="/search" className="inline-flex items-center gap-1 text-sm font-medium !text-white/88">
-              Open all
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="mt-4 space-y-2">
-            {featured.slice(0, 3).map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.22 }}
-              >
-                <Link
-                  href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                  className="flex items-center gap-3 rounded-[24px] border border-white/12 bg-white/10 px-3 py-3 !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-white">{item.professorName}</p>
-                      <CoverageBadge tier={item.coverageTier} variant="onDark" className="text-[0.58rem]" />
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-white/66">
-                      {item.courseCode} - {item.courseName}
-                    </p>
-                  </div>
-                  <div className="w-[4.6rem] shrink-0 text-right text-xs text-white/76">
-                    <p className="font-semibold text-white">{scoreToLabel(item.classifyScore)}</p>
-                    <p>{formatGpa(item.expectedGpa)} GPA</p>
-                    <p>{formatPercent(item.aRate)}</p>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
