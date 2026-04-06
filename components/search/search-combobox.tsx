@@ -137,11 +137,22 @@ export function SearchCombobox({
   }, [initialQuery, schoolSlug, searchType]);
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobileSheet(media.matches);
+    const compact = window.matchMedia("(max-width: 767px)");
+    const touch = window.matchMedia("(pointer: coarse)");
+    const tablet = window.matchMedia("(max-width: 1024px)");
+    const update = () => {
+      // Treat touch tablets/landscape phones as mobile sheet to avoid drifting desktop popovers.
+      setIsMobileSheet(compact.matches || (touch.matches && tablet.matches));
+    };
     update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    compact.addEventListener("change", update);
+    touch.addEventListener("change", update);
+    tablet.addEventListener("change", update);
+    return () => {
+      compact.removeEventListener("change", update);
+      touch.removeEventListener("change", update);
+      tablet.removeEventListener("change", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -149,14 +160,29 @@ export function SearchCombobox({
       return;
     }
 
+    // iOS Safari still rubber-bands with overflow hidden; pin body and restore scroll on close.
+    const scrollY = window.scrollY;
     const htmlOverflow = document.documentElement.style.overflow;
     const bodyOverflow = document.body.style.overflow;
+    const bodyPosition = document.body.style.position;
+    const bodyTop = document.body.style.top;
+    const bodyWidth = document.body.style.width;
+    const bodyTouchAction = document.body.style.touchAction;
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.touchAction = "none";
 
     return () => {
       document.documentElement.style.overflow = htmlOverflow;
       document.body.style.overflow = bodyOverflow;
+      document.body.style.position = bodyPosition;
+      document.body.style.top = bodyTop;
+      document.body.style.width = bodyWidth;
+      document.body.style.touchAction = bodyTouchAction;
+      window.scrollTo(0, scrollY);
     };
   }, [isMobileSheet, open]);
 
@@ -165,21 +191,21 @@ export function SearchCombobox({
     onOpenChange: setOpen,
     whileElementsMounted: autoUpdate,
     strategy: "fixed",
-    placement: "bottom-start",
+    placement: "bottom",
     transform: false,
     middleware: [
-      offset(12),
+      offset(10),
       shift({
         padding: 16,
         mainAxis: false,
-        crossAxis: true,
+        crossAxis: false,
       }),
       size({
         padding: 16,
         apply({ availableHeight, availableWidth, elements, rects }) {
           const maxWidth = Math.min(availableWidth, 760);
           Object.assign(elements.floating.style, {
-            width: `${Math.min(Math.max(rects.reference.width, 320), maxWidth)}px`,
+            width: `${Math.min(rects.reference.width, maxWidth)}px`,
             maxHeight: `${Math.min(availableHeight, 392)}px`,
           });
         },
@@ -198,7 +224,7 @@ export function SearchCombobox({
     },
     [refs],
   );
-  const dismiss = useDismiss(context, { outsidePressEvent: "mousedown" });
+  const dismiss = useDismiss(context, { outsidePressEvent: "pointerdown" });
   const role = useRole(context, { role: "listbox" });
   const listNavigation = useListNavigation(context, {
     listRef,
@@ -315,6 +341,20 @@ export function SearchCombobox({
       controller.abort();
     };
   }, [debouncedQuery, effectiveLimit, resultSurface, schoolSlug, searchType, retryNonce]);
+
+  useEffect(() => {
+    if (!(open && !isMobileSheet)) {
+      return;
+    }
+
+    const close = () => setOpen(false);
+    window.addEventListener("scroll", close, { passive: true });
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close);
+      window.removeEventListener("resize", close);
+    };
+  }, [isMobileSheet, open]);
 
   useEffect(() => {
     if (!syncSearchUrl || !liveSyncSearchPage || onSelect) {

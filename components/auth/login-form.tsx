@@ -83,8 +83,14 @@ export function LoginForm() {
         ) : null}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
-            href="/"
+            href="/profile"
             className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-deep-ink px-6 text-sm font-semibold !text-ivory transition hover:opacity-92 sm:min-w-[10rem] sm:flex-none"
+          >
+            View profile
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border bg-white px-6 text-sm font-semibold text-ink transition hover:bg-white/90 sm:min-w-[10rem] sm:flex-none"
           >
             Go to home
           </Link>

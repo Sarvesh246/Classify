@@ -79,6 +79,24 @@ function getRouteMeta(pathname: string): RouteMeta {
     };
   }
 
+  if (pathname === "/login") {
+    return {
+      kind: "deep",
+      title: "Sign in",
+      subtitle: "Google or email link.",
+      backHref: "/search",
+    };
+  }
+
+  if (pathname === "/profile") {
+    return {
+      kind: "deep",
+      title: "Profile",
+      subtitle: "Your account.",
+      backHref: "/search",
+    };
+  }
+
   if (pathname.startsWith("/schools/")) {
     const schoolRoot = schoolRootFromPath(pathname);
     if (pathname.includes("/my-courses")) {

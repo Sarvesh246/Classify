@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
+import { UserAccountMenu } from "@/components/auth/user-account-menu";
 import { cn } from "@/lib/utils";
-import { signOutAll } from "@/utils/supabase/sign-out";
 
 export function HeaderAuthControl({
   isHome,
@@ -27,7 +27,7 @@ export function HeaderAuthControl({
   if (!authReady) {
     return (
       <span className={cn(loginClass, "cursor-default opacity-70")} aria-hidden>
-        ...
+        …
       </span>
     );
   }
@@ -40,34 +40,7 @@ export function HeaderAuthControl({
     );
   }
 
-  const short =
-    user.email?.split("@")[0] || user.displayLabel.split(" ")[0] || "Account";
-
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className={cn(
-          "hidden max-w-[9rem] truncate text-sm font-medium sm:inline",
-          compact && "sm:hidden",
-          isHome ? "text-ivory/92" : "text-ink",
-        )}
-        title={user.email ?? undefined}
-      >
-        {short}
-      </span>
-      <button
-        type="button"
-        onClick={() => void signOutAll()}
-        className={cn(
-          "rounded-full text-sm font-medium transition-all duration-200",
-          compact ? "min-h-11 px-3.5 py-2" : "px-3 py-2",
-          isHome
-            ? "text-ivory/90 underline-offset-4 hover:text-white hover:underline"
-            : "text-muted underline-offset-4 hover:text-ink hover:underline",
-        )}
-      >
-        {compact ? "Account" : "Sign out"}
-      </button>
-    </div>
+    <UserAccountMenu firstName={user.firstName} isHome={isHome} compact={compact} />
   );
 }

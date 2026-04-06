@@ -96,21 +96,23 @@ export function SearchScopeChips({
   );
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2 md:flex md:flex-wrap">
-      {chips.map((chip) => (
-        <Link
-          key={chip.key}
-          href={chip.href}
-          className={cn(
-            "inline-flex min-h-11 min-w-0 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-medium transition md:min-h-10 md:w-auto",
-            chip.active
-              ? "border-deep-ink bg-deep-ink text-ivory shadow-[0_8px_20px_rgba(8,25,44,0.18)]"
-              : "border-border bg-white/72 text-ink hover:bg-white",
-          )}
-        >
-          {chip.label}
-        </Link>
-      ))}
+    <div className="mt-4 -mx-1 overflow-x-auto px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex min-w-max gap-2 md:min-w-0 md:flex-wrap">
+        {chips.map((chip) => (
+          <Link
+            key={chip.key}
+            href={chip.href}
+            className={cn(
+              "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border px-4 py-2 text-center text-sm font-medium transition md:min-h-10",
+              chip.active
+                ? "border-deep-ink bg-deep-ink text-ivory shadow-[0_8px_20px_rgba(8,25,44,0.18)]"
+                : "border-border bg-white/72 text-ink hover:bg-white",
+            )}
+          >
+            {chip.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
