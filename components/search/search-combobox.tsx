@@ -68,6 +68,7 @@ const iconMap = {
 
 const SEARCH_CACHE_TTL_MS = 45_000;
 const SEARCH_DEBOUNCE_MS = 140;
+const MOBILE_SEARCH_DEBOUNCE_MS = 85;
 const COMBOBOX_RESULT_LIMIT = 8;
 const searchResponseCache = new Map<
   string,
@@ -120,12 +121,13 @@ export function SearchCombobox({
   }, [initialQuery]);
 
   useEffect(() => {
+    const debounceMs = isMobileSheet ? MOBILE_SEARCH_DEBOUNCE_MS : SEARCH_DEBOUNCE_MS;
     const timeout = window.setTimeout(() => {
       setDebouncedQuery(deferredQuery);
-    }, deferredQuery.trim() ? SEARCH_DEBOUNCE_MS : 0);
+    }, deferredQuery.trim() ? debounceMs : 0);
 
     return () => window.clearTimeout(timeout);
-  }, [deferredQuery]);
+  }, [deferredQuery, isMobileSheet]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -195,21 +197,25 @@ export function SearchCombobox({
     transform: false,
     middleware: [
       offset(10),
-      shift({
-        padding: 16,
-        mainAxis: false,
-        crossAxis: false,
-      }),
-      size({
-        padding: 16,
-        apply({ availableHeight, availableWidth, elements, rects }) {
-          const maxWidth = Math.min(availableWidth, 760);
-          Object.assign(elements.floating.style, {
-            width: `${Math.min(rects.reference.width, maxWidth)}px`,
-            maxHeight: `${Math.min(availableHeight, 392)}px`,
-          });
-        },
-      }),
+      ...(isMobileSheet
+        ? []
+        : [
+            shift({
+              padding: 16,
+              mainAxis: false,
+              crossAxis: false,
+            }),
+            size({
+              padding: 16,
+              apply({ availableHeight, availableWidth, elements, rects }) {
+                const maxWidth = Math.min(availableWidth, 760);
+                Object.assign(elements.floating.style, {
+                  width: `${Math.min(rects.reference.width, maxWidth)}px`,
+                  maxHeight: `${Math.min(availableHeight, 392)}px`,
+                });
+              },
+            }),
+          ]),
     ],
   });
   const setReferenceRef = useCallback(
@@ -574,7 +580,7 @@ export function SearchCombobox({
                 <div className="absolute inset-x-0 bottom-0 flex max-h-full items-end">
                   <motion.div
                     ref={setFloatingRef}
-                    className="mobile-sheet-shell w-full rounded-t-[30px] bg-background"
+                    className="mobile-sheet-shell mx-auto w-full max-w-none rounded-t-[30px] bg-background"
                     initial={{ y: 46, opacity: 0.86 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 28, opacity: 0 }}

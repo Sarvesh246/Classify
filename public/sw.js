@@ -31,7 +31,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-async function networkFirst(request, cacheName, fallbackResponse, timeoutMs = 7000) {
+async function networkFirst(request, cacheName, fallbackResponse, timeoutMs = 9000) {
   const cache = await caches.open(cacheName);
 
   try {
@@ -79,6 +79,12 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.pathname.startsWith("/api/")) {
+    // Search suggestions should always use direct network requests.
+    // SW timeout/caching adds noticeable lag on mobile Safari/PWA.
+    if (url.pathname === "/api/search") {
+      return;
+    }
+
     if (/(\/me\/|\/auth\/)/.test(url.pathname)) {
       return;
     }
@@ -97,7 +103,7 @@ self.addEventListener("fetch", (event) => {
             headers: { "Content-Type": "application/json" },
           },
         ),
-        5500,
+        url.pathname === "/api/search" ? 15000 : 9000,
       ),
     );
     return;
