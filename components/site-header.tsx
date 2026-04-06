@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { Search } from "lucide-react";
 import { HeaderAuthControl } from "@/components/auth/header-auth-control";
 import { ClassifyLogo } from "@/components/classify-logo";
@@ -25,7 +26,9 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
 
   return (
     <>
-      <MobileRouteBar tone={tone} />
+      <Suspense fallback={null}>
+        <MobileRouteBar tone={tone} />
+      </Suspense>
       <header
         className={cn(
           "safe-top-pad sticky top-0 z-[60] hidden border-b backdrop-blur-xl md:block",

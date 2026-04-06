@@ -16,6 +16,11 @@ _NAME_TOKEN = re.compile(r"^[A-Z][A-Z'\-]*$")
 
 
 def _title_word(word: str) -> str:
+    lowered = word.lower()
+    if lowered.startswith("mc") and len(word) > 2:
+        return "Mc" + _title_word(word[2:])
+    if lowered.startswith("mac") and len(word) > 3:
+        return "Mac" + _title_word(word[3:])
     if "'" in word:
         return "'".join(part.capitalize() for part in word.split("'"))
     if "-" in word:

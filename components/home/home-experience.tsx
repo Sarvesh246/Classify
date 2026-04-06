@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   motion,
   useMotionValueEvent,
@@ -12,11 +13,42 @@ import { ArrowRight, LineChart, Search, SlidersHorizontal } from "lucide-react";
 import { SearchCombobox } from "@/components/search/search-combobox";
 import { MobileHomeLaunchpad } from "@/components/home/mobile-home-launchpad";
 import { CoverageBadge } from "@/components/coverage-badge";
-import { HomeScene } from "@/components/home/home-scene";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
 import { useAppRuntime } from "@/hooks/use-app-runtime";
 import type { CourseGroup, ProfessorCourseSummary, School } from "@/lib/types";
 import { formatGpa, formatPercent, formatScore, scoreToLabel } from "@/lib/utils";
+
+const HomeScene = dynamic(
+  () => import("@/components/home/home-scene").then((mod) => mod.HomeScene),
+  { ssr: false },
+);
+
+function supportsPremiumScene() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const nav = navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+    deviceMemory?: number;
+  };
+
+  const connection = nav.connection;
+  const saveData = connection?.saveData === true;
+  const effectiveType = connection?.effectiveType ?? "";
+  const deviceMemory = nav.deviceMemory ?? 8;
+  const cpuCount = navigator.hardwareConcurrency ?? 8;
+
+  if (saveData) {
+    return false;
+  }
+
+  if (effectiveType.includes("2g") || effectiveType.includes("3g")) {
+    return false;
+  }
+
+  return cpuCount >= 6 && deviceMemory >= 4;
+}
 
 type HomeExperienceProps = {
   coverage: {
@@ -47,8 +79,13 @@ export function HomeExperience({
   const { isStandalone } = useAppRuntime();
   const { scrollYProgress } = useScroll();
   const [progress, setProgress] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const [clientReady, setClientReady] = useState(false);
+  /** Must be set in the browser — SSR/initial state has no `window`, and lazy useState can hydrate as false forever. */
+  const [canRenderPremiumScene, setCanRenderPremiumScene] = useState(false);
+  /** New key on each mount so R3F/WebGL fully remounts after client-side navigation (avoids stuck or empty canvas). */
+  const [canvasMountKey] = useState(() =>
+    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Math.random()),
+  );
   const [selectedSchool, setSelectedSchool] = useState(spotlights[0]?.school.slug ?? "");
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => setProgress(latest));
@@ -56,6 +93,7 @@ export function HomeExperience({
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setClientReady(true);
+      setCanRenderPremiumScene(supportsPremiumScene());
     });
 
     return () => {
@@ -63,16 +101,18 @@ export function HomeExperience({
     };
   }, []);
 
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 960px)");
-    const update = () => setIsMobile(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+  // Client navigations (especially the back button) restore scroll position, which often
+  // lands mid-page on cream "soft-panel" blocks — looks like the home theme broke.
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    const prevBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    window.scrollTo(0, 0);
+    html.style.scrollBehavior = prevBehavior;
   }, []);
 
   // R3F Canvas has no WebGL on the server; wait for mount so SSR and first paint match.
-  const useCanvas = clientReady && !reduceMotion && !isMobile && !isStandalone;
+  const useCanvas = clientReady && !reduceMotion && !isStandalone && canRenderPremiumScene;
   const spotlight = useMemo(
     () => spotlights.find((item) => item.school.slug === selectedSchool) ?? spotlights[0],
     [selectedSchool, spotlights],
@@ -104,10 +144,10 @@ export function HomeExperience({
   }
 
   return (
-    <div className="relative overflow-x-hidden bg-deep-ink text-ivory">
+    <div className="relative overflow-x-hidden">
       <div className="fixed inset-0">
         {useCanvas ? (
-          <HomeScene progress={progress} />
+          <HomeScene key={canvasMountKey} progress={progress} />
         ) : (
           <div className="absolute inset-0 overflow-hidden">
             <div className="mobile-ambient-backdrop absolute inset-0" />

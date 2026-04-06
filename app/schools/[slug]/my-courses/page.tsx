@@ -16,9 +16,6 @@ type MyCoursesPageProps = {
   searchParams: Promise<{ courses?: string }>;
 };
 
-export const revalidate = 3600;
-export const dynamicParams = true;
-
 async function groupOfferingsByCourse(slug: string): Promise<Record<string, ProfessorCourseSummary[]>> {
   const map: Record<string, ProfessorCourseSummary[]> = {};
   for (const o of await getCatalogOfferingsForSchool(slug)) {

@@ -20,9 +20,6 @@ type SchoolPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export const revalidate = 3600;
-export const dynamicParams = true;
-
 export default async function SchoolPage({ params }: SchoolPageProps) {
   const { slug } = await params;
   const hub = await getSchoolHub(slug);

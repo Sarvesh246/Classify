@@ -29,6 +29,7 @@ import {
   formatScore,
   scoreToLabel,
 } from "@/lib/utils";
+import { endClientMeasure, startClientMeasure } from "@/lib/client-performance";
 
 interface CompareBuilderProps {
   catalog: ProfessorCourseSummary[];
@@ -74,6 +75,24 @@ export function CompareBuilder({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    if (builderOpen) {
+      void endClientMeasure("compare-builder-open", {
+        mobile: isMobile,
+        school_slug: activeSchoolSlug ?? "",
+      });
+    }
+  }, [activeSchoolSlug, builderOpen, isMobile]);
+
+  useEffect(() => {
+    if (catalogOpen) {
+      void endClientMeasure("compare-catalog-open", {
+        mobile: isMobile,
+        school_slug: activeSchoolSlug ?? "",
+      });
+    }
+  }, [activeSchoolSlug, catalogOpen, isMobile]);
 
   useEffect(() => {
     if (!supabaseUserId) return;
@@ -221,14 +240,26 @@ export function CompareBuilder({
           <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
             <button
               type="button"
-              onClick={() => setBuilderOpen(true)}
+              onClick={() => {
+                startClientMeasure("compare-builder-open", "compare_builder_open_latency", {
+                  mobile: isMobile,
+                  school_slug: activeSchoolSlug ?? "",
+                });
+                setBuilderOpen(true);
+              }}
               className="min-h-11 min-w-[6.75rem] rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
             >
               Build
             </button>
             <button
               type="button"
-              onClick={() => setCatalogOpen(true)}
+              onClick={() => {
+                startClientMeasure("compare-catalog-open", "compare_catalog_open_latency", {
+                  mobile: isMobile,
+                  school_slug: activeSchoolSlug ?? "",
+                });
+                setCatalogOpen(true);
+              }}
               className="min-h-11 min-w-[6.75rem] rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
             >
               Browse
@@ -526,12 +557,18 @@ export function CompareBuilder({
               Browse the active school only when you want to add another option.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setCatalogOpen(true)}
-            className="min-h-11 w-full rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
-          >
-            Browse catalog
+            <button
+              type="button"
+              onClick={() => {
+                startClientMeasure("compare-catalog-open", "compare_catalog_open_latency", {
+                  mobile: isMobile,
+                  school_slug: activeSchoolSlug ?? "",
+                });
+                setCatalogOpen(true);
+              }}
+              className="min-h-11 w-full rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
+            >
+              Browse catalog
           </button>
         </div>
       </div>

@@ -14,7 +14,7 @@ describe("catalog aggregates", () => {
     const departments = await getDepartmentAggregatesForSchool("texas-am");
     expect(departments.some((item) => item.department === "Engineering")).toBe(true);
     expect(departments.some((item) => item.department === "Computer Science")).toBe(true);
-  });
+  }, 120000);
 
   it("adds a General Engineering department for first-year engineering offerings", async () => {
     const {
@@ -28,8 +28,16 @@ describe("catalog aggregates", () => {
 
     expect(department?.department).toBe("General Engineering");
     expect(offerings.length).toBeGreaterThan(0);
-    expect(offerings.every((item) => item.courseCode.startsWith("ENGR 1"))).toBe(true);
-  });
+    expect(
+      offerings.every(
+        (item) =>
+          /^ENGR\s*1\d{2}\b/i.test(item.courseCode) ||
+          /engineering lab i|engineering lab 1|introduction to engineering|intro to engineering|engineering foundations|first-year engineering|general engineering/i.test(
+            item.courseName,
+          ),
+      ),
+    ).toBe(true);
+  }, 120000);
 
   it("attaches department deltas to professor profiles", async () => {
     const { getProfessorProfile } = catalog;

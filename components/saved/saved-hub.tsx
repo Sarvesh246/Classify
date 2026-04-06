@@ -19,6 +19,8 @@ export function SavedHub() {
   const [items, setItems] = useState<SavedItemRow[] | null>(null);
   const [sets, setSets] = useState<CompareSetRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingItemIds, setPendingItemIds] = useState<string[]>([]);
+  const [pendingSetIds, setPendingSetIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!hydrated || !supabaseUserId) return;
@@ -52,13 +54,31 @@ export function SavedHub() {
   }, [hydrated, supabaseUserId]);
 
   async function removeItem(id: string) {
-    await deleteSavedItem(id);
+    const previous = items;
+    setPendingItemIds((current) => [...current, id]);
     setItems((prev) => (prev ? prev.filter((x) => x.id !== id) : prev));
+    try {
+      await deleteSavedItem(id);
+    } catch {
+      setItems(previous);
+      setError("Could not remove that item. Try again.");
+    } finally {
+      setPendingItemIds((current) => current.filter((value) => value !== id));
+    }
   }
 
   async function removeSet(id: string) {
-    await deleteCompareSet(id);
+    const previous = sets;
+    setPendingSetIds((current) => [...current, id]);
     setSets((prev) => (prev ? prev.filter((x) => x.id !== id) : prev));
+    try {
+      await deleteCompareSet(id);
+    } catch {
+      setSets(previous);
+      setError("Could not remove that compare set. Try again.");
+    } finally {
+      setPendingSetIds((current) => current.filter((value) => value !== id));
+    }
   }
 
   function formatSavedSchool(slug: string | null | undefined) {
@@ -201,10 +221,11 @@ export function SavedHub() {
                   </Link>
                   <button
                     type="button"
+                    disabled={pendingSetIds.includes(s.id)}
                     onClick={() => void removeSet(s.id)}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink"
+                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
                   >
-                    Remove
+                    {pendingSetIds.includes(s.id) ? "Removing..." : "Remove"}
                   </button>
                 </div>
               </li>
@@ -252,10 +273,11 @@ export function SavedHub() {
                   </Link>
                   <button
                     type="button"
+                    disabled={pendingItemIds.includes(item.id)}
                     onClick={() => void removeItem(item.id)}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink"
+                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
                   >
-                    Remove
+                    {pendingItemIds.includes(item.id) ? "Removing..." : "Remove"}
                   </button>
                 </div>
               </li>

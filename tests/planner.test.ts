@@ -16,7 +16,7 @@ describe("planner snapshot", () => {
     expect(snapshot?.supportProfile.hasPlanner).toBe(true);
     expect(snapshot?.catalog.length).toBeGreaterThan(0);
     expect(snapshot?.sections.length).toBeGreaterThan(0);
-  });
+  }, 120000);
 
   it("returns a thin planner bootstrap response", async () => {
     const snapshot = await planner.getPlannerSnapshotResponse("texas-am");

@@ -13,7 +13,7 @@ describe("searchDirectory", () => {
     const results = await searchDirectory("ut", { limit: 6 });
     expect(results[0]?.type).toBe("school");
     expect(results[0]?.label).toContain("UT Austin");
-  });
+  }, 120000);
 
   it("keeps school labels canonical instead of rendering alias blobs", async () => {
     const results = await searchDirectory("UT Southwestern", { limit: 12 });

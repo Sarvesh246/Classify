@@ -10,8 +10,6 @@ import {
 import { getPublishedCatalogDbHealth } from "@/lib/published-catalog-db-source";
 import { getDirectorySchools } from "@/lib/server-directory";
 
-export const dynamic = "force-dynamic";
-
 /**
  * Operational check: env thinks DB is configured vs where the last published snapshot actually loaded.
  * Merged catalog still overlays published data on the local seed (see lib/catalog getSnapshot).
@@ -35,17 +33,33 @@ export async function GET() {
     getCatalogReadinessSummary(),
   ]);
   const trace = getCatalogDataOriginTrace();
+  const publishedLayer = {
+    dbConfigured: dbHealth.configured || trace.dbConfigured,
+    publishedDataFrom:
+      sourceInfo.kind === "db" && dbHealth.requiredTablesOk
+        ? "db"
+        : trace.publishedDataFrom === "db" || trace.publishedDataFrom === "file"
+          ? trace.publishedDataFrom
+          : sourceInfo.kind === "file"
+            ? "file"
+            : "none",
+    publishedSnapshotLoaded:
+      (sourceInfo.kind === "db" && dbHealth.requiredTablesOk) ||
+      trace.publishedSnapshotLoaded,
+    lastAttemptAt: trace.lastAttemptAt,
+  } as const;
+
   const effectiveSource =
-    trace.publishedDataFrom === "db"
+    publishedLayer.publishedDataFrom === "db"
       ? "db"
-      : trace.publishedDataFrom === "file"
+      : publishedLayer.publishedDataFrom === "file"
         ? "file"
         : "seed_or_directory";
 
   const dbPathOk =
-    trace.dbConfigured &&
-    trace.publishedDataFrom === "db" &&
-    trace.publishedSnapshotLoaded &&
+    publishedLayer.dbConfigured &&
+    publishedLayer.publishedDataFrom === "db" &&
+    publishedLayer.publishedSnapshotLoaded &&
     dbHealth.requiredTablesOk;
 
   const needsPublishedSchema =
@@ -59,7 +73,7 @@ export async function GET() {
     preferredPublishedSource: dbHealth.configured ? "db" : "file_or_seed",
     effectiveSource,
     /** True last load of readPublishedCatalogSnapshot (not merge). */
-    publishedLayer: trace,
+    publishedLayer,
     publishMetadata,
     mergedCounts: {
       schools: directorySchools.length,

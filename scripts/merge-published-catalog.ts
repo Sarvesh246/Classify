@@ -34,6 +34,8 @@ type CoverageTier =
 
 type SchoolRecord = {
   slug: string;
+  name?: string;
+  shortName?: string;
   coverageTier: CoverageTier;
   directoryCount: number;
   sourceStatus: {
@@ -48,6 +50,47 @@ type OfferingRecord = {
   schoolSlug: string;
   professorSlug: string;
   coverageTier: CoverageTier;
+};
+
+type ProfessorDirectoryRow = {
+  id: string;
+  schoolSlug: string;
+  schoolName: string;
+  professorSlug: string;
+  professorName: string;
+  professorTitle: string;
+  departments: string[];
+  coursePrefixes: string[];
+  courseCodes: string[];
+  courseCount: number;
+  sectionCount: number;
+  coverageTier: CoverageTier;
+  coverageLevel: "directory_only" | "instructor_directory_ready" | "stats_partial" | "stats_full";
+  statsAvailability: "none" | "rmp_only" | "partial" | "full";
+  evidenceFreshness: string;
+  sourceKinds: string[];
+  hasInstitutionalStats: boolean;
+  hasRmp: boolean;
+  hasSchedulePresence: boolean;
+  expectedGpa: number | null;
+  aRate: number | null;
+  classifyScore: number | null;
+  rmpRating: number | null;
+  rmpDifficulty: number | null;
+  sampleSize: number;
+  trend: Array<{ term: string; avgGpa: number | null; aPct: number | null; rmpRating: number | null; rmpDifficulty: number | null; classifyScore: number | null }>;
+  tags: string[];
+  summary: string;
+};
+
+type RmpRecord = {
+  school_slug: string;
+  professor_name: string;
+  rating: number | null;
+  difficulty: number | null;
+  review_count: number;
+  department?: string | null;
+  tags?: string[];
 };
 
 function readJson<T>(filePath: string): T {
@@ -122,6 +165,78 @@ function buildReplacementMap(): Map<string, OfferingRecord[]> {
   return replacements;
 }
 
+function slugifyProfessor(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildRmpOnlyProfessorDirectory(
+  schools: SchoolRecord[],
+  seedDirectory: ProfessorDirectoryRow[],
+): ProfessorDirectoryRow[] {
+  const byKey = new Map(
+    seedDirectory.map((row) => [`${row.schoolSlug}:${row.professorSlug}`, row]),
+  );
+  const schoolBySlug = new Map(schools.map((school) => [school.slug, school]));
+  const rmpFiles = fs
+    .readdirSync(OUTPUT_ROOT)
+    .filter((fileName) => /^rmp_.+\.json$/i.test(fileName));
+
+  for (const fileName of rmpFiles) {
+    const rows = readJson<RmpRecord[]>(path.join(OUTPUT_ROOT, fileName));
+    if (!Array.isArray(rows)) continue;
+
+    for (const row of rows) {
+      const school = schoolBySlug.get(row.school_slug);
+      if (!school) continue;
+      if ((row.review_count ?? 0) < 3) continue;
+      if (row.rating == null && row.difficulty == null) continue;
+
+      const professorSlug = slugifyProfessor(row.professor_name);
+      const key = `${school.slug}:${professorSlug}`;
+      if (byKey.has(key)) continue;
+
+      byKey.set(key, {
+        id: `profdir:${school.slug}:${professorSlug}`,
+        schoolSlug: school.slug,
+        schoolName: school.shortName ?? school.name ?? school.slug,
+        professorSlug,
+        professorName: row.professor_name,
+        professorTitle: row.department?.trim() || "Instructor",
+        departments: row.department?.trim() ? [row.department.trim()] : [],
+        coursePrefixes: [],
+        courseCodes: [],
+        courseCount: 0,
+        sectionCount: 0,
+        coverageTier: "rmp_only",
+        coverageLevel: "stats_partial",
+        statsAvailability: "rmp_only",
+        evidenceFreshness: school.sourceStatus.freshness,
+        sourceKinds: ["rmp"],
+        hasInstitutionalStats: false,
+        hasRmp: true,
+        hasSchedulePresence: false,
+        expectedGpa: null,
+        aRate: null,
+        classifyScore: null,
+        rmpRating: row.rating,
+        rmpDifficulty: row.difficulty,
+        sampleSize: row.review_count ?? 0,
+        trend: [],
+        tags: row.tags ?? [],
+        summary: row.department?.trim()
+          ? `${row.department.trim()} instructor with published RMP evidence while local institutional data is still expanding.`
+          : "Instructor profile is live from school-scoped RMP evidence while local institutional data is still expanding.",
+      });
+    }
+  }
+
+  return [...byKey.values()];
+}
+
 async function main() {
   const { buildSeedCatalogSnapshot } = await import("../lib/catalog");
   const { loadScorecardDirectorySchools } = await import("../lib/scorecard-directory");
@@ -138,10 +253,16 @@ async function main() {
       process.exit(0);
     }
 
+    const schools = [...seed.schools, ...directoryExtras];
+    const professorDirectory = buildRmpOnlyProfessorDirectory(
+      schools,
+      seed.professorDirectory ?? [],
+    );
     const out = {
       updatedAt: new Date().toISOString(),
-      schools: [...seed.schools, ...directoryExtras],
+      schools,
       offerings: seed.offerings,
+      professorDirectory,
     };
 
     fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
@@ -181,10 +302,15 @@ async function main() {
   const directoryExtras = loadScorecardDirectorySchools().filter((s) => !mergedSlugs.has(s.slug));
   const schoolsWithDirectory = [...schools, ...directoryExtras];
 
+  const professorDirectory = buildRmpOnlyProfessorDirectory(
+    schoolsWithDirectory,
+    seed.professorDirectory ?? [],
+  );
   const out = {
     updatedAt: new Date().toISOString(),
     schools: schoolsWithDirectory,
     offerings,
+    professorDirectory,
   };
 
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });

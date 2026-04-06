@@ -1,28 +1,24 @@
 import {
   getCatalogCoverageStats,
-  getCatalogSchools,
   getFeaturedOfferings,
+  getSchoolsForHomeNationalGraphSpotlights,
 } from "@/lib/catalog";
 import { getDirectorySchools, getSchoolHub } from "@/lib/server-directory";
 import { HomeExperience } from "@/components/home/home-experience";
 import { SiteHeader } from "@/components/site-header";
 
-export const dynamic = "force-dynamic";
-
 export default async function HomePage() {
-  const [coverage, directorySchools, catalogSchools, featured] = await Promise.all([
+  const [coverage, directorySchools, spotlightSchools, featured] = await Promise.all([
     getCatalogCoverageStats(),
     getDirectorySchools(),
-    getCatalogSchools(),
+    getSchoolsForHomeNationalGraphSpotlights(),
     getFeaturedOfferings(),
   ]);
   const searchableSchools = Math.max(
     directorySchools.length,
     coverage.searchableSchools ?? coverage.trackedSchools,
   );
-  const spotlightSlugs = catalogSchools
-    .slice(0, 6)
-    .map((school) => school.slug);
+  const spotlightSlugs = spotlightSchools.map((school) => school.slug);
   const spotlightEntries = await Promise.all(spotlightSlugs.map((slug) => getSchoolHub(slug)));
   const spotlights = spotlightEntries
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
@@ -33,7 +29,7 @@ export default async function HomePage() {
     }));
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-deep-ink text-ivory">
       <SiteHeader tone="home" />
       <HomeExperience
         coverage={{

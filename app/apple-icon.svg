@@ -1,6 +1,5 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="512" height="512" fill="#08192c"/>
-  <!-- Matches site header: rounded-[16px] tile on 44px box, scaled to 400px -->
   <rect
     x="56"
     y="56"
@@ -11,7 +10,6 @@
     stroke="rgba(255,255,255,0.2)"
     stroke-width="2"
   />
-  <!-- ClassifyLogo glyph: viewBox 0 0 48 48, inset like 36px in 44px -->
   <g transform="translate(92.3636,92.3636) scale(6.81818)">
     <path
       d="M34.7 12.6C31.9 9.3 28.2 7.6 23.6 7.6C14.6 7.6 8.2 14.5 8.2 24C8.2 33.5 14.6 40.4 23.9 40.4C28.1 40.4 31.7 39 34.6 35.9"

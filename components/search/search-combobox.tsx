@@ -33,7 +33,16 @@ import { type SearchHit, type SearchHitType } from "@/lib/types";
 import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { useDelayedShown } from "@/hooks/use-delayed-shown";
-import { pushRecentSearch } from "@/lib/recent-searches";
+import {
+  pushRecentSearch,
+  readRecentSearches,
+  type RecentSearchEntry,
+} from "@/lib/recent-searches";
+import {
+  cancelClientMeasure,
+  endClientMeasure,
+  startClientMeasure,
+} from "@/lib/client-performance";
 
 interface SearchComboboxProps {
   initialQuery?: string;
@@ -57,6 +66,17 @@ const iconMap = {
   professor: UserRound,
 } as const;
 
+const SEARCH_CACHE_TTL_MS = 45_000;
+const SEARCH_DEBOUNCE_MS = 140;
+const COMBOBOX_RESULT_LIMIT = 8;
+const searchResponseCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    results: SearchHit[];
+  }
+>();
+
 export function SearchCombobox({
   initialQuery = "",
   placeholder = "Search schools, courses, or professors",
@@ -75,6 +95,7 @@ export function SearchCombobox({
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const deferredQuery = useDeferredValue(query);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [results, setResults] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -86,10 +107,25 @@ export function SearchCombobox({
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const lastSyncedHrefRef = useRef("");
   const showListLoading = useDelayedShown(isPending || isLoading, 380);
+  const effectiveLimit =
+    resultSurface === "combobox" ? Math.min(limit, COMBOBOX_RESULT_LIMIT) : limit;
+  const recentEntries = useMemo(
+    () => (open && !query.trim() ? readRecentSearches().slice(0, 6) : []),
+    [open, query],
+  );
 
   useEffect(() => {
     setQuery(initialQuery);
+    setDebouncedQuery(initialQuery);
   }, [initialQuery]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedQuery(deferredQuery);
+    }, deferredQuery.trim() ? SEARCH_DEBOUNCE_MS : 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [deferredQuery]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -180,9 +216,20 @@ export function SearchCombobox({
 
   useEffect(() => {
     let ignore = false;
+    const trimmedQuery = debouncedQuery.trim();
+    const shouldSkipFetch = resultSurface === "combobox" && !trimmedQuery;
+
+    if (shouldSkipFetch) {
+      setResults([]);
+      setActiveIndex(null);
+      setFetchError(false);
+      setIsLoading(false);
+      return;
+    }
+
     const params = new URLSearchParams();
-    if (deferredQuery.trim()) {
-      params.set("query", deferredQuery.trim());
+    if (trimmedQuery) {
+      params.set("query", trimmedQuery);
     }
     if (searchType !== "all") {
       params.set("type", searchType);
@@ -191,14 +238,32 @@ export function SearchCombobox({
       params.set("schoolSlug", schoolSlug);
     }
     params.set("surface", resultSurface);
-    params.set("limit", String(limit));
+    params.set("limit", String(effectiveLimit));
 
     const endpoint = `/api/search?${params.toString()}`;
+    const cacheEntry = searchResponseCache.get(endpoint);
+
+    if (cacheEntry && cacheEntry.expiresAt > Date.now()) {
+      setResults(cacheEntry.results);
+      setActiveIndex(cacheEntry.results.length ? 0 : null);
+      setFetchError(false);
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const measureKey = `search-suggestion:${endpoint}`;
 
     setIsLoading(true);
     setFetchError(false);
+    startClientMeasure(measureKey, "search_suggestion_latency", {
+      surface: resultSurface,
+      school_slug: schoolSlug ?? "",
+      search_type: searchType,
+      query_length: trimmedQuery.length,
+    });
 
-    fetch(endpoint)
+    fetch(endpoint, { signal: controller.signal })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as {
           results?: SearchHit[];
@@ -214,11 +279,19 @@ export function SearchCombobox({
         }
 
         if (ignore) return;
+        searchResponseCache.set(endpoint, {
+          expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+          results: list,
+        });
         setResults(list);
         setActiveIndex(list.length ? 0 : null);
         setFetchError(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        if (controller.signal.aborted || String(error).includes("AbortError")) {
+          cancelClientMeasure(measureKey);
+          return;
+        }
         if (!ignore) {
           setResults([]);
           setActiveIndex(null);
@@ -226,6 +299,11 @@ export function SearchCombobox({
         }
       })
       .finally(() => {
+        void endClientMeasure(measureKey, {
+          surface: resultSurface,
+          search_type: searchType,
+          school_slug: schoolSlug ?? "",
+        });
         if (!ignore) {
           setIsLoading(false);
         }
@@ -233,8 +311,10 @@ export function SearchCombobox({
 
     return () => {
       ignore = true;
+      cancelClientMeasure(measureKey);
+      controller.abort();
     };
-  }, [deferredQuery, limit, resultSurface, schoolSlug, searchType, retryNonce]);
+  }, [debouncedQuery, effectiveLimit, resultSurface, schoolSlug, searchType, retryNonce]);
 
   useEffect(() => {
     if (!syncSearchUrl || !liveSyncSearchPage || onSelect) {
@@ -485,6 +565,7 @@ export function SearchCombobox({
                         query={query}
                         groupedSections={groupedSections}
                         results={results}
+                        recentEntries={recentEntries}
                         activeIndex={activeIndex}
                         setActiveIndex={setActiveIndex}
                         onSelect={handleSelect}
@@ -517,6 +598,7 @@ export function SearchCombobox({
                     query={query}
                     groupedSections={groupedSections}
                     results={results}
+                    recentEntries={recentEntries}
                     activeIndex={activeIndex}
                     setActiveIndex={setActiveIndex}
                     onSelect={handleSelect}
@@ -541,6 +623,7 @@ function SearchResultsPanel({
   query,
   groupedSections,
   results,
+  recentEntries,
   activeIndex,
   setActiveIndex,
   onSelect,
@@ -554,6 +637,7 @@ function SearchResultsPanel({
   query: string;
   groupedSections: Array<{ key: string; label: string; items: SearchHit[] }>;
   results: SearchHit[];
+  recentEntries: RecentSearchEntry[];
   activeIndex: number | null;
   setActiveIndex: (index: number | null) => void;
   onSelect: (item: SearchHit) => void;
@@ -623,6 +707,35 @@ function SearchResultsPanel({
       {fetchError ? (
         <div className="rounded-[22px] border border-copper/40 bg-copper/10 px-4 py-5 text-center text-sm text-ink">
           Couldn&apos;t load suggestions. Check your connection and try again.
+        </div>
+      ) : !query.trim() && recentEntries.length ? (
+        <div className="mb-1">
+          <div className="px-3 pb-1.5 pt-1 text-[0.7rem] uppercase tracking-[0.18em] text-muted">
+            Recent checks
+          </div>
+          <div className="space-y-1">
+            {recentEntries.map((entry) => {
+              const Icon = iconMap[entry.type];
+              return (
+                <Link
+                  key={`${entry.id}:${entry.href}`}
+                  href={entry.href}
+                  onClick={() => onLinkSelect()}
+                  className="group flex items-start gap-3 rounded-[20px] px-3 py-2.5 transition hover:bg-white/78"
+                >
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 text-[0.96rem] font-medium leading-6 text-ink">
+                      {entry.label}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">{entry.school}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       ) : !results.length ? (
         <div className="rounded-[22px] border border-dashed border-border px-4 py-6 text-center text-sm text-muted">

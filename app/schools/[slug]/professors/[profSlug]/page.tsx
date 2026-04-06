@@ -23,9 +23,6 @@ type ProfessorPageProps = {
   params: Promise<{ slug: string; profSlug: string }>;
 };
 
-export const revalidate = 3600;
-export const dynamicParams = true;
-
 export default async function ProfessorPage({ params }: ProfessorPageProps) {
   const { slug, profSlug } = await params;
   const profile = await getProfessorProfile(slug, profSlug);
@@ -46,7 +43,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <div>
               <p className="eyebrow">{profile.school.shortName}</p>
               <h1 className="app-page-title mt-3 font-semibold text-ink">
-                {primary.professorName}
+                {profile.displayProfessorName ?? primary.professorName}
               </h1>
               <p className="mt-2 text-base text-muted">{primary.professorTitle}</p>
               <p className="app-lead mt-4">{primary.summary}</p>

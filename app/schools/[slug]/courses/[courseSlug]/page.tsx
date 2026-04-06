@@ -16,9 +16,6 @@ type CoursePageProps = {
   params: Promise<{ slug: string; courseSlug: string }>;
 };
 
-export const revalidate = 3600;
-export const dynamicParams = true;
-
 export default async function CoursePage({ params }: CoursePageProps) {
   const { slug, courseSlug } = await params;
   const [course, offerings] = await Promise.all([

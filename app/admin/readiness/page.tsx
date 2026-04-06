@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { SiteHeader } from "@/components/site-header";
 import {
   getCatalogDataOriginTrace,
@@ -9,9 +10,9 @@ import {
 import { getPublishedCatalogDbHealth } from "@/lib/published-catalog-db-source";
 import { formatFreshnessLabel, formatPlannerReadiness } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminReadinessPage() {
+  await connection();
+
   const [dbHealth, trace, publishMetadata, readiness, schools, updatedAt] = await Promise.all([
     getPublishedCatalogDbHealth(),
     Promise.resolve(getCatalogDataOriginTrace()),

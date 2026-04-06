@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { IBM_Plex_Sans, Sora } from "next/font/google";
 import { FirebaseAnalyticsLoader } from "@/components/firebase-analytics-loader";
 import { MobileBottomNav } from "@/components/mobile/mobile-bottom-nav";
 import { MobileInstallBanner } from "@/components/mobile/mobile-install-banner";
+import { WebVitalsReporter } from "@/components/performance/web-vitals";
 import { PwaClient } from "@/components/pwa/pwa-client";
 import "./globals.css";
 
@@ -75,10 +77,19 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <FirebaseAnalyticsLoader />
-        <PwaClient />
-        <MobileInstallBanner />
+        <Suspense fallback={null}>
+          <WebVitalsReporter />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PwaClient />
+        </Suspense>
+        <Suspense fallback={null}>
+          <MobileInstallBanner />
+        </Suspense>
         {children}
-        <MobileBottomNav />
+        <Suspense fallback={null}>
+          <MobileBottomNav />
+        </Suspense>
       </body>
     </html>
   );

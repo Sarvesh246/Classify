@@ -27,6 +27,7 @@ import {
 import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
+import { applyCacheLife } from "@/lib/cache-utils";
 
 type ScoredSearchRow = {
   hit: SearchHit;
@@ -172,6 +173,9 @@ interface SearchDirectoryOptions {
 }
 
 export async function getDirectorySchools() {
+  "use cache";
+
+  applyCacheLife("hours");
   const merged = new Map<string, School>();
 
   for (const school of loadScorecardDirectorySchools()) {
@@ -196,6 +200,9 @@ export async function getDirectorySchools() {
 }
 
 export async function getDirectorySchoolBySlug(slug: string) {
+  "use cache";
+
+  applyCacheLife("hours");
   return (await getDirectorySchools()).find((school) => school.slug === slug);
 }
 
@@ -468,6 +475,14 @@ async function collectSortedSearchRows(
 ): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
   const { schoolSlug, type = "all" } = options;
   const surface = options.surface ?? "page";
+  const trimmedQuery = query.trim();
+  const broadSchoolOnlyQuery =
+    !schoolSlug &&
+    type === "all" &&
+    trimmedQuery.length > 0 &&
+    trimmedQuery.length <= 2 &&
+    !/\d/.test(trimmedQuery) &&
+    !/\s/.test(trimmedQuery);
   const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
     getDirectorySchools(),
     getCatalogSchools(),
@@ -486,9 +501,11 @@ async function collectSortedSearchRows(
   const schoolHits = (await buildSchoolSearchHits(allSchools)).filter(
     (hit) => !schoolSlug || hit.slug === schoolSlug,
   );
-  let catalogHits = (await buildCatalogSearchHits(schoolSlug)).filter(
-    (hit) => type === "all" || hit.type === type,
-  );
+  let catalogHits = broadSchoolOnlyQuery
+    ? []
+    : (await buildCatalogSearchHits(schoolSlug)).filter(
+        (hit) => type === "all" || hit.type === type,
+      );
   if (!query.trim() && (type === "professor" || type === "all")) {
     catalogHits = dedupeProfessorHitsForBrowse(catalogHits, offeringLookup);
   }
@@ -630,6 +647,9 @@ export async function searchDirectoryWithTotal(
   query: string,
   options: SearchDirectoryOptions = {},
 ): Promise<{ results: SearchHit[]; total: number }> {
+  "use cache";
+
+  applyCacheLife("minutes");
   const limit = options.limit ?? 12;
   const offset = options.offset ?? 0;
   const { rows, schoolsWithCatalogRows } = await collectSortedSearchRows(query, options);
@@ -650,6 +670,9 @@ export async function searchDirectory(
 }
 
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
+  "use cache";
+
+  applyCacheLife("minutes");
   return searchDirectory("", { limit: 8, ...options });
 }
 
@@ -664,6 +687,9 @@ export async function getSchoolHub(slug: string): Promise<
     }
   | undefined
 > {
+  "use cache";
+
+  applyCacheLife("minutes");
   const [school, catalogSchool] = await Promise.all([
     getDirectorySchoolBySlug(slug),
     getCatalogSchoolBySlug(slug),

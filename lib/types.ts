@@ -225,6 +225,7 @@ export interface ProfessorProfile {
   school: School;
   offerings: ProfessorCourseSummary[];
   professor: ProfessorDirectoryRow;
+  displayProfessorName?: string;
 }
 
 export interface ScoreBreakdownRow {
@@ -375,6 +376,7 @@ export interface PublishedCatalogSnapshot {
   schools: School[];
   offerings: ProfessorCourseSummary[];
   professorDirectory?: ProfessorDirectoryRow[];
+  sections?: SectionRecord[];
   departmentAggregates?: DepartmentAggregate[];
   gradeDistributionSeries?: GradeDistributionSeries[];
   sectionMeetings?: SectionMeeting[];

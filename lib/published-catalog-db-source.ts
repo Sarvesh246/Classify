@@ -19,6 +19,7 @@ import type {
   ProfessorStatsAvailability,
   PublishedCatalogSnapshot,
   School,
+  SectionRecord,
   SectionMeeting,
   TrendPoint,
 } from "@/lib/types";
@@ -445,6 +446,19 @@ function deriveProfessorCoverageLevel(
   return "instructor_directory_ready";
 }
 
+function buildSectionEvidenceSourceKinds(
+  hasMeetingTime: boolean,
+  hasInstitutionalStats: boolean,
+  hasRmp: boolean,
+): EvidenceSourceKind[] {
+  return [
+    "catalog",
+    ...(hasMeetingTime ? (["schedule"] as const) : []),
+    ...(hasInstitutionalStats ? (["official_grades"] as const) : []),
+    ...(hasRmp ? (["rmp"] as const) : []),
+  ];
+}
+
 function describeError(error: unknown) {
   if (error && typeof error === "object") {
     const message =
@@ -856,6 +870,84 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
       }];
     });
 
+    const meetingsBySectionId = new Map<string, SectionMeeting[]>();
+    for (const meeting of dbSectionMeetings) {
+      meetingsBySectionId.set(meeting.sectionId, [
+        ...(meetingsBySectionId.get(meeting.sectionId) ?? []),
+        meeting,
+      ]);
+    }
+
+    const offeringByProfessorCourse = new Map<string, ProfessorCourseSummary>();
+    for (const offering of offerings) {
+      const key = `${offering.schoolSlug}:${offering.professorSlug}:${offering.courseSlug}`;
+      const existing = offeringByProfessorCourse.get(key);
+      if (!existing || (offering.sampleSize ?? 0) > (existing.sampleSize ?? 0)) {
+        offeringByProfessorCourse.set(key, offering);
+      }
+    }
+
+    const dbSections: SectionRecord[] = sections.flatMap((row) => {
+      const school = schoolById.get(row.school_id);
+      const course = courseById.get(row.course_id);
+      if (!school || !course) {
+        return [];
+      }
+
+      const professor = row.professor_id ? professorById.get(row.professor_id) : null;
+      const meetings = meetingsBySectionId.get(row.id) ?? [];
+      const primaryMeeting = meetings[0];
+      const hasMeetingTime = meetings.some(
+        (meeting) => meeting.startTime && meeting.endTime && meeting.days.length,
+      );
+      const supportingOffering = professor
+        ? offeringByProfessorCourse.get(`${school.slug}:${professor.slug}:${course.slug}`)
+        : undefined;
+      const hasInstitutionalStats = Boolean(
+        supportingOffering && (supportingOffering.expectedGpa != null || supportingOffering.aRate != null),
+      );
+      const hasRmp = Boolean(
+        supportingOffering &&
+          (supportingOffering.rmpRating != null || supportingOffering.rmpDifficulty != null),
+      );
+
+      return [{
+        id: row.id,
+        schoolSlug: school.slug,
+        courseSlug: course.slug,
+        courseCode: course.code,
+        courseName: course.name,
+        professorSlug: professor?.slug ?? null,
+        professorName: professor?.name ?? row.instructor_name_raw ?? primaryMeeting?.instructorName ?? null,
+        term: row.term,
+        days: primaryMeeting?.days ?? [],
+        startTime: primaryMeeting?.startTime ?? null,
+        endTime: primaryMeeting?.endTime ?? null,
+        location: primaryMeeting?.location ?? null,
+        hasMeetingTime,
+        sourceKey: row.source_key,
+        rankingMode:
+          supportingOffering?.rankingMode ??
+          (hasInstitutionalStats ? "expected_gpa" : hasMeetingTime ? "planner_fit" : "ease_score"),
+        evidenceProfile: {
+          sourceKinds: buildSectionEvidenceSourceKinds(
+            hasMeetingTime,
+            hasInstitutionalStats,
+            hasRmp,
+          ),
+          confidenceLabel:
+            supportingOffering?.evidenceProfile?.confidenceLabel ??
+            (hasInstitutionalStats ? "high" : hasRmp ? "medium" : "low"),
+          hasOfficialGrades: hasInstitutionalStats,
+          hasScheduleData: hasMeetingTime,
+          hasRmp,
+          hasCommunityEvidence: false,
+          hasSyllabusEvidence: false,
+        },
+        supportingOfferingId: supportingOffering?.id,
+      }];
+    });
+
     const professorDirectory: ProfessorDirectoryRow[] = professors.flatMap((professor) => {
       const school = schoolById.get(professor.school_id);
       if (!school) {
@@ -1067,10 +1159,11 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
         schools: [...schoolById.values()],
         offerings,
         professorDirectory,
+        sections: dbSections,
         departmentAggregates: dbDepartmentAggregates,
         gradeDistributionSeries: dbGradeSeries,
-      sectionMeetings: dbSectionMeetings,
-      publishMetadata: {
+        sectionMeetings: dbSectionMeetings,
+        publishMetadata: {
         runId: health.activeSnapshotId ?? "db-active-run-unavailable",
         activatedAt: updatedAt,
         source: "db",

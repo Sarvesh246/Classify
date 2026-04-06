@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
-import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
+import { getAnalytics, isSupported, logEvent, type Analytics } from "firebase/analytics";
 
 function shouldEnableAnalytics() {
   if (typeof window === "undefined") {
@@ -75,4 +75,16 @@ export async function initFirebaseAnalytics(): Promise<Analytics | null> {
   }
 
   return getAnalytics(app);
+}
+
+export async function logAnalyticsEvent(
+  name: string,
+  params?: Record<string, string | number>,
+): Promise<void> {
+  const analytics = await initFirebaseAnalytics();
+  if (!analytics) {
+    return;
+  }
+
+  logEvent(analytics, name, params);
 }

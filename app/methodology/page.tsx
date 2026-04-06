@@ -3,8 +3,6 @@ import { SiteHeader } from "@/components/site-header";
 import { getFeaturedOfferings } from "@/lib/catalog";
 import { getScoreBreakdown } from "@/lib/scoring";
 
-export const dynamic = "force-dynamic";
-
 export default async function MethodologyPage() {
   const example = (await getFeaturedOfferings())[0];
   const breakdown = getScoreBreakdown({

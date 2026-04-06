@@ -1,6 +1,31 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" fill="#08192C"/>
-  <circle cx="256" cy="256" r="196" fill="#0D2742"/>
-  <circle cx="184" cy="216" r="86" fill="#58C7B8"/>
-  <path d="M403 196H257V232H347C343.153 255.933 327.45 270.5 301.5 270.5C267.2 270.5 242 244.74 242 210C242 175.26 267.2 149.5 301.5 149.5C321.549 149.5 337.244 156.885 349.5 169L373.5 144.5C354.619 126.396 331.11 116 301.5 116C247.547 116 206 156.53 206 210C206 263.47 247.547 304 301.5 304C355.453 304 393 267.415 393 211.5C393 205.958 392.522 201.034 391.5 196.5L403 196Z" fill="#F6F1E8"/>
+  <!-- Full-bleed bg; logo kept inside ~66% keyline for circular crops -->
+  <rect width="512" height="512" fill="#08192c"/>
+  <rect
+    x="146"
+    y="146"
+    width="220"
+    height="220"
+    rx="80"
+    fill="#08192c"
+    stroke="rgba(255,255,255,0.2)"
+    stroke-width="1.75"
+  />
+  <g transform="translate(166,166) scale(3.75)">
+    <path
+      d="M34.7 12.6C31.9 9.3 28.2 7.6 23.6 7.6C14.6 7.6 8.2 14.5 8.2 24C8.2 33.5 14.6 40.4 23.9 40.4C28.1 40.4 31.7 39 34.6 35.9"
+      stroke="#f6f1e8"
+      stroke-width="3.4"
+      stroke-linecap="round"
+    />
+    <path
+      d="M31.8 16.2C29.8 13.8 27.2 12.7 23.9 12.7C17.3 12.7 12.7 17.6 12.7 24C12.7 30.6 17.1 35.3 23.7 35.3C26.6 35.3 29.2 34.3 31.3 32.2"
+      stroke="#f6f1e8"
+      stroke-opacity="0.62"
+      stroke-width="2.5"
+      stroke-linecap="round"
+    />
+    <circle cx="34.6" cy="12.5" r="2.2" fill="#58C7B8"/>
+    <circle cx="31.5" cy="32.2" r="1.8" fill="#C98A57"/>
+  </g>
 </svg>

@@ -30,6 +30,11 @@ class TamuNamesTests(unittest.TestCase):
         self.assertEqual(d, "J. Smith")
         self.assertEqual(k, "smith-j")
 
+    def test_mc_name_title_case(self):
+        d, k = normalize_tamu_instructor("MCKNIGHT T")
+        self.assertEqual(d, "T. McKnight")
+        self.assertEqual(k, "mcknight-t")
+
 
 if __name__ == "__main__":
     unittest.main()

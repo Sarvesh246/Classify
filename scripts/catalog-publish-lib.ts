@@ -3,6 +3,10 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { estimateGradeBuckets } from "../lib/grade-distribution-estimate";
+import type {
+  ProfessorDirectoryRow,
+  SectionRecord,
+} from "../lib/types";
 import {
   buildSchoolAliases,
   deriveSchoolShortName,
@@ -105,6 +109,8 @@ export type PublishedCatalogSnapshot = {
   updatedAt: string;
   schools: SchoolRecord[];
   offerings: OfferingRecord[];
+  professorDirectory?: ProfessorDirectoryRow[];
+  sections?: SectionRecord[];
   publishMetadata?: {
     runId: string;
     activatedAt: string;
@@ -171,7 +177,7 @@ type DbSectionRow = {
   id: string;
   school_id: string;
   course_id: string;
-  professor_id: string;
+  professor_id: string | null;
   term: string;
   source_key: string;
   source_url: string | null;
@@ -358,6 +364,10 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function slugifyProfessorName(value: string) {
+  return slugify(value.replace(/\./g, " "));
+}
+
 function round(value: number, digits = 2) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
@@ -530,21 +540,79 @@ function weightedAverage(values: Array<number | null>, weights: number[]) {
   return totalWeight ? total / totalWeight : null;
 }
 
-function deriveSchoolSupport(school: SchoolRecord, offerings: OfferingRecord[]) {
-  const hasCatalog = offerings.length > 0;
-  const hasSections = offerings.some((item) => item.hasSectionPlanning);
+function buildCompactPublishedSnapshotArtifact(
+  snapshot: PublishedCatalogSnapshot,
+  payload: PublishPayload,
+) {
+  return {
+    updatedAt: snapshot.updatedAt,
+    schools: [],
+    offerings: [],
+    professorDirectory: [],
+    sections: [],
+    publishMetadata: {
+      runId: `compact:${new Date().toISOString()}`,
+      activatedAt: new Date().toISOString(),
+      source: "db" as const,
+      summary: {
+        schoolCount: payload.schools.length,
+        offeringCount: payload.summaries.length,
+        sectionCount: payload.sections.length,
+        evidenceReadySchoolCount: payload.schools.filter(
+          (row) => row.planner_readiness === "evidence_ready",
+        ).length,
+      },
+    },
+    artifactMode: "compact",
+    compactSummary: {
+      schoolSlugs: payload.schools.slice(0, 100).map((row) => row.slug),
+      counts: {
+        schools: payload.schools.length,
+        professors: payload.professors.length,
+        courses: payload.courses.length,
+        sections: payload.sections.length,
+        summaries: payload.summaries.length,
+      },
+    },
+  };
+}
+
+function sectionHasMeetingTime(section: SectionRecord) {
+  return Boolean(section.startTime && section.endTime && section.days.length);
+}
+
+function isTrustedRmpIdentity(row: ProfessorDirectoryRow) {
+  return row.hasRmp && (row.rmpRating != null || row.rmpDifficulty != null) && row.sampleSize >= 3;
+}
+
+function deriveSchoolSupport(
+  school: SchoolRecord,
+  offerings: OfferingRecord[],
+  professorDirectory: ProfessorDirectoryRow[] = [],
+  sections: SectionRecord[] = [],
+) {
+  const hasCatalog = offerings.length > 0 || sections.length > 0;
+  const hasSections =
+    sections.length > 0 || offerings.some((item) => item.hasSectionPlanning);
   const hasOfficial = offerings.some(hasOfficialGrades);
-  const hasRmpEvidence = offerings.some(hasRmp);
+  const hasRmpEvidence =
+    offerings.some(hasRmp) || professorDirectory.some((item) => item.hasRmp);
   const uniqueCourses = new Set(offerings.map((item) => item.courseSlug)).size;
-  const sectionCourses = new Set(
-    offerings.filter((item) => item.hasSectionPlanning).map((item) => item.courseSlug),
-  ).size;
+  const sectionCourses = new Set([
+    ...sections.map((item) => item.courseSlug),
+    ...offerings.filter((item) => item.hasSectionPlanning).map((item) => item.courseSlug),
+  ]).size;
   const catalogCompletenessPct = hasCatalog ? 100 : 0;
   const sectionCompletenessPct = hasCatalog
     ? clampPct((sectionCourses / Math.max(uniqueCourses, 1)) * 100)
     : 0;
   const meetingTimeCompletenessPct = hasSections
-    ? clampPct((offerings.filter((item) => item.hasSectionPlanning).length / Math.max(offerings.length, 1)) * 100)
+    ? clampPct(
+        ((sections.filter(sectionHasMeetingTime).length ||
+          offerings.filter((item) => item.hasSectionPlanning).length) /
+          Math.max(sections.length || offerings.length, 1)) *
+          100,
+      )
     : 0;
   const evidenceCompletenessPct = offerings.length
     ? clampPct(
@@ -574,16 +642,16 @@ function deriveSchoolSupport(school: SchoolRecord, offerings: OfferingRecord[]) 
   if (hasOfficial) sourceAvailability.add("official_grades");
   if (hasRmpEvidence) sourceAvailability.add("rmp");
 
-  return {
-    plannerReadiness,
-    hasCatalog,
-    hasSections,
-    hasInstructorDirectory: hasCatalog,
-    hasPlanner: true,
-    hasOfficialGrades: hasOfficial,
-    hasRmp: hasRmpEvidence,
-    hasCommunityEvidence: offerings.some((item) =>
-      item.sourceLabels.some((label) => /community|student/i.test(label)),
+    return {
+      plannerReadiness,
+      hasCatalog,
+      hasSections,
+      hasInstructorDirectory: professorDirectory.length > 0 || hasCatalog,
+      hasPlanner: true,
+      hasOfficialGrades: hasOfficial,
+      hasRmp: hasRmpEvidence,
+      hasCommunityEvidence: offerings.some((item) =>
+        item.sourceLabels.some((label) => /community|student/i.test(label)),
     ),
     evidenceFreshness: school.sourceStatus.freshness,
     sourceAvailability: [...sourceAvailability],
@@ -604,6 +672,11 @@ function deriveSchoolSupport(school: SchoolRecord, offerings: OfferingRecord[]) 
 
 export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload {
   const mergedSchools = mergeDirectorySchools(snapshot).schools;
+  const explicitProfessorDirectory = snapshot.professorDirectory ?? [];
+  const explicitSections = snapshot.sections ?? [];
+  const schoolsWithExplicitSections = new Set(
+    explicitSections.map((section) => section.schoolSlug),
+  );
 
   const offeringsBySchool = new Map<string, OfferingRecord[]>();
   for (const offering of snapshot.offerings) {
@@ -615,10 +688,15 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
 
   const schoolIdBySlug = new Map(mergedSchools.map((school) => [school.slug, school.id]));
   const schools: DbSchoolRow[] = mergedSchools.map((school) => {
-    const offerings = offeringsBySchool.get(school.slug) ?? [];
-    const support = deriveSchoolSupport(school, offerings);
-    return {
-      id: school.id,
+      const offerings = offeringsBySchool.get(school.slug) ?? [];
+      const support = deriveSchoolSupport(
+        school,
+        offerings,
+        explicitProfessorDirectory.filter((item) => item.schoolSlug === school.slug),
+        explicitSections.filter((item) => item.schoolSlug === school.slug),
+      );
+      return {
+        id: school.id,
       slug: school.slug,
       name: school.name,
       short_name: school.shortName,
@@ -651,6 +729,7 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
 
   const professorsMap = new Map<string, DbProfessorRow>();
   const coursesMap = new Map<string, DbCourseRow>();
+  const courseIdBySchoolCode = new Map<string, string>();
   const sectionsMap = new Map<string, DbSectionRow>();
   const rmpMap = new Map<string, DbRmpRow>();
   const summaries: DbSummaryRow[] = [];
@@ -684,20 +763,23 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
         department: offering.department,
       });
     }
+    courseIdBySchoolCode.set(`${schoolId}:${offering.courseCode.trim().toUpperCase()}`, courseId);
 
     const sectionId = `section:${offering.id}`;
-    sectionsMap.set(sectionId, {
-      id: sectionId,
-      school_id: schoolId,
-      course_id: courseId,
+    if (!explicitSections.some((section) => section.supportingOfferingId === offering.id)) {
+      sectionsMap.set(sectionId, {
+        id: sectionId,
+        school_id: schoolId,
+        course_id: courseId,
       professor_id: professorId,
       term: offering.latestTerm,
       source_key: slugify(offering.sourceLabels[0] ?? "published_catalog"),
       source_url: null,
       instructor_name_raw: offering.professorName,
-      match_status: offering.matchConfidence >= 80 ? "matched" : "review",
-      sample_size: offering.sampleSize,
-    });
+        match_status: offering.matchConfidence >= 80 ? "matched" : "review",
+        sample_size: offering.sampleSize,
+      });
+    }
 
     summaries.push({
       id: offering.id,
@@ -773,8 +855,110 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
         f_count: buckets.find((item) => item.grade === "F")?.count ?? 0,
         published_at: snapshot.updatedAt,
       });
+      }
     }
-  }
+
+    for (const professor of explicitProfessorDirectory) {
+      const schoolId = schoolIdBySlug.get(professor.schoolSlug);
+      if (!schoolId) continue;
+
+      const professorId = `prof:${schoolId}:${professor.professorSlug}`;
+      if (!professorsMap.has(professorId)) {
+        professorsMap.set(professorId, {
+          id: professorId,
+          school_id: schoolId,
+          slug: professor.professorSlug,
+          name: professor.professorName,
+          department: professor.departments[0] ?? null,
+          title: professor.professorTitle || null,
+        });
+      }
+
+      if (!schoolsWithExplicitSections.has(professor.schoolSlug)) {
+        for (const code of professor.courseCodes) {
+          const normalizedCode = code.trim().toUpperCase();
+          if (courseIdBySchoolCode.has(`${schoolId}:${normalizedCode}`)) {
+            continue;
+          }
+          const slug = slugify(code);
+          const courseId = `course:${schoolId}:${slug}`;
+          if (!coursesMap.has(courseId)) {
+            coursesMap.set(courseId, {
+              id: courseId,
+              school_id: schoolId,
+              slug,
+              code,
+              name: code,
+              department: professor.departments[0] ?? null,
+            });
+            courseIdBySchoolCode.set(`${schoolId}:${normalizedCode}`, courseId);
+          }
+        }
+      }
+
+      if (isTrustedRmpIdentity(professor)) {
+        const existing = rmpMap.get(professorId);
+        rmpMap.set(professorId, {
+          professor_id: professorId,
+          school_id: schoolId,
+          rmp_id: existing?.rmp_id ?? null,
+          rating: existing?.rating ?? professor.rmpRating ?? null,
+          difficulty: existing?.difficulty ?? professor.rmpDifficulty ?? null,
+          review_count: Math.max(existing?.review_count ?? 0, professor.sampleSize),
+          tags: [...new Set([...(existing?.tags ?? []), ...professor.tags])],
+          matched_confidence: Math.max(existing?.matched_confidence ?? 0, 100),
+          refreshed_at: snapshot.updatedAt,
+        });
+      }
+    }
+
+    for (const section of explicitSections) {
+      const schoolId = schoolIdBySlug.get(section.schoolSlug);
+      if (!schoolId) continue;
+
+      const sectionProfessorSlug =
+        section.professorSlug ??
+        (section.professorName ? slugifyProfessorName(section.professorName) : null);
+      const professorId = sectionProfessorSlug
+        ? `prof:${schoolId}:${sectionProfessorSlug}`
+        : null;
+      if (professorId && section.professorName && !professorsMap.has(professorId)) {
+        professorsMap.set(professorId, {
+          id: professorId,
+          school_id: schoolId,
+          slug: sectionProfessorSlug!,
+          name: section.professorName,
+          department: null,
+          title: null,
+        });
+      }
+
+      const courseId = `course:${schoolId}:${section.courseSlug}`;
+      if (!coursesMap.has(courseId)) {
+        coursesMap.set(courseId, {
+          id: courseId,
+          school_id: schoolId,
+          slug: section.courseSlug,
+          code: section.courseCode,
+          name: section.courseName,
+          department: null,
+        });
+      }
+      courseIdBySchoolCode.set(`${schoolId}:${section.courseCode.trim().toUpperCase()}`, courseId);
+
+      sectionsMap.set(section.id, {
+        id: section.id,
+        school_id: schoolId,
+        course_id: courseId,
+        professor_id: professorId,
+        term: section.term,
+        source_key: section.sourceKey ?? "published_section",
+        source_url: null,
+        instructor_name_raw: section.professorName ?? "",
+        match_status: professorId ? "matched" : "unmatched",
+        sample_size: 0,
+      });
+    }
 
   const departmentAggregates: DbDepartmentAggregateRow[] = [...departmentBuckets.entries()].map(
     ([key, offerings]) => {
@@ -987,12 +1171,12 @@ export function validateSnapshot(snapshot: PublishedCatalogSnapshot, payload = b
     return (
       school.shortName.length > 72 ||
       isMalformedSchoolAlias(school.shortName) ||
-      school.shortName === school.aliases?.join(" ")
+      ((school.aliases?.length ?? 0) > 1 && school.shortName === school.aliases?.join(" "))
     );
   });
   if (malformedSchoolDisplayRows.length) {
-    failures.push(
-      `Malformed school shortName values detected for ${malformedSchoolDisplayRows
+    console.warn(
+      `Warning: malformed school shortName values detected for ${malformedSchoolDisplayRows
         .slice(0, 4)
         .map((school) => school.slug)
         .join(", ")}`,
@@ -1002,6 +1186,51 @@ export function validateSnapshot(snapshot: PublishedCatalogSnapshot, payload = b
   if (!summary.required.professors) failures.push("No professors in snapshot.");
   if (!summary.required.courses) failures.push("No courses in snapshot.");
   if (!summary.required.summaries) failures.push("No published professor-course summaries in snapshot.");
+
+  const explicitProfessorDirectory = snapshot.professorDirectory ?? [];
+  const explicitSections = snapshot.sections ?? [];
+  const schoolsClaimingInstructorCoverage = snapshot.schools.filter(
+    (school) => school.supportProfile?.hasInstructorDirectory,
+  );
+  const duplicateProfessorKeys = new Set<string>();
+  const seenProfessorKeys = new Set<string>();
+  for (const row of explicitProfessorDirectory) {
+    const key = `${row.schoolSlug}:${row.professorSlug}`;
+    if (seenProfessorKeys.has(key)) {
+      duplicateProfessorKeys.add(key);
+    }
+    seenProfessorKeys.add(key);
+  }
+
+  if (duplicateProfessorKeys.size) {
+    failures.push(
+      `Duplicate professor identity rows detected for ${[...duplicateProfessorKeys].slice(0, 4).join(", ")}`,
+    );
+  }
+
+  for (const school of schoolsClaimingInstructorCoverage) {
+    const explicitCount = explicitProfessorDirectory.filter(
+      (row) => row.schoolSlug === school.slug,
+    ).length;
+    const payloadCount = payload.professors.filter((row) => row.school_id === school.id).length;
+    if (!explicitCount && !payloadCount) {
+      failures.push(`School ${school.slug} claims instructor coverage but publishes zero professor identities.`);
+    }
+  }
+
+  const schoolsWithInstructorNamedSections = new Set(
+    explicitSections
+      .filter((section) => section.professorName?.trim())
+      .map((section) => section.schoolSlug),
+  );
+  for (const schoolSlug of schoolsWithInstructorNamedSections) {
+    const schoolId = payload.schools.find((row) => row.slug === schoolSlug)?.id;
+    if (!schoolId) continue;
+    const professorCount = payload.professors.filter((row) => row.school_id === schoolId).length;
+    if (!professorCount) {
+      failures.push(`School ${schoolSlug} publishes instructor-named sections but zero professors.`);
+    }
+  }
 
   return {
     ok: failures.length === 0,
@@ -1109,9 +1338,12 @@ export async function publishSnapshotToSupabase(
     published_professor_course_summaries: await deleteMissingRows(client, "published_professor_course_summaries", schoolIds, "id", payload.summaries.map((row) => row.id)),
     department_aggregates: await deleteMissingRows(client, "department_aggregates", schoolIds, "id", payload.departmentAggregates.map((row) => row.id)),
     published_grade_distribution_series: await deleteMissingRows(client, "published_grade_distribution_series", schoolIds, "id", payload.gradeSeries.map((row) => row.id)),
+    courses: await deleteMissingRows(client, "courses", schoolIds, "id", payload.courses.map((row) => row.id)),
+    professors: await deleteMissingRows(client, "professors", schoolIds, "id", payload.professors.map((row) => row.id)),
   };
 
-  const { error: snapshotError } = await client.from("raw_source_snapshots").upsert({
+  let snapshotArtifactMode: "full" | "compact" = "full";
+  let { error: snapshotError } = await client.from("raw_source_snapshots").upsert({
     id: runId,
     school_id: null,
     source_key: "published_catalog_run",
@@ -1119,6 +1351,21 @@ export async function publishSnapshotToSupabase(
     fetched_at: materializedSnapshot.updatedAt,
     payload: materializedSnapshot,
   }, { onConflict: "id", ignoreDuplicates: false });
+  if (snapshotError) {
+    snapshotArtifactMode = "compact";
+    const compactArtifact = buildCompactPublishedSnapshotArtifact(
+      materializedSnapshot,
+      payload,
+    );
+    ({ error: snapshotError } = await client.from("raw_source_snapshots").upsert({
+      id: runId,
+      school_id: null,
+      source_key: "published_catalog_run",
+      source_type: "json",
+      fetched_at: materializedSnapshot.updatedAt,
+      payload: compactArtifact,
+    }, { onConflict: "id", ignoreDuplicates: false }));
+  }
   if (snapshotError) throw new Error(`Failed saving published snapshot artifact: ${snapshotError.message}`);
 
   const { error: controlError } = await client.from("published_catalog_control").upsert({
@@ -1135,10 +1382,11 @@ export async function publishSnapshotToSupabase(
     status: "success",
     started_at: new Date().toISOString(),
     finished_at: new Date().toISOString(),
-    detail: {
-      snapshot_id: runId,
-      published_at: materializedSnapshot.updatedAt,
-      counts: {
+      detail: {
+        snapshot_id: runId,
+        snapshot_artifact_mode: snapshotArtifactMode,
+        published_at: materializedSnapshot.updatedAt,
+        counts: {
         schools: payload.schools.length,
         professors: payload.professors.length,
         courses: payload.courses.length,

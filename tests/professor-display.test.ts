@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { formatProfessorDisplayName } from "@/lib/professor-display";
+import {
+  formatProfessorDisplayName,
+  resolveProfessorProfileName,
+} from "@/lib/professor-display";
 
 describe("formatProfessorDisplayName", () => {
   it("normalizes LAST INITIAL (registrar caps)", () => {
@@ -13,5 +16,17 @@ describe("formatProfessorDisplayName", () => {
 
   it("leaves already mixed-case names lightly title-cased", () => {
     expect(formatProfessorDisplayName("jane doe")).toBe("Jane Doe");
+  });
+
+  it("uses the fullest matching professor name for the profile page", () => {
+    expect(
+      resolveProfessorProfileName("W. Chu", ["Wei Chu", "W. Chu", "William Chen"]),
+    ).toBe("Wei Chu");
+  });
+
+  it("keeps the abbreviated form when no trustworthy full-name candidate exists", () => {
+    expect(
+      resolveProfessorProfileName("S. Lupoli", ["Sam Patel", "R. Elms", "S. Lupoli"]),
+    ).toBe("S. Lupoli");
   });
 });

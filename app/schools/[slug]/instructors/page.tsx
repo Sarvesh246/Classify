@@ -28,11 +28,9 @@ type InstructorsPageProps = {
     page?: string;
     evidence?: string;
     planning?: string;
+    source?: string;
   }>;
 };
-
-export const revalidate = 3600;
-export const dynamicParams = true;
 
 type CatalogOffering = ProfessorDirectoryRow;
 
@@ -91,6 +89,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
   const q = sp.q?.trim().toLowerCase() ?? "";
   const evidenceFilter = sp.evidence?.trim() ?? "";
   const planningFilter = sp.planning?.trim() ?? "";
+  const sourceFilter = sp.source?.trim() ?? "";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   let rows = [...allRows];
@@ -117,6 +116,20 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
     rows = rows.filter((item) => item.hasSchedulePresence);
   } else if (planningFilter === "catalog") {
     rows = rows.filter((item) => !item.hasSchedulePresence);
+  }
+  if (sourceFilter === "official") {
+    rows = rows.filter((item) => item.sourceKinds.includes("official_grades"));
+  } else if (sourceFilter === "rmp") {
+    rows = rows.filter((item) => item.sourceKinds.includes("rmp"));
+  } else if (sourceFilter === "schedule") {
+    rows = rows.filter((item) => item.sourceKinds.includes("schedule"));
+  } else if (sourceFilter === "identity") {
+    rows = rows.filter(
+      (item) =>
+        !item.sourceKinds.includes("official_grades") &&
+        !item.sourceKinds.includes("rmp") &&
+        !item.sourceKinds.includes("schedule"),
+    );
   }
 
   rows.sort((left, right) => compareInstructorRows(left, right, sortKey));
@@ -154,6 +167,9 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
     }
     if (extra.planning !== undefined ? extra.planning : planningFilter) {
       p.set("planning", (extra.planning !== undefined ? extra.planning : planningFilter) || "");
+    }
+    if (extra.source !== undefined ? extra.source : sourceFilter) {
+      p.set("source", (extra.source !== undefined ? extra.source : sourceFilter) || "");
     }
     const pg = extra.page ?? (safePage > 1 ? String(safePage) : "");
     if (pg && pg !== "1") p.set("page", pg);
@@ -239,6 +255,20 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 <option value="">All planning states</option>
                 <option value="schedule">Section timing ready</option>
                 <option value="catalog">Catalog only</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="text-muted">Source</span>
+              <select
+                name="source"
+                defaultValue={sourceFilter}
+                className="h-11 min-w-[11rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+              >
+                <option value="">All sources</option>
+                <option value="official">Official outcomes</option>
+                <option value="schedule">Schedule-linked</option>
+                <option value="rmp">RMP-backed</option>
+                <option value="identity">Identity only</option>
               </select>
             </label>
             <button

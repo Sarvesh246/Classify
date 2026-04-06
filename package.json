@@ -11,6 +11,9 @@
     "test:watch": "vitest",
     "catalog:merge": "tsx scripts/merge-published-catalog.ts",
     "catalog:directory:fixture": "python -m etl.scripts.import_school_directory --fixture",
+    "catalog:build-source-registry": "python -m etl.scripts.build_school_source_registry",
+    "catalog:sync-rmp:bulk": "python -m etl.scripts.sync_rmp_bulk",
+    "catalog:tamu:catalog": "python -m etl.scripts.fetch_tamu_course_catalog",
     "catalog:publish:supabase": "tsx scripts/publish-catalog-to-supabase.ts",
     "catalog:validate:supabase": "tsx scripts/validate-catalog-supabase.ts",
     "catalog:rollback:supabase": "tsx scripts/rollback-catalog-supabase.ts",
@@ -31,7 +34,7 @@
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
     "tailwind-merge": "^3.5.0",
-    "three": "^0.183.2"
+    "three": "0.182.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -133,6 +133,47 @@ searchable, catalog-ready, schedule-ready, and evidence-ready school counts sepa
 
 Set `RMP_GRAPHQL_ENDPOINT` before using the RMP sync script.
 
+To build a nationwide professor-source registry from the College Scorecard directory,
+published catalog state, and any existing `rmp_*.json` snapshots:
+
+```bash
+npm run catalog:build-source-registry
+```
+
+This writes `etl/output/school_source_registry.json` and tracks, per school:
+
+- directory coverage
+- published catalog / section / official-grade depth
+- current professor-coverage level
+- RMP sync readiness and known school legacy IDs
+- existing normalized RMP snapshots and match-audit counts
+
+To bulk-sync school-scoped RMP data for registry rows that already have known RMP
+school IDs:
+
+```bash
+npm run catalog:sync-rmp:bulk -- --only-missing --limit 50
+```
+
+That command updates the registry in place and writes:
+
+- `etl/output/raw/rmp_<school>.json`
+- `etl/output/rmp_<school>.json`
+
+If you need to map additional RMP school IDs manually, create
+`etl/output/school_source_registry_overrides.json` keyed by `school_slug`, for example:
+
+```json
+{
+  "ut-austin": {
+    "rmp_school_legacy_id": "19"
+  }
+}
+```
+
+The registry builder merges those overrides and marks schools without known RMP
+IDs as `pending_school_id` instead of guessing.
+
 ### Texas A&M batch catalog (ingest → app snapshot)
 
 Run in order. Raw artifacts are written under `etl/output/raw/tamu/`; combined records and
@@ -148,8 +189,13 @@ reads `etl/output/published_catalog.json` when present (often gitignored in fres
 2. **Aggregate** professor–course rows into catalog-shaped offerings:
 
    ```bash
+   npm run catalog:tamu:catalog
    python -m etl.scripts.aggregate_tamu_records
    ```
+
+   `catalog:tamu:catalog` enriches TAMU rows with official course titles and
+   descriptions from the public TAMU undergraduate catalog before the offerings
+   snapshot is rebuilt.
 
 3. **Merge** TAMU offerings into the published snapshot (replaces all `texas-am` seed offerings;
    exits successfully if `tamu_offerings.json` is missing):

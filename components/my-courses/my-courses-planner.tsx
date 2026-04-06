@@ -40,6 +40,7 @@ import {
   formatSectionSchedule,
   scoreToLabel,
 } from "@/lib/utils";
+import { endClientMeasure, startClientMeasure } from "@/lib/client-performance";
 
 const STORAGE_PREFIX = "classly:my-courses:";
 
@@ -261,6 +262,7 @@ export function MyCoursesPlanner({
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     if (!selectedSlugs.length) {
       setPlannerResult(null);
@@ -277,8 +279,15 @@ export function MyCoursesPlanner({
 
     setPlannerBusy(true);
     setPlannerError(null);
+    startClientMeasure(`planner-bootstrap:${schoolSlug}`, "planner_bootstrap_latency", {
+      school_slug: schoolSlug,
+      course_count: selectedSlugs.length,
+      ranking_mode: rankingMode,
+    });
 
-    fetch(`/api/planner/solve?${params.toString()}`)
+    fetch(`/api/planner/solve?${params.toString()}`, {
+      signal: controller.signal,
+    })
       .then(async (response) => {
         const payload = (await response.json().catch(() => null)) as
           | PlannerSolveResponse
@@ -300,12 +309,20 @@ export function MyCoursesPlanner({
         }
       })
       .catch((error: unknown) => {
+        if (controller.signal.aborted || String(error).includes("AbortError")) {
+          return;
+        }
         if (!cancelled) {
           setPlannerResult(null);
           setPlannerError(String(error));
         }
       })
       .finally(() => {
+        void endClientMeasure(`planner-bootstrap:${schoolSlug}`, {
+          school_slug: schoolSlug,
+          course_count: selectedSlugs.length,
+          ranking_mode: rankingMode,
+        });
         if (!cancelled) {
           setPlannerBusy(false);
         }
@@ -313,6 +330,7 @@ export function MyCoursesPlanner({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [rankingMode, schoolSlug, selectedSlugs]);
 
@@ -405,6 +423,10 @@ export function MyCoursesPlanner({
       ...current,
       [courseSlug]: { loading: true, sections: [], error: null },
     }));
+    startClientMeasure(`planner-sections:${schoolSlug}:${courseSlug}`, "planner_section_slice_latency", {
+      school_slug: schoolSlug,
+      course_slug: courseSlug,
+    });
 
     try {
       const response = await fetch(
@@ -432,6 +454,11 @@ export function MyCoursesPlanner({
           error: String(error),
         },
       }));
+    } finally {
+      void endClientMeasure(`planner-sections:${schoolSlug}:${courseSlug}`, {
+        school_slug: schoolSlug,
+        course_slug: courseSlug,
+      });
     }
   }
 

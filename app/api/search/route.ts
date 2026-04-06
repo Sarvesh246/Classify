@@ -73,6 +73,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
+    if (String(err).includes("bail out of prerendering")) {
+      return NextResponse.json({ results: [] }, { status: 200 });
+    }
     serverLog.error("search_api_failed", {
       error: String(err),
       path: request.nextUrl.pathname,

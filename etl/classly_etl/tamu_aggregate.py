@@ -6,9 +6,10 @@ import json
 import re
 from collections import defaultdict
 from dataclasses import replace
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from etl.classly_etl.models import GradeDistributionRecord
+from etl.classly_etl.adapters.tamu_catalog import normalize_tamu_catalog_code
 from etl.classly_etl.tamu_names import normalize_tamu_instructor
 
 TERM_ORDER = {"Spring": 1, "Summer": 2, "Fall": 3}
@@ -122,6 +123,7 @@ def aggregate_tamu_offerings(
     *,
     school_name: str = "Texas A&M University",
     coverage_tier: str = "institutional_only",
+    course_catalog: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """Group by professor + course + department; build trend + headline stats."""
     raw_list = [r for r in records if r.school_slug == "texas-am"]
@@ -158,9 +160,14 @@ def aggregate_tamu_offerings(
         ar_den = sum(r.sample_size for r in term_rows if r.a_pct is not None)
         a_rate = round(ar_num / ar_den, 1) if ar_den else latest.a_pct
 
-        cslug = course_slug(course_code, department)
+        normalized_course_code = normalize_tamu_catalog_code(course_code)
+        cslug = course_slug(normalized_course_code, department)
         pslug = prof_canon
         oid = f"texas-am-{cslug}-{pslug}"
+        course_meta = (course_catalog or {}).get(normalized_course_code, {})
+        official_course_name = str(course_meta.get("course_name") or "").strip()
+        course_name = official_course_name or latest.course_name or course_code
+        course_description = str(course_meta.get("description") or "").strip()
 
         dept_label = department or "General"
         offerings.append(
@@ -170,8 +177,8 @@ def aggregate_tamu_offerings(
                 "schoolName": school_name,
                 "professorSlug": pslug,
                 "courseSlug": cslug,
-                "courseCode": course_code,
-                "courseName": latest.course_name or course_code,
+                "courseCode": normalized_course_code,
+                "courseName": course_name,
                 "professorName": prof_display,
                 "department": dept_label,
                 "expectedGpa": expected_gpa,
@@ -183,12 +190,16 @@ def aggregate_tamu_offerings(
                 "termCount": len(term_rows),
                 "matchConfidence": 100,
                 "tags": [],
-                "summary": f"Aggregated from TAMU registrar grade reports for {course_code} with {len(term_rows)} term(s) on record.",
+                "summary": f"Aggregated from TAMU registrar grade reports for {normalized_course_code} with {len(term_rows)} term(s) on record.",
                 "professorTitle": "Instructor",
                 "professorSummary": (
-                    f"Official TAMU grade distributions for {prof_display} in {course_code}."
+                    f"Official TAMU grade distributions for {prof_display} in {course_name}."
                 ),
-                "courseSummary": f"TAMU {course_code} outcomes in {dept_label} from published grade reports.",
+                "courseSummary": (
+                    course_description
+                    if course_description
+                    else f"TAMU {normalized_course_code} outcomes in {dept_label} from published grade reports."
+                ),
                 "freshness": latest.term,
                 "sourceLabels": ["TAMU grade report PDF"],
                 "dataCompleteness": "institutional_full",

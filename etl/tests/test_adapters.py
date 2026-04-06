@@ -8,6 +8,11 @@ from etl.classly_etl.adapters.college_scorecard import (
 )
 from etl.classly_etl.adapters.public_json import PublicJsonAdapter
 from etl.classly_etl.adapters.rmp import LiveRMPGraphQLAdapter, RMPRatingAdapter
+from etl.classly_etl.adapters.tamu_catalog import (
+    TAMUCourseCatalogAdapter,
+    extract_course_codes,
+    strip_course_codes_from_title,
+)
 from etl.classly_etl.adapters.tamu import TexasAMGradeDistributionAdapter
 from etl.classly_etl.adapters.ut_austin import UTAustinTableauAdapter
 from etl.classly_etl.matchers import (
@@ -17,6 +22,7 @@ from etl.classly_etl.matchers import (
     resolve_professor_matches,
 )
 from etl.classly_etl.models import RMPRatingRecord
+from etl.classly_etl.tamu_aggregate import aggregate_tamu_offerings
 
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
@@ -295,6 +301,62 @@ class AdapterTests(unittest.TestCase):
             self.assertEqual(records[0].review_count, 42)
         finally:
             fixture_path.unlink(missing_ok=True)
+
+    def test_tamu_catalog_title_parser(self):
+        self.assertEqual(
+            extract_course_codes("CSCE 222/ECEN 222 Discrete Structures for Computing"),
+            ["CSCE 222", "ECEN 222"],
+        )
+        self.assertEqual(
+            strip_course_codes_from_title("CSCE 222/ECEN 222 Discrete Structures for Computing"),
+            "Discrete Structures for Computing",
+        )
+
+    def test_tamu_catalog_adapter_normalizes_course_blocks(self):
+        html = """
+        <div class="courseblock">
+          <h2 class="courseblocktitle">CSCE 221 Data Structures and Algorithms</h2>
+          <p class="courseblockdesc">Credits 4. Study of data structures.</p>
+        </div>
+        <div class="courseblock">
+          <h2 class="courseblocktitle">CSCE 222/ECEN 222 Discrete Structures for Computing</h2>
+          <p class="courseblockdesc">Credits 3. Discrete math foundations.</p>
+        </div>
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fixture_dir = Path(tmpdir)
+            (fixture_dir / "csce.html").write_text(html, encoding="utf-8")
+            adapter = TAMUCourseCatalogAdapter(
+                subject_prefixes=["CSCE"],
+                fixture_dir=fixture_dir,
+            )
+            records = list(adapter.normalize(adapter.fetch_raw()))
+
+        self.assertEqual(records[0]["course_code"], "CSCE 221")
+        self.assertEqual(records[0]["course_name"], "Data Structures and Algorithms")
+        self.assertEqual(records[1]["course_code"], "CSCE 222")
+        self.assertEqual(records[2]["course_code"], "ECEN 222")
+
+    def test_tamu_aggregate_uses_catalog_course_names(self):
+        adapter = TexasAMGradeDistributionAdapter(
+            year=2025,
+            term_code="C",
+            college_code="EN",
+            fixture_path=FIXTURES / "tamu_grade_report_excerpt.txt",
+        )
+        records = list(adapter.normalize(adapter.fetch_raw()))
+        offerings = aggregate_tamu_offerings(
+            records,
+            course_catalog={
+                "AERO 201": {
+                    "course_name": "Aerospace Engineering Lab",
+                    "description": "Official catalog description.",
+                }
+            },
+        )
+        aero = next(item for item in offerings if item["courseCode"] == "AERO 201")
+        self.assertEqual(aero["courseName"], "Aerospace Engineering Lab")
+        self.assertEqual(aero["courseSummary"], "Official catalog description.")
 
 
 if __name__ == "__main__":

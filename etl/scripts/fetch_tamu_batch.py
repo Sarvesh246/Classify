@@ -29,6 +29,10 @@ def load_colleges(args: argparse.Namespace) -> list[str]:
     raise ValueError("colleges file must be a JSON array of codes")
 
 
+def _looks_like_pdf(payload) -> bool:
+    return isinstance(payload, bytes) and payload.lstrip().startswith(b"%PDF")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Batch TAMU grade report fetch + parse")
     parser.add_argument("--year", type=int, default=2025)
@@ -50,6 +54,7 @@ def main() -> None:
         help="Combined normalized GradeDistributionRecord JSON",
     )
     parser.add_argument("--delay", type=float, default=1.5, help="Seconds between live requests")
+    parser.add_argument("--max-attempts", type=int, default=3)
     parser.add_argument(
         "--fixture",
         default="",
@@ -82,22 +87,32 @@ def main() -> None:
             colleges = colleges[: args.max_colleges]
         for i, code in enumerate(colleges):
             raw_path = out_dir / f"{args.year}_{args.term}_{code}.pdf"
-            try:
-                adapter = TexasAMGradeDistributionAdapter(
-                    year=args.year,
-                    term_code=args.term,
-                    college_code=code,
-                )
-                payload = adapter.fetch_raw()
-                if isinstance(payload, bytes):
-                    raw_path.write_bytes(payload)
-                else:
-                    raw_path = out_dir / f"{args.year}_{args.term}_{code}.txt"
-                    raw_path.write_text(str(payload), encoding="utf8")
-                normalized = list(adapter.normalize(payload))
-                all_records.extend(asdict(r) for r in normalized)
-            except Exception as exc:  # noqa: BLE001
-                print(f"[warn] {code}: {exc}")
+            last_error: Exception | None = None
+            for attempt in range(1, max(args.max_attempts, 1) + 1):
+                try:
+                    adapter = TexasAMGradeDistributionAdapter(
+                        year=args.year,
+                        term_code=args.term,
+                        college_code=code,
+                    )
+                    payload = adapter.fetch_raw()
+                    if isinstance(payload, bytes):
+                        if not _looks_like_pdf(payload):
+                            raise ValueError("Response was not a valid PDF payload")
+                        raw_path.write_bytes(payload)
+                    else:
+                        raw_path = out_dir / f"{args.year}_{args.term}_{code}.txt"
+                        raw_path.write_text(str(payload), encoding="utf8")
+                    normalized = list(adapter.normalize(payload))
+                    all_records.extend(asdict(r) for r in normalized)
+                    last_error = None
+                    break
+                except Exception as exc:  # noqa: BLE001
+                    last_error = exc
+                    if attempt < max(args.max_attempts, 1):
+                        time.sleep(max(args.delay, 0.25))
+            if last_error is not None:
+                print(f"[warn] {code}: {last_error}")
             if i + 1 < len(colleges) and args.delay > 0:
                 time.sleep(args.delay)
 

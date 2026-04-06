@@ -13,6 +13,7 @@ from etl.classly_etl.matchers import (
     load_normalized_rmp_records,
     resolve_professor_matches,
 )
+from etl.classly_etl.adapters.tamu_catalog import load_tamu_course_catalog
 from etl.classly_etl.tamu_aggregate import aggregate_tamu_offerings, records_from_json_rows
 
 
@@ -38,6 +39,10 @@ def main() -> None:
         "--reviews-output",
         default="etl/output/matches/texas-am_reviews.json",
     )
+    parser.add_argument(
+        "--catalog-input",
+        default="etl/output/tamu_course_catalog.json",
+    )
     args = parser.parse_args()
     inp = Path(args.input)
     out = Path(args.output)
@@ -45,7 +50,12 @@ def main() -> None:
         raise SystemExit(f"Missing {inp}; run fetch_tamu_batch first")
     rows = json.loads(inp.read_text(encoding="utf8"))
     records = records_from_json_rows(rows)
-    offerings = aggregate_tamu_offerings(records)
+    course_catalog = {}
+    catalog_input = Path(args.catalog_input)
+    if catalog_input.is_file():
+        course_catalog = load_tamu_course_catalog(catalog_input)
+
+    offerings = aggregate_tamu_offerings(records, course_catalog=course_catalog)
 
     rmp_input = Path(args.rmp_input)
     if rmp_input.is_file():
