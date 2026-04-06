@@ -29,7 +29,7 @@ export default async function HomePage() {
     }));
 
   return (
-    <main className="min-h-screen bg-deep-ink text-ivory">
+    <main className="min-h-dvh bg-deep-ink text-ivory">
       <SiteHeader tone="home" />
       <HomeExperience
         coverage={{

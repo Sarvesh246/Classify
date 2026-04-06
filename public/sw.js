@@ -1,7 +1,9 @@
-const APP_SHELL_CACHE = "classify-shell-v1";
-const RUNTIME_CACHE = "classify-runtime-v1";
-const API_CACHE = "classify-api-v1";
+const APP_SHELL_CACHE = "classify-shell-v2";
+const RUNTIME_CACHE = "classify-runtime-v2";
+const API_CACHE = "classify-api-v2";
 const APP_SHELL_URLS = [
+  "/",
+  "/search",
   "/offline",
   "/manifest.webmanifest",
   "/pwa/icon.svg",
@@ -29,11 +31,16 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-async function networkFirst(request, cacheName, fallbackResponse) {
+async function networkFirst(request, cacheName, fallbackResponse, timeoutMs = 7000) {
   const cache = await caches.open(cacheName);
 
   try {
-    const response = await fetch(request);
+    const response = await Promise.race([
+      fetch(request),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("network timeout")), timeoutMs);
+      }),
+    ]);
     if (response && response.ok) {
       cache.put(request, response.clone());
     }
@@ -65,6 +72,7 @@ self.addEventListener("fetch", (event) => {
         request,
         RUNTIME_CACHE,
         caches.match("/offline").then((response) => response || Response.error()),
+        5500,
       ),
     );
     return;
@@ -89,6 +97,7 @@ self.addEventListener("fetch", (event) => {
             headers: { "Content-Type": "application/json" },
           },
         ),
+        5500,
       ),
     );
     return;
@@ -106,6 +115,7 @@ self.addEventListener("fetch", (event) => {
         request,
         RUNTIME_CACHE,
         caches.match(request).then((response) => response || caches.match("/offline")),
+        5500,
       ),
     );
   }

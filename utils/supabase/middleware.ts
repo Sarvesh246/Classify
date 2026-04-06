@@ -3,6 +3,12 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabasePublicUrlAndKey } from "@/utils/supabase/public-env";
 
+function hasSupabaseAuthCookie(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some(({ name }) => name.includes("sb-") && name.includes("auth-token"));
+}
+
 /**
  * Refreshes the Supabase auth session and forwards cookies on the response.
  * Call this from root `middleware.ts`.
@@ -14,6 +20,11 @@ export async function updateSession(request: NextRequest) {
 
   const config = getSupabasePublicUrlAndKey();
   if (!config) {
+    return supabaseResponse;
+  }
+
+  // No auth cookie present: skip refresh to keep anonymous requests fast.
+  if (!hasSupabaseAuthCookie(request)) {
     return supabaseResponse;
   }
 

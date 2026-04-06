@@ -6,8 +6,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Classify",
     description:
       "Professor and course intelligence with grade outcomes, trend data, and transparent coverage tiers.",
-    id: "/?source=pwa",
-    start_url: "/?source=pwa",
+    // Keep stable so iOS/Android web-app launch always resolves to home.
+    id: "/",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: "#f6f1e8",

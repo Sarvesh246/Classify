@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Search } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { MobileSearchCommand } from "@/components/search/mobile-search-command";
@@ -13,7 +14,7 @@ import { formatScore, scoreToLabel } from "@/lib/utils";
 const PAGE_SIZE = 24;
 
 type SearchPageProps = {
-  searchParams: Promise<{ q?: string; school?: string; type?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; school?: string; type?: string; page?: string; source?: string }>;
 };
 
 function parseFilterType(raw: string | undefined): SearchHitType | "all" {
@@ -23,6 +24,11 @@ function parseFilterType(raw: string | undefined): SearchHitType | "all" {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
+  // Legacy web-app shortcuts may still launch with `/search?source=pwa`.
+  // Home is the intended standalone entry surface.
+  if (params.source === "pwa" && !params.q && !params.school && !params.type && !params.page) {
+    redirect("/");
+  }
   const query = params.q?.trim() ?? "";
   const schoolParam = params.school?.trim() || undefined;
   const filterType = parseFilterType(params.type?.trim());

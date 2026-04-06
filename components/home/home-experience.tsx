@@ -162,7 +162,11 @@ export function HomeExperience({
       <div className="relative z-10">
         <section className="section-shell flex flex-col justify-start py-5 sm:py-8 md:min-h-[calc(100svh-4.5rem)] md:justify-center md:py-14">
           <div className="mx-auto w-full max-w-5xl">
-            <MobileHomeLaunchpad />
+            <MobileHomeLaunchpad
+              searchableSchools={coverage.searchableSchools}
+              plannerReadySchools={coverage.plannerReadySchools}
+              evidenceReadySchools={coverage.evidenceReadySchools ?? 0}
+            />
 
             <div className="mx-auto hidden max-w-4xl md:block">
               <SearchCombobox placeholder="Search a school, course code, or professor" />
