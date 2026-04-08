@@ -35,7 +35,7 @@ export function RecentSearchesPanel({
           "rounded-[24px] px-4 py-5 text-sm",
           tone === "dark"
             ? "border border-dashed border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.64),rgba(8,25,44,0.48))] text-white/74"
-            : "border border-dashed border-border/80 bg-white/56 text-muted",
+            : "border border-dashed border-border/80 bg-surface-raised-top/65 text-muted",
           className,
         )}
       >
@@ -51,7 +51,7 @@ export function RecentSearchesPanel({
         "rounded-[28px] p-4",
         tone === "dark"
           ? "border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.68),rgba(8,25,44,0.5))] shadow-[0_20px_44px_rgba(4,12,24,0.24)]"
-          : "border border-border/75 bg-white/70 shadow-[0_14px_36px_rgba(7,17,31,0.06)]",
+          : "border border-border/75 bg-surface-raised-top/75 shadow-[0_14px_36px_rgba(7,17,31,0.06)]",
         className,
       )}
     >
@@ -98,7 +98,7 @@ export function RecentSearchesPanel({
                   "flex items-center gap-3 rounded-[22px] px-3 py-3 transition",
                   tone === "dark"
                     ? "border border-white/12 bg-white/10 hover:bg-white/14"
-                    : "border border-border/65 bg-background/80 hover:bg-white",
+                    : "border border-border/65 bg-background/80 hover:bg-surface-raised-top/85",
                 )}
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink text-ivory">

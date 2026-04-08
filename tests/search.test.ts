@@ -59,6 +59,22 @@ describe("searchDirectory", () => {
     expect(results.some((item) => item.label.includes("Texas A&M"))).toBe(true);
   });
 
+  it("matches school ranking between type=all and type=school for the same query", async () => {
+    const query = "Texas A&M";
+    const cap = 24;
+    const allType = await searchDirectory(query, { limit: cap, type: "all" });
+    const schoolsFromAll = allType.filter((item) => item.type === "school");
+    const schoolOnly = await searchDirectory(query, { limit: cap, type: "school" });
+
+    expect(schoolOnly.every((item) => item.type === "school")).toBe(true);
+    const n = Math.min(schoolsFromAll.length, schoolOnly.length);
+    expect(n).toBeGreaterThan(0);
+    for (let i = 0; i < n; i++) {
+      expect(schoolOnly[i]?.label).toBe(schoolsFromAll[i]?.label);
+      expect(schoolOnly[i]?.slug).toBe(schoolsFromAll[i]?.slug);
+    }
+  });
+
   it("supports school-scoped professor search for compare mode", async () => {
     const results = await searchDirectory("CSCE", {
       type: "professor",

@@ -17,14 +17,15 @@ export function applyThemeClass(pref: ThemePreference): void {
 
 /** Used by inline script before paint and client after hydration. */
 export function resolveStoredOrSystemTheme(): ThemePreference {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   try {
     const raw = localStorage.getItem(THEME_STORAGE_KEY);
     if (raw === "dark" || raw === "light") return raw;
   } catch {
     /* private mode */
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  // Product default: dark mode when no explicit preference was chosen.
+  return "dark";
 }
 
 export function readStoredTheme(): ThemePreference | null {

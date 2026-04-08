@@ -55,7 +55,7 @@ export function SaveItemButton({
       <Link
         href="/login"
         className={cn(
-          "inline-flex items-center gap-2 rounded-full border border-border bg-white/80 px-4 py-2 text-sm font-medium text-ink transition hover:bg-white",
+          "inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-raised-top px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-teal/40 hover:bg-surface-raised-top/90",
           className,
         )}
       >
@@ -108,7 +108,7 @@ export function SaveItemButton({
           "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition",
           saved
             ? "cursor-default border-teal/40 bg-teal/10 text-ink"
-            : "border-border bg-white/80 text-ink hover:bg-white",
+            : "border-border-strong bg-surface-raised-top text-ink hover:border-teal/40 hover:bg-surface-raised-top/90",
         )}
       >
         <Bookmark className={cn("h-4 w-4", saved && "fill-current")} aria-hidden />

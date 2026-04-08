@@ -84,7 +84,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-4 md:pt-10">
+      <div className="page-shell pt-4 pb-16 md:pt-10 md:pb-10">
         <MobileSearchCommand
           query={query}
           schoolSlug={schoolParam}
@@ -156,7 +156,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     <Search className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="eyebrow">school</p>
+                    <p className="eyebrow">School</p>
                     <h2 className="text-2xl font-semibold capitalize text-ink">
                       School results
                     </h2>
@@ -202,7 +202,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       <Search className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="eyebrow">{key}</p>
+                      <p className="eyebrow capitalize">{key}</p>
                       <h2 className="text-2xl font-semibold capitalize text-ink">
                         {key} results
                       </h2>
@@ -261,7 +261,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       type: filterType,
                       page: safePage - 1,
                     })}
-                    className="rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full classify-chip-surface px-4 text-sm font-medium text-ink hover:bg-surface-raised-top/90"
                   >
                     Previous
                   </Link>
@@ -284,7 +284,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       type: filterType,
                       page: safePage + 1,
                     })}
-                    className="rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full classify-chip-surface px-4 text-sm font-medium text-ink hover:bg-surface-raised-top/90"
                   >
                     Next
                   </Link>

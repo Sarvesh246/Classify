@@ -241,7 +241,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-10">
+      <div className="page-shell pt-10 pb-16 md:pb-10">
         <section className="soft-panel rounded-[28px] p-4 sm:rounded-[34px] sm:p-8">
           <p className="eyebrow">{school.shortName}</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">All instructors</h1>
@@ -376,7 +376,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                   metric shown.
                 </p>
               </div>
-              <p className="w-full shrink-0 rounded-2xl border border-border/80 bg-white/60 px-4 py-3 text-sm text-muted sm:max-w-[min(100%,20rem)] sm:py-2.5">
+              <p className="w-full shrink-0 rounded-2xl border border-border/80 bg-surface-raised-top/70 px-4 py-3 text-sm text-muted sm:max-w-[min(100%,20rem)] sm:py-2.5">
                 <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-muted">
                   Active
                 </span>
@@ -392,7 +392,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                   key={group.id}
                   role="group"
                   aria-label={group.title}
-                  className="rounded-[20px] border border-border/60 bg-white/45 p-3.5 sm:rounded-[22px] sm:p-5"
+                  className="rounded-[20px] border border-border/60 bg-surface-raised-top/60 p-3.5 sm:rounded-[22px] sm:p-5"
                 >
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
                     <h3 className="text-sm font-semibold text-ink">{group.title}</h3>
@@ -452,7 +452,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                       ).map((c) => (
                         <li
                           key={`${item.id}-${c.courseCode}`}
-                          className="max-w-full break-words rounded-2xl border border-border/80 bg-white/70 px-2.5 py-1.5 text-xs leading-snug text-ink"
+                          className="max-w-full break-words rounded-2xl border border-border/80 bg-surface-raised-top/75 px-2.5 py-1.5 text-xs leading-snug text-ink"
                         >
                           <span className="font-semibold">{c.courseCode}</span>
                           {c.courseName ? (

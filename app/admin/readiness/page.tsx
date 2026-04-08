@@ -57,7 +57,7 @@ export default async function AdminReadinessPage() {
                 <p className="eyebrow">Readiness mix</p>
                 <h2 className="mt-2 text-2xl font-semibold text-ink">School support levels</h2>
               </div>
-              <span className="rounded-full border border-border bg-white/70 px-3 py-1.5 text-xs text-muted">
+              <span className="rounded-full classify-chip-surface px-3 py-1.5 text-xs text-muted">
                 Breadth-first launch gates
               </span>
             </div>

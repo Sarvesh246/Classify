@@ -73,14 +73,17 @@ export function useCombinedAuth(): {
   useEffect(() => {
     let firebaseUser: FirebaseUser | null = null;
     let supabaseUser: SupabaseUser | null = null;
+    let cancelled = false;
 
     const merge = () => {
+      if (cancelled) return;
       const merged = mergeUsers(firebaseUser, supabaseUser);
       setUser(merged);
       setSupabaseUserId(supabaseUser?.id ?? null);
     };
 
     const unsubFirebase = subscribeToAuthState((u) => {
+      if (cancelled) return;
       firebaseUser = u;
       merge();
     });
@@ -96,6 +99,7 @@ export function useCombinedAuth(): {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled) return;
       supabaseUser = session?.user ?? null;
       merge();
     });
@@ -107,10 +111,13 @@ export function useCombinedAuth(): {
         merge();
       })
       .finally(() => {
-        setSessionReady(true);
+        if (!cancelled) {
+          setSessionReady(true);
+        }
       });
 
     return () => {
+      cancelled = true;
       unsubFirebase();
       subscription.unsubscribe();
     };

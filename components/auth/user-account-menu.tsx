@@ -40,11 +40,11 @@ export function UserAccountMenu({
   const triggerClass = cn(
     "inline-flex max-w-full items-center gap-1 rounded-full text-sm font-medium transition-all duration-200 ease-out",
     compact ? "min-h-11 px-3 py-2" : "px-3 py-2",
-    "hover:-translate-y-px hover:shadow-md active:translate-y-0 active:shadow-sm",
-    "motion-reduce:transform-none motion-reduce:hover:shadow-none",
+    "hover:-translate-y-px active:translate-y-0",
+    "motion-reduce:transform-none",
     isHome
       ? "bg-ivory/12 text-ivory ring-1 ring-white/20 hover:bg-white/14 hover:ring-white/30"
-      : "border border-border bg-surface-strong/92 text-ink hover:border-teal/35 hover:bg-surface-raised-top hover:ring-1 hover:ring-teal/15 dark:hover:bg-white/10",
+      : "border border-border bg-surface-strong/92 text-ink shadow-classify-pill hover:border-teal/35 hover:bg-surface-raised-top hover:shadow-classify-pill-hover hover:ring-1 hover:ring-teal/15 active:shadow-classify-pill dark:hover:bg-white/10 motion-reduce:hover:shadow-classify-pill",
   );
 
   return (

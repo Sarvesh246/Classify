@@ -48,7 +48,7 @@ export default async function DepartmentPage({
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-10">
+      <div className="page-shell pt-10 pb-16 md:pb-10">
         <section className="soft-panel rounded-[34px] p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -88,13 +88,13 @@ export default async function DepartmentPage({
             <span className="self-center text-muted">Quick sort:</span>
             <Link
               href={`/schools/${slug}/departments/${departmentSlug}?sort=gpa`}
-              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-white"
+              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-surface-raised-top/90"
             >
               Easiest GPA
             </Link>
             <Link
               href={`/schools/${slug}/departments/${departmentSlug}?sort=trend_hard`}
-              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-white"
+              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-surface-raised-top/90"
             >
               Toughest trend
             </Link>
@@ -114,7 +114,7 @@ export default async function DepartmentPage({
                 className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                   sortKey === value
                     ? "border-deep-ink bg-deep-ink text-ivory"
-                    : "classify-chip-surface text-ink hover:bg-white"
+                    : "classify-chip-surface text-ink hover:bg-surface-raised-top/90"
                 }`}
               >
                 {label}

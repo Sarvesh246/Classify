@@ -19,6 +19,7 @@ export function SavedHub() {
   const [items, setItems] = useState<SavedItemRow[] | null>(null);
   const [sets, setSets] = useState<CompareSetRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [pendingItemIds, setPendingItemIds] = useState<string[]>([]);
   const [pendingSetIds, setPendingSetIds] = useState<string[]>([]);
 
@@ -31,7 +32,7 @@ export function SavedHub() {
       .then(([i, c]) => {
         if (ignore) return;
         if (!i || !c) {
-          setError("Could not load saved data. Try signing in again.");
+          setError("We could not load your library. Check your connection or sign in again.");
           setItems([]);
           setSets([]);
         } else {
@@ -42,7 +43,7 @@ export function SavedHub() {
       })
       .catch(() => {
         if (!ignore) {
-          setError("Something went wrong.");
+          setError("We could not reach the server. Check your connection and try again.");
           setItems([]);
           setSets([]);
         }
@@ -51,7 +52,7 @@ export function SavedHub() {
     return () => {
       ignore = true;
     };
-  }, [hydrated, supabaseUserId]);
+  }, [hydrated, supabaseUserId, loadAttempt]);
 
   async function removeItem(id: string) {
     const previous = items;
@@ -149,7 +150,23 @@ export function SavedHub() {
   }
 
   if (error) {
-    return <p className="text-sm font-medium text-copper">{error}</p>;
+    return (
+      <div className="rounded-[28px] border border-copper/35 bg-copper/[0.08] px-5 py-5 text-ink">
+        <p className="text-sm font-medium text-copper">{error}</p>
+        <button
+          type="button"
+          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-5 text-sm font-medium !text-ivory"
+          onClick={() => {
+            setError(null);
+            setItems(null);
+            setSets(null);
+            setLoadAttempt((n) => n + 1);
+          }}
+        >
+          Try again
+        </button>
+      </div>
+    );
   }
 
   const hasAny = (items?.length ?? 0) > 0 || (sets?.length ?? 0) > 0;
@@ -158,9 +175,10 @@ export function SavedHub() {
     return (
       <div className="space-y-4">
         <div className="soft-panel rounded-[28px] px-6 py-8 text-left text-muted">
-          <p className="text-lg font-semibold text-ink">Your library is ready.</p>
+          <p className="text-lg font-semibold text-ink">Nothing saved yet</p>
           <p className="mt-2 text-sm leading-6">
-            Save a professor, course, compare set, or planner draft and it will show up here.
+            Star a professor or course, or save a compare set—everything you keep for registration
+            season shows up here.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Link
@@ -171,7 +189,7 @@ export function SavedHub() {
             </Link>
             <Link
               href="/compare"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/80 px-5 text-sm font-medium text-ink"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-5 text-sm font-medium text-ink transition-colors hover:border-teal/40 hover:bg-surface-raised-top/90"
             >
               Open compare
             </Link>
@@ -215,7 +233,7 @@ export function SavedHub() {
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href={`/compare?ids=${encodeURIComponent(s.offering_ids.join(","))}${s.school_slug ? `&school=${encodeURIComponent(s.school_slug)}` : ""}`}
-                    className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
                   >
                     Open
                   </Link>
@@ -223,7 +241,7 @@ export function SavedHub() {
                     type="button"
                     disabled={pendingSetIds.includes(s.id)}
                     onClick={() => void removeSet(s.id)}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
                   >
                     {pendingSetIds.includes(s.id) ? "Removing..." : "Remove"}
                   </button>
@@ -267,7 +285,7 @@ export function SavedHub() {
                         ? `/schools/${item.school_slug}/professors/${item.professor_slug}`
                         : `/schools/${item.school_slug}/courses/${item.course_slug}`
                     }
-                    className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
                   >
                     Open
                   </Link>
@@ -275,7 +293,7 @@ export function SavedHub() {
                     type="button"
                     disabled={pendingItemIds.includes(item.id)}
                     onClick={() => void removeItem(item.id)}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 text-sm font-medium text-muted hover:text-ink disabled:opacity-55"
                   >
                     {pendingItemIds.includes(item.id) ? "Removing..." : "Remove"}
                   </button>

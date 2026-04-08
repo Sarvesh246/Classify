@@ -305,8 +305,7 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
   return 0;
 }
 
-async function buildSchoolSearchHits(allSchools: School[]): Promise<SearchHit[]> {
-  const catalogSchools = await getCatalogSchools();
+function buildSchoolSearchHits(allSchools: School[], catalogSchools: School[]): SearchHit[] {
   const catalogSchoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
   return allSchools.map((school) => {
     const catalogSchool = catalogSchoolLookup.get(school.slug);
@@ -470,6 +469,104 @@ function dedupeProfessorHitsForBrowse(
   return [...nonProfessors, ...bestByKey.values()];
 }
 
+async function collectSchoolOnlySortedSearchRows(
+  query: string,
+  options: SearchDirectoryOptions,
+): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
+  const { schoolSlug } = options;
+  const surface = options.surface ?? "page";
+  const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
+    getDirectorySchools(),
+    getCatalogSchools(),
+    getCatalogOfferings(),
+  ]);
+  const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
+  const directorySchoolLookup = new Map(allSchools.map((school) => [school.slug, school]));
+  const emptyOfferingLookup = new Map<string, ProfessorCourseSummary>();
+  const emptyCourseLookup = new Map<string, ProfessorCourseSummary>();
+  const emptyProfessorLookup = new Map<string, ProfessorDirectoryRow>();
+
+  const schoolHits = buildSchoolSearchHits(allSchools, catalogSchools).filter(
+    (hit) => !schoolSlug || hit.slug === schoolSlug,
+  );
+  const hits = schoolHits;
+
+  const queryLooksSpecific =
+    /\d/.test(query) || query.trim().length >= 4 || /\s/.test(query.trim());
+
+  const rows = hits
+    .map((hit): ScoredSearchRow => {
+      const school = directorySchoolLookup.get(hit.slug);
+
+      const aliasList = [
+        ...(school?.aliases ?? []),
+        hit.school,
+        hit.highlight,
+        hit.context.contextLabel,
+      ];
+
+      const textScore =
+        scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
+        schoolMatchBoost(query, hit, school);
+
+      if (query.trim() && textScore < minimumSchoolTextScore(query, surface)) {
+        return { hit, score: 0 };
+      }
+
+      return {
+        hit,
+        score:
+          textScore +
+          qualityBoost(hit, emptyOfferingLookup, emptyCourseLookup, emptyProfessorLookup),
+      };
+    })
+    .filter((item) => item.score > 0);
+
+  const dedupedRows = applyComboboxSchoolIntentFilter(
+    dedupeSchoolRows(rows),
+    query,
+    surface,
+  ).sort((left, right) => {
+    const order = { school: 0, course: 1, professor: 2 };
+    if (!queryLooksSpecific && order[left.hit.type] !== order[right.hit.type]) {
+      return order[left.hit.type] - order[right.hit.type];
+    }
+
+    const bothProfessor =
+      left.hit.type === "professor" && right.hit.type === "professor";
+    const browseAlphaProf = bothProfessor && !query.trim();
+    const cmpLast = (a: ScoredSearchRow, b: ScoredSearchRow) => {
+      const c = professorLastNameSortKey(a.hit.label).localeCompare(
+        professorLastNameSortKey(b.hit.label),
+        undefined,
+        { sensitivity: "base" },
+      );
+      if (c !== 0) return c;
+      return a.hit.label.localeCompare(b.hit.label, undefined, { sensitivity: "base" });
+    };
+
+    if (browseAlphaProf) {
+      return cmpLast(left, right);
+    }
+
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+
+    if (bothProfessor) {
+      return cmpLast(left, right);
+    }
+
+    if (order[left.hit.type] !== order[right.hit.type]) {
+      return order[left.hit.type] - order[right.hit.type];
+    }
+
+    return left.hit.label.localeCompare(right.hit.label, undefined, { sensitivity: "base" });
+  });
+
+  return { rows: dedupedRows, schoolsWithCatalogRows };
+}
+
 async function collectSortedSearchRows(
   query: string,
   options: SearchDirectoryOptions,
@@ -477,6 +574,11 @@ async function collectSortedSearchRows(
   const { schoolSlug, type = "all" } = options;
   const surface = options.surface ?? "page";
   const trimmedQuery = query.trim();
+
+  if (type === "school") {
+    return collectSchoolOnlySortedSearchRows(query, options);
+  }
+
   const broadSchoolOnlyQuery =
     !schoolSlug &&
     type === "all" &&
@@ -500,7 +602,7 @@ async function collectSortedSearchRows(
     professorDirectory.map((item) => [item.id, item]),
   );
   const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
-  const schoolHits = (await buildSchoolSearchHits(allSchools)).filter(
+  const schoolHits = buildSchoolSearchHits(allSchools, catalogSchools).filter(
     (hit) => !schoolSlug || hit.slug === schoolSlug,
   );
   let catalogHits = broadSchoolOnlyQuery

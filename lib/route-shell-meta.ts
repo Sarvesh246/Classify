@@ -45,7 +45,7 @@ export function getRouteShellMeta(pathname: string): RouteShellMeta {
       title: "Compare",
       subtitle: "Build a smarter shortlist.",
       actionHref: "/search",
-      actionLabel: "Add",
+      actionLabel: "Find classes",
       actionIcon: "search",
     };
   }

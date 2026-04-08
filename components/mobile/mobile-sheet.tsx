@@ -66,7 +66,7 @@ export function MobileSheet({
               ref={closeRef}
               type="button"
               onClick={onClose}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top text-ink transition-colors hover:border-teal/40 hover:bg-surface-raised-top/90"
               aria-label={`Dismiss ${title}`}
             >
               <X className="h-4 w-4" />

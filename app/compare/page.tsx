@@ -21,7 +21,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-4 md:pt-10">
+      <div className="page-shell pt-4 pb-16 md:pt-10 md:pb-10">
         <CompareBuilderClient
           catalog={catalog}
           initialSelectedIds={ids}

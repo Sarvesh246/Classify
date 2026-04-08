@@ -1,0 +1,6 @@
+[     504ms] [LOG] [Fast Refresh] done in 882ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[    2273ms] [INFO] [perf] web_vital_lcp: 1292ms {duration_ms: 1292, rating: good, nav_type: navigate} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[    2273ms] [INFO] [perf] web_vital_cls: 0ms {duration_ms: 0, rating: good, nav_type: navigate} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[    2274ms] [INFO] [perf] web_vital_lcp: 1292ms {duration_ms: 1292, rating: good, nav_type: navigate} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[    2274ms] [INFO] [perf] web_vital_cls: 0ms {duration_ms: 0, rating: good, nav_type: navigate} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27
+[    8678ms] Invalid or unexpected token

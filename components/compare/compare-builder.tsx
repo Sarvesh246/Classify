@@ -274,7 +274,7 @@ export function CompareBuilder({
                 });
                 setCatalogOpen(true);
               }}
-              className="inline-flex min-h-11 min-w-[6.75rem] items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+              className="inline-flex min-h-11 min-w-[6.75rem] items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-4 text-sm font-medium text-ink transition-colors hover:border-teal/40 hover:bg-surface-raised-top/90"
             >
               Browse
             </button>
@@ -291,10 +291,10 @@ export function CompareBuilder({
           </div>
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
-          <span className="rounded-full border border-border bg-white/70 px-3 py-1.5">
+          <span className="rounded-full classify-chip-surface px-3 py-1.5">
             {selected.length}/4 filled
           </span>
-          <span className="rounded-full border border-border bg-white/70 px-3 py-1.5">
+          <span className="rounded-full classify-chip-surface px-3 py-1.5">
             {activeCourseSlug ? "Course filtered" : "All compare-ready rows"}
           </span>
         </div>
@@ -382,7 +382,7 @@ export function CompareBuilder({
         </div>
 
         {supabaseUserId ? (
-          <div className="mt-6 rounded-[22px] border border-border/80 bg-white/55 p-4 sm:p-5">
+          <div className="mt-6 rounded-[22px] classify-inner p-4 sm:p-5">
             <p className="text-sm font-medium text-ink">Save to your account</p>
             <p className="mt-1 text-xs text-muted">
               Store this comparison to open later from{" "}
@@ -398,7 +398,7 @@ export function CompareBuilder({
                   value={saveName}
                   onChange={(e) => setSaveName(e.target.value)}
                   placeholder="e.g. Fall picks"
-                  className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                  className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                 />
               </label>
               <div className="flex min-w-[12rem] flex-1 flex-col gap-2 sm:flex-row sm:items-end">
@@ -407,7 +407,7 @@ export function CompareBuilder({
                   <select
                     value={loadSetId}
                     onChange={(e) => setLoadSetId(e.target.value)}
-                    className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                    className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                   >
                     <option value="">Choose a saved set...</option>
                     {compareSets.map((s) => (
@@ -421,7 +421,7 @@ export function CompareBuilder({
                   type="button"
                   disabled={!loadSetId}
                   onClick={loadSavedCompare}
-                  className="h-10 shrink-0 rounded-full border border-border bg-white px-4 text-sm font-medium text-ink disabled:opacity-50"
+                  className="h-10 shrink-0 rounded-full border border-border-strong bg-surface-raised-top px-4 text-sm font-medium text-ink disabled:opacity-50"
                 >
                   Load
                 </button>
@@ -511,7 +511,7 @@ export function CompareBuilder({
               />
             </div>
 
-            <div className="mt-4 rounded-[24px] border border-border/80 bg-white/65 p-4">
+            <div className="mt-4 rounded-[24px] classify-inner p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">Trend</p>
               <TrendSparkline trend={item.trend} className="mt-3" />
             </div>
@@ -547,7 +547,7 @@ export function CompareBuilder({
             key={`empty-${index}`}
             type="button"
             onClick={() => (isMobile ? setBuilderOpen(true) : setCatalogOpen(true))}
-            className="soft-panel flex min-h-[18rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-white/55 sm:min-h-[24rem]"
+            className="soft-panel flex min-h-[18rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-surface-raised-top/70 sm:min-h-[24rem]"
           >
             <span className="rounded-full classify-chip-surface px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted">
               Slot {selected.length + index + 1}
@@ -580,7 +580,7 @@ export function CompareBuilder({
                 });
                 setCatalogOpen(true);
               }}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-4 text-sm font-medium text-ink sm:w-auto"
             >
               Browse catalog
           </button>
@@ -792,7 +792,7 @@ export function CompareBuilder({
             </div>
 
             {supabaseUserId ? (
-              <div className="rounded-[22px] border border-border/80 bg-white/55 p-4">
+              <div className="rounded-[22px] classify-inner p-4">
                 <p className="text-sm font-medium text-ink">Save to your account</p>
                 <div className="mt-3 space-y-3">
                   <label className="block text-sm">
@@ -801,7 +801,7 @@ export function CompareBuilder({
                       value={saveName}
                       onChange={(e) => setSaveName(e.target.value)}
                       placeholder="e.g. Fall picks"
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                     />
                   </label>
                   <label className="block text-sm">
@@ -809,7 +809,7 @@ export function CompareBuilder({
                     <select
                       value={loadSetId}
                       onChange={(e) => setLoadSetId(e.target.value)}
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-base text-ink outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
                     >
                       <option value="">Choose a saved set...</option>
                       {compareSets.map((s) => (
@@ -827,7 +827,7 @@ export function CompareBuilder({
                         loadSavedCompare();
                         setBuilderOpen(false);
                       }}
-                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
                     >
                       Load
                     </button>
@@ -978,7 +978,7 @@ function MetricRow({
   meta?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white/70 px-4 py-3">
+    <div className="rounded-2xl classify-inner-soft px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <span className="text-muted">{label}</span>
         <strong className="text-ink">{value}</strong>

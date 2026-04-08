@@ -4,32 +4,54 @@ import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
   title: "Profile",
-  description: "Your Classify account and sign-in preferences.",
+  description: "Your Classify account, workspace shortcuts, and preferences.",
 };
 
 export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-8 pb-20 sm:pt-12 sm:pb-24">
-        <div className="mx-auto w-full max-w-lg">
-          <p className="eyebrow text-muted">Account</p>
-          <h1 className="app-page-title mt-2 font-semibold text-ink">Your profile</h1>
-          <p className="mt-3 text-base leading-relaxed text-muted">
-            Signed-in features include saved lists and planner sync when you use email sign-in.
-          </p>
-          <div className="mt-8">
+      <div className="page-shell pt-8 pb-16 sm:pt-12 md:pb-10">
+        <div className="mx-auto w-full max-w-5xl">
+          <header className="border-b border-border/50 pb-6 sm:pb-8">
+            <p className="eyebrow text-muted">Account</p>
+            <h1 className="app-page-title mt-2 font-semibold text-ink">Profile</h1>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">
+              Manage how you show up in Classify, jump to your workspace, and tune appearance. Email
+              sign-in powers saved lists and planner sync across devices.
+            </p>
+          </header>
+
+          <div className="mt-8 sm:mt-10">
             <ProfileClient />
           </div>
-          <p className="mt-10 text-center text-sm text-muted">
+
+          <nav
+            className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/40 pt-8 text-sm text-muted sm:mt-12"
+            aria-label="Footer links"
+          >
             <Link href="/search" className="font-medium text-ink underline-offset-2 hover:underline">
-              Back to search
+              Search
             </Link>
-            <span className="mx-2 text-border">·</span>
+            <span className="text-border" aria-hidden>
+              ·
+            </span>
             <Link href="/saved" className="font-medium text-ink underline-offset-2 hover:underline">
               Saved
             </Link>
-          </p>
+            <span className="text-border" aria-hidden>
+              ·
+            </span>
+            <Link href="/compare" className="font-medium text-ink underline-offset-2 hover:underline">
+              Compare
+            </Link>
+            <span className="text-border" aria-hidden>
+              ·
+            </span>
+            <Link href="/" className="font-medium text-ink underline-offset-2 hover:underline">
+              Home
+            </Link>
+          </nav>
         </div>
       </div>
     </main>

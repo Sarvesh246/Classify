@@ -37,7 +37,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-10">
+      <div className="page-shell pt-10 pb-16 md:pb-10">
         <section className="soft-panel rounded-[34px] p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -80,12 +80,12 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <StatCard
               label="Expected GPA"
               value={formatGpa(primary.expectedGpa)}
-              meta={`${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs dept avg`}
+              meta={`${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs illustrative baseline (not your school's real average)`}
             />
             <StatCard
               label="A-rate"
               value={formatPercent(primary.aRate)}
-              meta={`dept avg ~${deptARateAvg}%`}
+              meta={`~${deptARateAvg}% illustrative baseline (context only)`}
             />
             <StatCard
               label="Profile status"

@@ -139,9 +139,14 @@ export function LoginForm() {
           onClick={() => void onGoogle()}
           disabled={busy}
           className={cn(
-            "flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border/90 bg-white text-sm font-semibold text-slate-900 shadow-sm transition",
-            "hover:border-teal/35 hover:shadow-md",
-            "dark:border-white/18 dark:bg-white dark:text-slate-900",
+            "flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border/90 bg-white text-sm font-semibold text-[#0f172a] shadow-sm",
+            /* Solid white + dark label on hover/focus: avoid inheriting body --foreground on a light control. */
+            "transition-[border-color,box-shadow] duration-200 ease-out",
+            "hover:border-teal/35 hover:bg-white hover:text-[#0f172a] hover:shadow-md",
+            "focus-visible:border-teal/35 focus-visible:bg-white focus-visible:text-[#0f172a] focus-visible:shadow-md",
+            "dark:border-white/18 dark:bg-white dark:text-[#0f172a]",
+            "dark:hover:border-teal/40 dark:hover:bg-white dark:hover:text-[#0f172a]",
+            "dark:focus-visible:border-teal/40 dark:focus-visible:bg-white dark:focus-visible:text-[#0f172a]",
             "disabled:cursor-not-allowed disabled:opacity-55",
           )}
         >

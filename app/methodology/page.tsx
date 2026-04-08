@@ -16,7 +16,7 @@ export default async function MethodologyPage() {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
-      <div className="page-shell pt-10">
+      <div className="page-shell pt-10 pb-16 md:pb-10">
         <section className="soft-panel rounded-[34px] p-6 sm:p-8">
           <p className="eyebrow">Methodology</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">

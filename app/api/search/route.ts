@@ -67,11 +67,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ results }, {
-      headers: {
-        "X-RateLimit-Remaining": String(rateLimit.remaining),
+    return NextResponse.json(
+      { results },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600",
+          "X-RateLimit-Remaining": String(rateLimit.remaining),
+        },
       },
-    });
+    );
   } catch (err) {
     if (String(err).includes("bail out of prerendering")) {
       return NextResponse.json({ results: [] }, { status: 200 });

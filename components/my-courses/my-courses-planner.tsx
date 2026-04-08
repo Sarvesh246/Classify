@@ -573,7 +573,7 @@ export function MyCoursesPlanner({
             onFocus={() => setOpenSuggest(true)}
             placeholder="e.g. CSCE 181 or Data Science"
             disabled={!courseGroups.length}
-            className="relative z-0 h-11 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none"
+            className="relative z-0 h-11 w-full rounded-2xl border border-border bg-background px-4 text-ink outline-none"
             autoComplete="off"
           />
           {openSuggest && suggestions.length > 0 ? (
@@ -582,7 +582,7 @@ export function MyCoursesPlanner({
                 <li key={course.courseSlug}>
                   <button
                     type="button"
-                    className="w-full px-4 py-3 text-left text-sm hover:bg-white/80"
+                    className="w-full px-4 py-3 text-left text-sm hover:bg-surface-raised-top/70"
                     onClick={() => addCourse(course.courseSlug)}
                   >
                     <span className="font-semibold text-ink">{course.courseCode}</span>
@@ -675,7 +675,7 @@ export function MyCoursesPlanner({
             </div>
 
             {supabaseUserId ? (
-              <div className="mt-5 rounded-[24px] border border-border/80 bg-white/60 p-4">
+              <div className="mt-5 rounded-[24px] classify-inner p-4">
                 <p className="text-sm font-medium text-ink">Save planner draft</p>
                 <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-end">
                   <label className="flex-1 text-sm">
@@ -684,7 +684,7 @@ export function MyCoursesPlanner({
                       value={draftName}
                       onChange={(event) => setDraftName(event.target.value)}
                       placeholder="e.g. Spring shortlist"
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 outline-none"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-ink outline-none"
                     />
                   </label>
                   <label className="flex-1 text-sm">
@@ -693,7 +693,7 @@ export function MyCoursesPlanner({
                       value={draftTermLabel}
                       onChange={(event) => setDraftTermLabel(event.target.value)}
                       placeholder="e.g. Fall 2026"
-                      className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 outline-none"
+                      className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-ink outline-none"
                     />
                   </label>
                   <button
@@ -714,7 +714,7 @@ export function MyCoursesPlanner({
                       <select
                         value={draftToLoad}
                         onChange={(event) => setDraftToLoad(event.target.value)}
-                        className="mt-1 h-10 w-full rounded-xl border border-border bg-white px-3 outline-none"
+                        className="mt-1 h-10 w-full rounded-xl border border-border bg-background px-3 text-ink outline-none"
                       >
                         <option value="">Choose a draft...</option>
                         {drafts.map((draft) => (
@@ -728,7 +728,7 @@ export function MyCoursesPlanner({
                       type="button"
                       disabled={!draftToLoad}
                       onClick={loadDraft}
-                      className="h-10 rounded-full border border-border bg-white px-4 text-sm font-medium text-ink disabled:opacity-50"
+                      className="h-10 rounded-full border border-border-strong bg-surface-raised-top px-4 text-sm font-medium text-ink disabled:opacity-50"
                     >
                       Load
                     </button>
@@ -736,7 +736,7 @@ export function MyCoursesPlanner({
                       <button
                         type="button"
                         onClick={() => void removeDraft(draftToLoad)}
-                        className="h-10 rounded-full border border-border bg-white px-4 text-sm font-medium text-ink"
+                        className="h-10 rounded-full border border-border-strong bg-surface-raised-top px-4 text-sm font-medium text-ink"
                       >
                         Delete
                       </button>
@@ -764,7 +764,7 @@ export function MyCoursesPlanner({
                   return (
                     <article
                       key={selection.courseSlug}
-                      className="rounded-[24px] border border-border/80 bg-white/72 p-4"
+                      className="rounded-[24px] classify-inner p-4"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -801,7 +801,7 @@ export function MyCoursesPlanner({
                                   )}
                                 </p>
                               </div>
-                              <span className="rounded-full border border-border bg-white px-3 py-1 text-xs text-muted">
+                              <span className="rounded-full classify-chip-surface px-3 py-1 text-xs text-muted">
                                 {formatConfidenceTone(selection.section.evidenceProfile.confidenceLabel)}
                               </span>
                             </div>
@@ -846,7 +846,7 @@ export function MyCoursesPlanner({
                                         )}
                                       </p>
                                     </div>
-                                    <span className="rounded-full border border-border bg-white px-2.5 py-1 text-[0.7rem] text-muted">
+                                    <span className="rounded-full classify-chip-surface px-2.5 py-1 text-[0.7rem] text-muted">
                                       {section.id === selection.section?.id ? "Recommended" : section.rankingMode.replace(/_/g, " ")}
                                     </span>
                                   </div>
@@ -890,7 +890,7 @@ export function MyCoursesPlanner({
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                     sortKey === item.key
                       ? "border-deep-ink bg-deep-ink text-ivory"
-                      : "classify-chip-surface text-ink hover:bg-white"
+                      : "classify-chip-surface text-ink hover:bg-surface-raised-top/90"
                   }`}
                 >
                   {item.label}
@@ -918,7 +918,7 @@ export function MyCoursesPlanner({
                     </div>
                       <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                       {selectionLookup.get(course.courseSlug)?.section?.hasMeetingTime ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-white px-3 py-1.5 text-xs text-muted">
+                        <span className="inline-flex items-center gap-1 rounded-full classify-chip-surface px-3 py-1.5 text-xs text-muted">
                           <CalendarDays className="h-3.5 w-3.5" />
                           Schedule ready
                         </span>
@@ -946,10 +946,10 @@ export function MyCoursesPlanner({
                             </div>
                             <p className="mt-1 text-sm text-muted">{item.professorSummary}</p>
                             <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
-                              <span className="rounded-full border border-border bg-white px-3 py-1.5">
+                              <span className="rounded-full classify-chip-surface px-3 py-1.5">
                                 Freshness {formatFreshnessLabel(item.freshness)}
                               </span>
-                              <span className="rounded-full border border-border bg-white px-3 py-1.5">
+                              <span className="rounded-full classify-chip-surface px-3 py-1.5">
                                 {item.hasSectionPlanning ? "Section timing ready" : "Catalog only"}
                               </span>
                             </div>
@@ -1008,7 +1008,7 @@ export function MyCoursesPlanner({
             <button
               type="button"
               onClick={() => void copyShareLink()}
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-3 text-sm font-medium text-ink"
             >
               {copyState === "copied"
                 ? "Link copied"
@@ -1028,7 +1028,7 @@ export function MyCoursesPlanner({
             ) : (
               <Link
                 href="/login"
-                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-3 text-sm font-medium text-ink"
               >
                 Sign in
               </Link>
@@ -1036,7 +1036,7 @@ export function MyCoursesPlanner({
             <button
               type="button"
               onClick={jumpToRecommendations}
-                className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-3 text-sm font-medium text-ink"
+                className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-3 text-sm font-medium text-ink"
               >
                 View picks
               </button>

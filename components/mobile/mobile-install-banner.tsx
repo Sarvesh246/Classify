@@ -52,7 +52,7 @@ export function MobileInstallBanner() {
               window.localStorage.setItem(STORAGE_KEY, "1");
               setDismissed(true);
             }}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-white/78 text-muted"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top text-muted transition-colors hover:border-teal/40 hover:text-ink"
             aria-label="Dismiss install hint"
           >
             <X className="h-3.5 w-3.5" />

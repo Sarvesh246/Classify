@@ -25,7 +25,7 @@ export default function OfflinePage() {
           </Link>
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-5 text-sm font-medium text-ink"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-5 text-sm font-medium text-ink transition-colors hover:border-teal/40 hover:bg-surface-raised-top/90"
           >
             Back to home
           </Link>

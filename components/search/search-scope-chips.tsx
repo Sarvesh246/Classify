@@ -106,7 +106,7 @@ export function SearchScopeChips({
               "inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border px-4 py-2 text-center text-sm font-medium transition md:min-h-10",
               chip.active
                 ? "border-deep-ink bg-deep-ink text-ivory shadow-[0_8px_20px_rgba(8,25,44,0.18)]"
-                : "classify-chip-surface text-ink hover:bg-white",
+                : "classify-chip-surface text-ink hover:bg-surface-raised-top/90",
             )}
           >
             {chip.label}

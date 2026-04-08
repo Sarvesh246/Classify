@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 /** RFC1918-style host patterns so `next dev` works when opened via LAN IP, not only localhost. */
 const privateLanDevOrigins = [
+  "localhost",
+  "127.0.0.1",
   "192.168.*",
   "10.*",
   "172.16.*",

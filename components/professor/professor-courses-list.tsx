@@ -39,7 +39,7 @@ export function ProfessorCoursesList({
               "rounded-full border px-4 py-2 text-sm font-medium transition",
               sort === key
                 ? "border-deep-ink bg-deep-ink text-ivory"
-                : "classify-chip-surface text-ink hover:bg-white",
+                : "classify-chip-surface text-ink hover:bg-surface-raised-top/90",
             )}
           >
             {label}

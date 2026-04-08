@@ -58,7 +58,7 @@ export function GradeDistributionPanel({
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                 selected.term === item.term
                   ? "border-deep-ink bg-deep-ink text-ivory"
-                  : "border-border bg-background text-ink hover:bg-white"
+                  : "border-border bg-background text-ink hover:bg-surface-raised-top/90"
               }`}
             >
               {item.term}

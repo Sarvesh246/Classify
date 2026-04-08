@@ -7,20 +7,28 @@ export default function NotFound() {
       <SiteHeader />
       <div className="page-shell pt-16">
         <div className="soft-panel rounded-[34px] px-6 py-16 text-center sm:px-10">
-          <p className="eyebrow">Not found</p>
+          <p className="eyebrow">Page not found</p>
           <h1 className="display-title mt-4 text-4xl font-semibold text-ink">
-            This record is not published in the current Classify dataset yet
+            We couldn&apos;t find that page
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted">
-            The route exists for nationwide coverage, but this record has not been
-            published from the live directory or aggregate pipeline yet.
+            The link may be mistyped, or a school or professor page isn&apos;t available yet. Try
+            search, or browse from home.
           </p>
-          <Link
-            href="/search"
-            className="mt-8 inline-flex rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
-          >
-            Go back to search
-          </Link>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/search"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-5 py-3 text-sm font-medium text-ivory"
+            >
+              Open search
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border-strong px-5 py-3 text-sm font-medium text-ink"
+            >
+              Back to home
+            </Link>
+          </div>
         </div>
       </div>
     </main>

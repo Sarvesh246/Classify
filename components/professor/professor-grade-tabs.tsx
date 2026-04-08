@@ -60,7 +60,7 @@ export function ProfessorGradeTabs({
               className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                 item.id === active.id
                   ? "border-deep-ink bg-deep-ink text-ivory"
-                  : "classify-chip-surface text-ink hover:bg-white"
+                  : "classify-chip-surface text-ink hover:bg-surface-raised-top/90"
               }`}
             >
               {item.courseCode}

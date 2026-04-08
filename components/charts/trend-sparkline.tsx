@@ -16,7 +16,7 @@ export function TrendSparkline({
     return (
       <div
         className={cn(
-          "flex h-14 items-center rounded-2xl border border-border/80 bg-white/55 px-4 text-sm text-muted",
+          "flex h-14 items-center rounded-2xl border border-border/80 bg-surface-raised-top/70 px-4 text-sm text-muted",
           className,
         )}
       >

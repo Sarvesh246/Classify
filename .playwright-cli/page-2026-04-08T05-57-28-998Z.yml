@@ -1,0 +1,44 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "Go back to previous page" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+        - link "Classify home" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e12]:
+            - img [ref=e14]
+            - generic [ref=e19]:
+              - generic [ref=e20]: Classify
+              - generic [ref=e21]: Course Intelligence
+      - navigation [ref=e22]:
+        - link "Search" [ref=e23] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e24] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e25] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e26] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e27] [cursor=pointer]:
+          - /url: /search
+      - generic [ref=e28]:
+        - button "Toggle color theme" [ref=e29] [cursor=pointer]:
+          - img [ref=e30]
+        - link "Search" [ref=e32] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e33]
+          - text: Search
+        - status [ref=e36]: Loading...
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - heading "Welcome" [level=1] [ref=e40]
+        - paragraph [ref=e41]:
+          - text: Sign in with Google for quick local access, or use email-link sign-in for cloud saves and planner sync.
+          - link "Browse without an account" [ref=e42] [cursor=pointer]:
+            - /url: /search
+          - text: anytime.
+      - status "Loading" [ref=e45]
+  - alert [ref=e52]

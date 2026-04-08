@@ -50,7 +50,7 @@ export function MobileSearchCommand({
         subtitle="Reopen a school, course, or professor without typing again."
       />
 
-      <section className="rounded-[28px] border border-border/75 bg-white/64 p-4">
+      <section className="rounded-[28px] border border-border/75 bg-surface-raised-top/70 p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">Start here</p>

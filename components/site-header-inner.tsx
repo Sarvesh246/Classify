@@ -15,7 +15,7 @@ interface SiteHeaderInnerProps {
 }
 
 const navLinkClassName = cn(
-  "group relative inline-flex py-1 transition-colors duration-200 ease-out",
+  "group relative inline-flex min-h-11 items-center py-2 transition-colors duration-200 ease-out",
   "hover:text-teal focus-visible:text-teal",
   "after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-teal after:transition-transform after:duration-200 after:ease-out",
   "motion-reduce:after:transition-none motion-reduce:transition-none",
@@ -52,7 +52,7 @@ export function SiteHeaderInner({ tone = "app", backSlot }: SiteHeaderInnerProps
           <Link href="/methodology" className={navLinkClassName}>
             Methodology
           </Link>
-          <Link href="/search" className={navLinkClassName}>
+          <Link href="/search?type=school" className={navLinkClassName}>
             Schools
           </Link>
         </nav>
@@ -62,11 +62,11 @@ export function SiteHeaderInner({ tone = "app", backSlot }: SiteHeaderInnerProps
             href="/search"
             className={cn(
               "hidden min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out sm:inline-flex",
-              "hover:-translate-y-px hover:shadow-md active:translate-y-0 active:shadow-sm",
-              "motion-reduce:transform-none motion-reduce:hover:shadow-none",
+              "hover:-translate-y-px active:translate-y-0",
+              "motion-reduce:transform-none",
               isHome
                 ? "glass-line text-ivory hover:bg-white/18 hover:ring-1 hover:ring-white/25"
-                : "border border-border bg-surface-strong/85 hover:border-teal/40 hover:bg-surface-raised-top hover:ring-1 hover:ring-teal/20 dark:bg-surface-raised-bottom/80 dark:hover:bg-white/10",
+                : "border border-border bg-surface-strong/85 shadow-classify-pill hover:border-teal/40 hover:bg-surface-raised-top hover:shadow-classify-pill-hover hover:ring-1 hover:ring-teal/20 active:shadow-classify-pill dark:bg-surface-raised-bottom/80 dark:hover:bg-white/10 motion-reduce:hover:shadow-classify-pill",
             )}
           >
             <Search className="h-4 w-4" />

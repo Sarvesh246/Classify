@@ -38,6 +38,8 @@ The final result should feel like a distinct, original product built specificall
 
 - Restore missing or empty `.env.local` from `.env.example` (variable names) and provider dashboards (values); ignored env files are not in git.
 - Home should look the same after client-side navigation back to `/` as on first load (dark hero shell, hero scroll position, WebGL background when the device supports it).
+- Default site experience is dark mode; users can set their preferred default theme in profile (including light if they want).
+- For UI/UX-scoped product work, do not change ETL, catalog merge pipelines, scrape/source engines, or data quality.
 
 ## Learned Workspace Facts
 

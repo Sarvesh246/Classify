@@ -849,7 +849,7 @@ function ResultContent({
           {item.secondaryMetrics.slice(0, 3).map((metric) => (
             <span
               key={metric}
-              className="rounded-full border border-border/80 bg-white/70 px-2.5 py-1"
+              className="rounded-full classify-chip-surface px-2.5 py-1"
             >
               {metric}
             </span>

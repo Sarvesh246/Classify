@@ -1,0 +1,38 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - link "Classify home" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - generic [ref=e16]:
+            - generic [ref=e17]: Classify
+            - generic [ref=e18]: Course Intelligence
+      - navigation [ref=e19]:
+        - link "Search" [ref=e20] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e21] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e22] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e23] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e24] [cursor=pointer]:
+          - /url: /search
+      - generic [ref=e25]:
+        - button "Toggle color theme" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+        - link "Search" [ref=e29] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e30]
+          - text: Search
+        - status [ref=e33]: Loading...
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - paragraph [ref=e36]: Your library
+        - heading "Saved" [level=1] [ref=e37]
+        - paragraph [ref=e38]: Your saved professors, courses, compare sets, and planner drafts live here.
+      - status "Loading" [ref=e41]
+  - alert [ref=e48]

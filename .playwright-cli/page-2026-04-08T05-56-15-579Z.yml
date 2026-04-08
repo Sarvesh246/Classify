@@ -1,0 +1,292 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "Go back to previous page" [ref=e8] [cursor=pointer]:
+          - img [ref=e9]
+        - link "Classify home" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e12]:
+            - img [ref=e14]
+            - generic [ref=e19]:
+              - generic [ref=e20]: Classify
+              - generic [ref=e21]: Course Intelligence
+      - navigation [ref=e22]:
+        - link "Search" [ref=e23] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e24] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e25] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e26] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e27] [cursor=pointer]:
+          - /url: /search
+      - generic [ref=e28]:
+        - button "Toggle color theme" [ref=e29] [cursor=pointer]:
+          - img [ref=e30]
+        - link "Search" [ref=e32] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e33]
+          - text: Search
+        - status [ref=e36]: Loading...
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - paragraph [ref=e41]: College Station, TX
+            - heading "Texas A&M University" [level=1] [ref=e42]
+            - paragraph [ref=e43]: Evidence-backed school profile with published sections, instructors, and ranking signals. Every school uses the same Classify planning surface. Course depth, schedule detail, and evidence strength expand as catalog, section, and outcome data land.
+          - generic [ref=e44]: High evidence
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - paragraph [ref=e47]: Planner readiness
+            - paragraph [ref=e48]: Evidence-backed planning
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Professor coverage
+            - paragraph [ref=e51]: Institutional outcomes live
+          - generic [ref=e52]:
+            - paragraph [ref=e53]: Primary source
+            - paragraph [ref=e54]: Official registrar grade distribution PDFs
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: Freshness
+            - paragraph [ref=e57]: Apr 5, 2026
+        - generic [ref=e58]:
+          - generic [ref=e59]: Course catalog
+          - generic [ref=e60]: Section schedule
+          - generic [ref=e61]: Official grades
+          - generic [ref=e62]: RMP enrichment
+        - generic [ref=e63]:
+          - link "Instructor outcomes live" [ref=e64] [cursor=pointer]:
+            - /url: /schools/texas-am/instructors
+          - link "Open planner" [ref=e65] [cursor=pointer]:
+            - /url: /schools/texas-am/my-courses
+          - link "Search within Texas A&M" [ref=e66] [cursor=pointer]:
+            - /url: /search?school=texas-am
+      - generic [ref=e67]:
+        - paragraph [ref=e68]: Course planning
+        - generic [ref=e69]:
+          - link "BIMS 101 - Introduction to Biomedical Sciences COLLEGE OF VETERINARY MEDICINE Compare published instructor outcomes for BIMS 101 Introduction to Biomedical Sciences. Top pick J. Rodriguez Easy | score 96" [ref=e70] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/bims-101-college-of-veterinary-medicine
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - heading "BIMS 101 - Introduction to Biomedical Sciences" [level=2] [ref=e73]
+                - paragraph [ref=e74]: COLLEGE OF VETERINARY MEDICINE
+              - img [ref=e75]
+            - paragraph [ref=e77]: Compare published instructor outcomes for BIMS 101 Introduction to Biomedical Sciences.
+            - generic [ref=e78]:
+              - generic [ref=e79]: Top pick J. Rodriguez
+              - generic [ref=e80]: Easy | score 96
+          - link "ENGL 210 - Technical and Professional Writing ENGLISH Compare published instructor outcomes for ENGL 210 Technical and Professional Writing. Top pick K. Anders Easy | score 96" [ref=e81] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/engl-210-english
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - heading "ENGL 210 - Technical and Professional Writing" [level=2] [ref=e84]
+                - paragraph [ref=e85]: ENGLISH
+              - img [ref=e86]
+            - paragraph [ref=e88]: Compare published instructor outcomes for ENGL 210 Technical and Professional Writing.
+            - generic [ref=e89]:
+              - generic [ref=e90]: Top pick K. Anders
+              - generic [ref=e91]: Easy | score 96
+          - link "KINE 199 - Required Physical Activity KINESIOLOGY & SPORT MANAGEMENT Compare published instructor outcomes for KINE 199 Required Physical Activity. Top pick H. Thornton Easy | score 96" [ref=e92] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/kine-199-kinesiology-and-sport-management
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - heading "KINE 199 - Required Physical Activity" [level=2] [ref=e95]
+                - paragraph [ref=e96]: KINESIOLOGY & SPORT MANAGEMENT
+              - img [ref=e97]
+            - paragraph [ref=e99]: Compare published instructor outcomes for KINE 199 Required Physical Activity.
+            - generic [ref=e100]:
+              - generic [ref=e101]: Top pick H. Thornton
+              - generic [ref=e102]: Easy | score 96
+          - link "COMM 410 - Radio, Records, and Popular Music COMMUNICATION & JOURNALISM Compare published instructor outcomes for COMM 410 Radio, Records, and Popular Music. Top pick J. Lopez Easy | score 96" [ref=e103] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/comm-410-communication-and-journalism
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - heading "COMM 410 - Radio, Records, and Popular Music" [level=2] [ref=e106]
+                - paragraph [ref=e107]: COMMUNICATION & JOURNALISM
+              - img [ref=e108]
+            - paragraph [ref=e110]: Compare published instructor outcomes for COMM 410 Radio, Records, and Popular Music.
+            - generic [ref=e111]:
+              - generic [ref=e112]: Top pick J. Lopez
+              - generic [ref=e113]: Easy | score 96
+          - link "STAT 683 - Statistics STATISTICS Compare published instructor outcomes for STAT 683 STAT 683. Top pick H. Salman Easy | score 96" [ref=e114] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/stat-683-statistics
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - heading "STAT 683 - Statistics" [level=2] [ref=e117]
+                - paragraph [ref=e118]: STATISTICS
+              - img [ref=e119]
+            - paragraph [ref=e121]: Compare published instructor outcomes for STAT 683 STAT 683.
+            - generic [ref=e122]:
+              - generic [ref=e123]: Top pick H. Salman
+              - generic [ref=e124]: Easy | score 96
+          - link "INST 363 - English as a Second Language Methods II EDUCATIONAL PSYCHOLOGY Compare published instructor outcomes for INST 363 English as a Second Language Methods II. Top pick H. Benzina Easy | score 96" [ref=e125] [cursor=pointer]:
+            - /url: /schools/texas-am/courses/inst-363-educational-psychology
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - heading "INST 363 - English as a Second Language Methods II" [level=2] [ref=e128]
+                - paragraph [ref=e129]: EDUCATIONAL PSYCHOLOGY
+              - img [ref=e130]
+            - paragraph [ref=e132]: Compare published instructor outcomes for INST 363 English as a Second Language Methods II.
+            - generic [ref=e133]:
+              - generic [ref=e134]: Top pick H. Benzina
+              - generic [ref=e135]: Easy | score 96
+      - generic [ref=e136]:
+        - generic [ref=e137]:
+          - paragraph [ref=e138]: Current evidence
+          - generic [ref=e139]:
+            - link "J. Rodriguez BIMS 101 - Introduction to Biomedical Sciences Easy score 96 J. Rodriguez teaching BIMS 101 Introduction to Biomedical Sciences" [ref=e140] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/rodriguez-j
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - heading "J. Rodriguez" [level=2] [ref=e143]
+                  - paragraph [ref=e144]: BIMS 101 - Introduction to Biomedical Sciences
+                - generic [ref=e145]:
+                  - paragraph [ref=e146]: Easy
+                  - paragraph [ref=e147]: score 96
+              - paragraph [ref=e148]: J. Rodriguez teaching BIMS 101 Introduction to Biomedical Sciences
+            - link "J. Lopez COMM 410 - Radio, Records, and Popular Music Easy score 96 J. Lopez teaching COMM 410 Radio, Records, and Popular Music" [ref=e149] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/lopez-j
+              - generic [ref=e150]:
+                - generic [ref=e151]:
+                  - heading "J. Lopez" [level=2] [ref=e152]
+                  - paragraph [ref=e153]: COMM 410 - Radio, Records, and Popular Music
+                - generic [ref=e154]:
+                  - paragraph [ref=e155]: Easy
+                  - paragraph [ref=e156]: score 96
+              - paragraph [ref=e157]: J. Lopez teaching COMM 410 Radio, Records, and Popular Music
+            - link "K. Anders ENGL 210 - Technical and Professional Writing Easy score 96 K. Anders teaching ENGL 210 Technical and Professional Writing" [ref=e158] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/anders-k
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - heading "K. Anders" [level=2] [ref=e161]
+                  - paragraph [ref=e162]: ENGL 210 - Technical and Professional Writing
+                - generic [ref=e163]:
+                  - paragraph [ref=e164]: Easy
+                  - paragraph [ref=e165]: score 96
+              - paragraph [ref=e166]: K. Anders teaching ENGL 210 Technical and Professional Writing
+            - link "H. Salman STAT 683 - Statistics Easy score 96 H. Salman teaching STAT 683 STAT 683" [ref=e167] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/salman-h
+              - generic [ref=e168]:
+                - generic [ref=e169]:
+                  - heading "H. Salman" [level=2] [ref=e170]
+                  - paragraph [ref=e171]: STAT 683 - Statistics
+                - generic [ref=e172]:
+                  - paragraph [ref=e173]: Easy
+                  - paragraph [ref=e174]: score 96
+              - paragraph [ref=e175]: H. Salman teaching STAT 683 STAT 683
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - img [ref=e179]
+            - generic [ref=e183]:
+              - paragraph [ref=e184]: Department rankings
+              - heading "Strongest departments right now" [level=2] [ref=e185]
+          - generic [ref=e186]:
+            - link "General Engineering 39 professors | 5 courses Classify 52 GPA 3.11" [ref=e187] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/general-engineering
+              - generic [ref=e188]:
+                - paragraph [ref=e189]: General Engineering
+                - paragraph [ref=e190]: 39 professors | 5 courses
+              - generic [ref=e191]:
+                - paragraph [ref=e192]: Classify 52
+                - paragraph [ref=e193]: GPA 3.11
+            - link "Computer Science 1 professors | 1 courses Classify 85 GPA 3.85" [ref=e194] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/computer-science
+              - generic [ref=e195]:
+                - paragraph [ref=e196]: Computer Science
+                - paragraph [ref=e197]: 1 professors | 1 courses
+              - generic [ref=e198]:
+                - paragraph [ref=e199]: Classify 85
+                - paragraph [ref=e200]: GPA 3.85
+            - link "TEACHING, LEARNING & CULTURE 64 professors | 68 courses Classify 78 GPA 3.87" [ref=e201] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/teaching-learning-and-culture
+              - generic [ref=e202]:
+                - paragraph [ref=e203]: TEACHING, LEARNING & CULTURE
+                - paragraph [ref=e204]: 64 professors | 68 courses
+              - generic [ref=e205]:
+                - paragraph [ref=e206]: Classify 78
+                - paragraph [ref=e207]: GPA 3.87
+            - link "HORTICULTURAL SCIENCES 18 professors | 31 courses Classify 78 GPA 3.74" [ref=e208] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/horticultural-sciences
+              - generic [ref=e209]:
+                - paragraph [ref=e210]: HORTICULTURAL SCIENCES
+                - paragraph [ref=e211]: 18 professors | 31 courses
+              - generic [ref=e212]:
+                - paragraph [ref=e213]: Classify 78
+                - paragraph [ref=e214]: GPA 3.74
+            - link "COLLEGE OF ARTS & SCIENCES 23 professors | 21 courses Classify 75 GPA 3.61" [ref=e215] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/college-of-arts-and-sciences
+              - generic [ref=e216]:
+                - paragraph [ref=e217]: COLLEGE OF ARTS & SCIENCES
+                - paragraph [ref=e218]: 23 professors | 21 courses
+              - generic [ref=e219]:
+                - paragraph [ref=e220]: Classify 75
+                - paragraph [ref=e221]: GPA 3.61
+            - link "ANTHROPOLOGY 34 professors | 33 courses Classify 75 GPA 3.62" [ref=e222] [cursor=pointer]:
+              - /url: /schools/texas-am/departments/anthropology
+              - generic [ref=e223]:
+                - paragraph [ref=e224]: ANTHROPOLOGY
+                - paragraph [ref=e225]: 34 professors | 33 courses
+              - generic [ref=e226]:
+                - paragraph [ref=e227]: Classify 75
+                - paragraph [ref=e228]: GPA 3.62
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - img [ref=e232]
+          - generic [ref=e235]:
+            - paragraph [ref=e236]: Hidden gems
+            - heading "High-outcome options with lower enrollment" [level=2] [ref=e237]
+        - generic [ref=e238]:
+          - link "J. Rodriguez BIMS 101 - Introduction to Biomedical Sciences High evidence Easy | score 96 GPA 4.00 A-rate 100% Sample 22" [ref=e239] [cursor=pointer]:
+            - /url: /schools/texas-am/professors/rodriguez-j
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - paragraph [ref=e242]: J. Rodriguez
+                - paragraph [ref=e243]: BIMS 101 - Introduction to Biomedical Sciences
+              - generic [ref=e244]: High evidence
+            - generic [ref=e245]:
+              - generic [ref=e246]: Easy | score 96
+              - generic [ref=e247]: GPA 4.00
+              - generic [ref=e248]: A-rate 100%
+              - generic [ref=e249]: Sample 22
+          - link "J. Lopez COMM 410 - Radio, Records, and Popular Music High evidence Easy | score 96 GPA 4.00 A-rate 100% Sample 24" [ref=e250] [cursor=pointer]:
+            - /url: /schools/texas-am/professors/lopez-j
+            - generic [ref=e251]:
+              - generic [ref=e252]:
+                - paragraph [ref=e253]: J. Lopez
+                - paragraph [ref=e254]: COMM 410 - Radio, Records, and Popular Music
+              - generic [ref=e255]: High evidence
+            - generic [ref=e256]:
+              - generic [ref=e257]: Easy | score 96
+              - generic [ref=e258]: GPA 4.00
+              - generic [ref=e259]: A-rate 100%
+              - generic [ref=e260]: Sample 24
+          - link "K. Anders ENGL 210 - Technical and Professional Writing High evidence Easy | score 96 GPA 4.00 A-rate 100% Sample 26" [ref=e261] [cursor=pointer]:
+            - /url: /schools/texas-am/professors/anders-k
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - paragraph [ref=e264]: K. Anders
+                - paragraph [ref=e265]: ENGL 210 - Technical and Professional Writing
+              - generic [ref=e266]: High evidence
+            - generic [ref=e267]:
+              - generic [ref=e268]: Easy | score 96
+              - generic [ref=e269]: GPA 4.00
+              - generic [ref=e270]: A-rate 100%
+              - generic [ref=e271]: Sample 26
+          - link "H. Salman STAT 683 - Statistics High evidence Easy | score 96 GPA 4.00 A-rate 100% Sample 24" [ref=e272] [cursor=pointer]:
+            - /url: /schools/texas-am/professors/salman-h
+            - generic [ref=e273]:
+              - generic [ref=e274]:
+                - paragraph [ref=e275]: H. Salman
+                - paragraph [ref=e276]: STAT 683 - Statistics
+              - generic [ref=e277]: High evidence
+            - generic [ref=e278]:
+              - generic [ref=e279]: Easy | score 96
+              - generic [ref=e280]: GPA 4.00
+              - generic [ref=e281]: A-rate 100%
+              - generic [ref=e282]: Sample 24
+  - button "Open Next.js Dev Tools" [ref=e288] [cursor=pointer]:
+    - img [ref=e289]

@@ -14,7 +14,7 @@ export default function SearchLoading() {
           </p>
         </section>
         <div
-          className="mt-8 min-h-[18rem] rounded-[30px] border border-border/50 bg-white/35"
+          className="mt-8 min-h-[18rem] rounded-[30px] border border-border/50 bg-surface-raised-top/55"
           aria-hidden
         />
       </div>

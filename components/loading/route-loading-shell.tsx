@@ -37,11 +37,21 @@ export function RouteLoadingShell({
             </div>
           </div>
         </div>
-        <div className="hidden md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center">
-          <ClassifyLoadingMark size="lg" tone="light" />
-          <p className="mt-8 text-[0.72rem] uppercase tracking-[0.2em] text-muted">
-            Loading
-          </p>
+        <div className="hidden max-w-xl md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center">
+          <div className="w-full rounded-[30px] border border-border-strong bg-surface-strong/90 p-6 text-ink shadow-classify-panel">
+            <p className="eyebrow">{eyebrow}</p>
+            <h1 className="display-title mt-2 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+              {title}
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+            <div className="mt-6 flex items-center gap-4 rounded-[24px] border border-border/80 bg-background/60 px-4 py-4">
+              <ClassifyLoadingMark size="md" tone="light" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-ink">{loadingLabel}</p>
+                <p className="mt-1 text-xs text-muted">{loadingDetail}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
