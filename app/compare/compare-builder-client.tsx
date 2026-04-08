@@ -11,7 +11,7 @@ const CompareBuilder = dynamic(
     loading: () => (
       <div
         aria-busy="true"
-        className="flex min-h-[min(56vh,480px)] flex-col items-center justify-center rounded-[30px] border border-border/70 bg-white/55 py-16"
+        className="classify-inner-soft flex min-h-[min(56vh,480px)] flex-col items-center justify-center rounded-[30px] py-16"
       >
         <ClassifyLoadingMark size="lg" tone="light" label="Loading compare builder" />
       </div>

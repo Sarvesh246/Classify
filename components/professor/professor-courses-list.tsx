@@ -39,7 +39,7 @@ export function ProfessorCoursesList({
               "rounded-full border px-4 py-2 text-sm font-medium transition",
               sort === key
                 ? "border-deep-ink bg-deep-ink text-ivory"
-                : "border-border bg-white/72 text-ink hover:bg-white",
+                : "classify-chip-surface text-ink hover:bg-white",
             )}
           >
             {label}
@@ -51,7 +51,7 @@ export function ProfessorCoursesList({
           <Link
             key={item.id}
             href={`/schools/${schoolSlug}/courses/${item.courseSlug}`}
-            className="rounded-[24px] border border-border/70 bg-white/72 p-4"
+            className="rounded-[24px] classify-inner p-4"
           >
             <div className="flex items-center justify-between gap-4">
               <div>

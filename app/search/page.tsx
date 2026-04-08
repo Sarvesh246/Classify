@@ -167,7 +167,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     <Link
                       key={item.id}
                       href={item.href}
-                      className="flex flex-col gap-3 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white sm:rounded-[24px] sm:py-4"
+                      className="classify-inner classify-inner--hover flex flex-col gap-3 rounded-[22px] px-4 py-3 transition sm:rounded-[24px] sm:py-4"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
@@ -223,7 +223,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                             <Link
                               key={item.id}
                               href={item.href}
-                              className="flex flex-col gap-2 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3 transition hover:bg-white sm:rounded-[24px]"
+                              className="classify-inner classify-inner--hover flex flex-col gap-2 rounded-[22px] px-4 py-3 transition sm:rounded-[24px]"
                             >
                               <h3 className="text-base font-semibold text-ink sm:text-lg">{item.label}</h3>
                               {item.rankHints?.length ? (
@@ -261,7 +261,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       type: filterType,
                       page: safePage - 1,
                     })}
-                    className="rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                    className="rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink hover:bg-white"
                   >
                     Previous
                   </Link>
@@ -284,7 +284,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       type: filterType,
                       page: safePage + 1,
                     })}
-                    className="rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink hover:bg-white"
+                    className="rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink hover:bg-white"
                   >
                     Next
                   </Link>
@@ -300,15 +300,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 What to search first
               </h2>
               <div className="mt-6 space-y-3 text-sm text-muted">
-                <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+                <div className="rounded-[24px] classify-inner px-4 py-4">
                   Try a school name first if you want the full school hub, planner
                   entry point, and instructor directory.
                 </div>
-                <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+                <div className="rounded-[24px] classify-inner px-4 py-4">
                   Try a course code like <code>CS 312</code>{" "}if your question is{" "}
                   &quot;who teaches this class and gives the best outcomes?&quot;
                 </div>
-                <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+                <div className="rounded-[24px] classify-inner px-4 py-4">
                   Try a professor name if you already know the person and want a
                   direct path into the profile page and compare flow.
                 </div>
@@ -321,7 +321,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   <Link
                     key={item.id}
                     href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                    className="block rounded-[24px] border border-border/70 bg-white/72 px-4 py-4"
+                    className="block rounded-[24px] classify-inner px-4 py-4"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>

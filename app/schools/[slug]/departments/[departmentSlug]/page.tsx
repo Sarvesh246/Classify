@@ -88,13 +88,13 @@ export default async function DepartmentPage({
             <span className="self-center text-muted">Quick sort:</span>
             <Link
               href={`/schools/${slug}/departments/${departmentSlug}?sort=gpa`}
-              className="rounded-full border border-border bg-white/72 px-3 py-1.5 font-medium text-ink hover:bg-white"
+              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-white"
             >
               Easiest GPA
             </Link>
             <Link
               href={`/schools/${slug}/departments/${departmentSlug}?sort=trend_hard`}
-              className="rounded-full border border-border bg-white/72 px-3 py-1.5 font-medium text-ink hover:bg-white"
+              className="rounded-full classify-chip-surface px-3 py-1.5 font-medium text-ink hover:bg-white"
             >
               Toughest trend
             </Link>
@@ -114,7 +114,7 @@ export default async function DepartmentPage({
                 className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                   sortKey === value
                     ? "border-deep-ink bg-deep-ink text-ivory"
-                    : "border-border bg-white/72 text-ink hover:bg-white"
+                    : "classify-chip-surface text-ink hover:bg-white"
                 }`}
               >
                 {label}
@@ -128,7 +128,7 @@ export default async function DepartmentPage({
             {offerings.map((item) => (
               <div
                 key={item.id}
-                className="grid gap-4 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 lg:grid-cols-[1.08fr_0.92fr_auto]"
+                className="grid gap-4 rounded-[24px] classify-inner px-4 py-4 lg:grid-cols-[1.08fr_0.92fr_auto]"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -192,7 +192,7 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-border/70 bg-white/72 ${
+      className={`rounded-2xl classify-inner ${
         compact ? "px-4 py-3 text-sm" : "p-5"
       }`}
     >

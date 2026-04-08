@@ -600,7 +600,7 @@ export function MyCoursesPlanner({
             {selectedMeta.map((course) => (
               <span
                 key={course.courseSlug}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-white/72 px-3 py-1.5 text-sm"
+                className="inline-flex items-center gap-2 rounded-full classify-chip-surface px-3 py-1.5 text-sm"
               >
                 <Link
                   href={`/schools/${schoolSlug}/courses/${course.courseSlug}`}
@@ -626,7 +626,7 @@ export function MyCoursesPlanner({
             <button
               type="button"
               onClick={() => void copyShareLink()}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink"
             >
               <Copy className="h-4 w-4" />
               {copyState === "copied" ? "Link copied" : copyState === "error" ? "Copy failed" : "Copy share link"}
@@ -665,10 +665,10 @@ export function MyCoursesPlanner({
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-muted">
-                <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                <span className="rounded-full classify-chip-surface px-3 py-1.5">
                   {formatPlannerReadiness(supportProfile?.plannerReadiness ?? "directory_ready")}
                 </span>
-                <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                <span className="rounded-full classify-chip-surface px-3 py-1.5">
                   Updated {plannerResult ? formatFreshnessLabel(plannerResult.updatedAt) : "Loading"}
                 </span>
               </div>
@@ -747,7 +747,7 @@ export function MyCoursesPlanner({
             ) : null}
 
             {plannerBusy ? (
-              <div className="mt-5 rounded-[24px] border border-border/70 bg-white/72 px-4 py-10 text-sm text-muted">
+              <div className="mt-5 rounded-[24px] classify-inner px-4 py-10 text-sm text-muted">
                 Building planner recommendations...
               </div>
             ) : plannerError ? (
@@ -819,7 +819,7 @@ export function MyCoursesPlanner({
                       </div>
 
                       {expanded ? (
-                        <div className="mt-4 rounded-[20px] border border-border/70 bg-white/80 p-4">
+                        <div className="classify-inner mt-4 rounded-[20px] p-4">
                           {sectionState?.loading ? (
                             <p className="text-sm text-muted">Loading sections...</p>
                           ) : sectionState?.error ? (
@@ -890,7 +890,7 @@ export function MyCoursesPlanner({
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                     sortKey === item.key
                       ? "border-deep-ink bg-deep-ink text-ivory"
-                      : "border-border bg-white/72 text-ink hover:bg-white"
+                      : "classify-chip-surface text-ink hover:bg-white"
                   }`}
                 >
                   {item.label}
@@ -907,7 +907,7 @@ export function MyCoursesPlanner({
               {coursePanels.map(({ course, offerings }) => (
                 <article
                   key={course.courseSlug}
-                  className="rounded-[26px] border border-border/70 bg-white/72 p-4"
+                  className="rounded-[26px] classify-inner p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -1057,7 +1057,7 @@ function MetricCard({
   meta?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-background px-4 py-3 text-sm">
+    <div className="classify-well rounded-2xl px-4 py-3 text-sm">
       <span className="text-muted">{label}</span>
       <p className="mt-1 font-semibold text-ink">{value}</p>
       {meta ? <p className="mt-1 text-xs text-muted">{meta}</p> : null}

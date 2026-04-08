@@ -285,7 +285,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 name="q"
                 defaultValue={sp.q ?? ""}
                 placeholder="Name, course prefix, department..."
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
                 autoComplete="off"
                 enterKeyHint="search"
               />
@@ -295,7 +295,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               <select
                 name="dept"
                 defaultValue={deptFilter}
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[12rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[12rem] sm:text-sm"
               >
                 <option value="">All departments</option>
                 {departments.map((d) => (
@@ -311,7 +311,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 name="course"
                 defaultValue={sp.course ?? ""}
                 placeholder="Code or title, e.g. CSCE 121"
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
                 autoComplete="off"
               />
             </label>
@@ -320,7 +320,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               <select
                 name="evidence"
                 defaultValue={evidenceFilter}
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All evidence</option>
                 <option value="official">Institutional stats</option>
@@ -333,7 +333,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               <select
                 name="planning"
                 defaultValue={planningFilter}
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All planning states</option>
                 <option value="schedule">Section timing ready</option>
@@ -345,7 +345,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               <select
                 name="source"
                 defaultValue={sourceFilter}
-                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-surface-strong/90 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All sources</option>
                 <option value="official">Official outcomes</option>
@@ -408,7 +408,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                           className={`inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-deep-ink active:opacity-90 ${
                             active
                               ? "border-deep-ink bg-deep-ink text-ivory shadow-sm"
-                              : "border-border/90 bg-white/80 text-ink hover:border-border hover:bg-white"
+                              : "border-border/90 bg-surface-strong/90 text-ink hover:border-border hover:bg-surface-raised-top dark:hover:bg-white/10"
                           }`}
                           aria-current={active ? "true" : undefined}
                         >

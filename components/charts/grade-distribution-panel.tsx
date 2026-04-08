@@ -39,7 +39,7 @@ export function GradeDistributionPanel({
   }
 
   return (
-    <div className={cn("rounded-[24px] border border-border/70 bg-white/72 p-4", className)}>
+    <div className={cn("rounded-[24px] classify-inner p-4", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="eyebrow">Grade distribution</p>
@@ -92,7 +92,7 @@ export function GradeDistributionPanel({
         {selected.buckets.map((bucket) => (
           <div
             key={bucket.grade}
-            className="rounded-[18px] border border-border/70 bg-background px-3 py-3 text-sm"
+            className="classify-well rounded-[18px] px-3 py-3 text-sm"
           >
             <p className="eyebrow">{bucket.grade}</p>
             <p className="mt-2 font-semibold text-ink">{bucket.count}</p>
@@ -102,13 +102,13 @@ export function GradeDistributionPanel({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
-        <span className="rounded-full border border-border bg-background px-3 py-1.5">
+        <span className="classify-well rounded-full px-3 py-1.5">
           Sample {selected.sampleSize}
         </span>
-        <span className="rounded-full border border-border bg-background px-3 py-1.5">
+        <span className="classify-well rounded-full px-3 py-1.5">
           GPA {selected.avgGpa == null ? "Unavailable" : selected.avgGpa.toFixed(2)}
         </span>
-        <span className="rounded-full border border-border bg-background px-3 py-1.5">
+        <span className="classify-well rounded-full px-3 py-1.5">
           Source {selected.sourceLabel}
         </span>
       </div>

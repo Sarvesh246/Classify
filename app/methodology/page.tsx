@@ -56,21 +56,21 @@ When a signal is missing:
               <CoverageBadge tier="rmp_only" />
             </div>
             <div className="mt-5 space-y-3 text-sm text-muted">
-              <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+              <div className="rounded-[24px] classify-inner px-4 py-4">
                 <strong className="text-ink">High evidence</strong> means official
                 outcomes are present and may also be paired with RMP enrichment.
               </div>
-              <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+              <div className="rounded-[24px] classify-inner px-4 py-4">
                 <strong className="text-ink">Official data</strong> means Classify can
                 still rank with institutional outcomes even if external enrichment is
                 absent or intentionally disabled.
               </div>
-              <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+              <div className="rounded-[24px] classify-inner px-4 py-4">
                 <strong className="text-ink">Limited evidence</strong> means the
                 school stays searchable and planner-ready, but grade outcomes are not
                 yet published locally and reliability messaging stays softer.
               </div>
-              <div className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4">
+              <div className="rounded-[24px] classify-inner px-4 py-4">
                 <strong className="text-ink">Planner readiness</strong> describes how
                 much baseline structure is available: directory-ready, catalog-ready,
                 or schedule-ready.
@@ -92,7 +92,7 @@ When a signal is missing:
           </div>
           <div className="mt-6 space-y-3">
             {breakdown.map((row) => (
-              <div key={row.key} className="rounded-[24px] border border-border/70 bg-white/72 p-4">
+              <div key={row.key} className="rounded-[24px] classify-inner p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-semibold text-ink">{row.label}</p>

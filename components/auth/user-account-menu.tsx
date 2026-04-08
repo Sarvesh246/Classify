@@ -44,7 +44,7 @@ export function UserAccountMenu({
     "motion-reduce:transform-none motion-reduce:hover:shadow-none",
     isHome
       ? "bg-ivory/12 text-ivory ring-1 ring-white/20 hover:bg-white/14 hover:ring-white/30"
-      : "border border-border bg-white/85 text-ink hover:border-teal/35 hover:bg-white hover:ring-1 hover:ring-teal/15",
+      : "border border-border bg-surface-strong/92 text-ink hover:border-teal/35 hover:bg-surface-raised-top hover:ring-1 hover:ring-teal/15 dark:hover:bg-white/10",
   );
 
   return (
@@ -73,7 +73,7 @@ export function UserAccountMenu({
             "absolute right-0 top-[calc(100%+0.35rem)] z-[80] min-w-[12rem] rounded-[20px] border py-1 shadow-lg",
             isHome
               ? "border-white/14 bg-deep-ink/95 text-ivory backdrop-blur-xl"
-              : "border-border/80 bg-white/96 text-ink backdrop-blur-xl",
+              : "border-border/80 bg-surface-strong/98 text-ink backdrop-blur-xl dark:border-border-strong dark:bg-surface-raised-bottom/98",
           )}
         >
           <Link

@@ -74,7 +74,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
               {supportProfile.sourceAvailability.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                  className="rounded-full classify-chip-surface px-3 py-1.5"
                 >
                   {formatEvidenceSource(item)}
                 </span>
@@ -118,7 +118,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                 <Link
                   key={course.courseSlug}
                   href={`/schools/${slug}/courses/${course.courseSlug}`}
-                  className="flex flex-col gap-2 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 transition hover:bg-white"
+                  className="classify-inner classify-inner--hover flex flex-col gap-2 rounded-[24px] px-4 py-4 transition"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -172,7 +172,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                   <Link
                     key={item.id}
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="block rounded-[24px] border border-border/70 bg-white/72 px-4 py-4"
+                    className="block rounded-[24px] classify-inner px-4 py-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -232,7 +232,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                   <Link
                     key={department.departmentSlug}
                     href={`/schools/${slug}/departments/${department.departmentSlug}`}
-                    className="flex items-center justify-between gap-4 rounded-[22px] border border-border/70 bg-white/72 px-4 py-4 transition hover:bg-white"
+                    className="classify-inner classify-inner--hover flex items-center justify-between gap-4 rounded-[22px] px-4 py-4 transition"
                   >
                     <div>
                       <p className="text-lg font-semibold text-ink">
@@ -284,7 +284,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                 <Link
                   key={item.id}
                   href={`/schools/${slug}/professors/${item.professorSlug}`}
-                  className="rounded-[24px] border border-border/70 bg-white/72 p-4"
+                  className="rounded-[24px] classify-inner p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -326,7 +326,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[26px] border border-border/70 bg-white/72 p-5">
+    <div className="rounded-[26px] classify-inner p-5">
       <p className="eyebrow">{label}</p>
       <p className="mt-3 text-lg font-semibold text-ink">{value}</p>
     </div>

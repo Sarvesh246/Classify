@@ -34,7 +34,7 @@ export function CourseProfessorList({
 
   return (
     <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
-      <div className="sticky top-24 z-10 -mx-2 mb-5 flex flex-wrap gap-2 rounded-[24px] border border-border/70 bg-background/92 p-3 backdrop-blur sm:mx-0">
+      <div className="sticky top-24 z-10 -mx-2 mb-5 flex flex-wrap gap-2 rounded-[24px] border border-border-strong bg-surface-strong/95 p-3 shadow-classify-card backdrop-blur sm:mx-0">
         {offeringSortLabels.map((item) => (
           <button
             key={item.key}
@@ -43,7 +43,7 @@ export function CourseProfessorList({
             className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
               sortKey === item.key
                 ? "border-deep-ink bg-deep-ink text-ivory"
-                : "border-border bg-white/72 text-ink hover:bg-white"
+                : "classify-chip-surface text-ink hover:bg-white"
             }`}
           >
             {item.label}
@@ -55,7 +55,7 @@ export function CourseProfessorList({
         {sorted.map((item) => (
           <div
             key={item.id}
-            className="grid gap-4 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 lg:grid-cols-[1.08fr_0.92fr_auto]"
+            className="grid gap-4 rounded-[24px] classify-inner px-4 py-4 lg:grid-cols-[1.08fr_0.92fr_auto]"
           >
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -118,7 +118,7 @@ function MetricCard({
   meta?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-background px-4 py-3 text-sm">
+    <div className="classify-well rounded-2xl px-4 py-3 text-sm">
       <span className="text-muted">{label}</span>
       <p className="mt-1 font-semibold text-ink">{value}</p>
       {meta ? <p className="mt-1 text-xs text-muted">{meta}</p> : null}

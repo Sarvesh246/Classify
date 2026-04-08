@@ -21,7 +21,7 @@ export function HeaderAuthControl({
     "motion-reduce:transform-none motion-reduce:hover:shadow-none",
     isHome
       ? "bg-ivory !text-deep-ink hover:bg-white hover:ring-1 hover:ring-white/40"
-      : "border border-border bg-white/80 !text-ink hover:border-teal/35 hover:bg-white hover:ring-1 hover:ring-teal/15",
+      : "border border-border bg-surface-strong/92 !text-ink hover:border-teal/35 hover:bg-surface-raised-top hover:ring-1 hover:ring-teal/15 dark:hover:bg-white/10",
   );
 
   if (!authReady) {

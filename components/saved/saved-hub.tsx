@@ -93,7 +93,7 @@ export function SavedHub() {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-[28px] border border-border/70 bg-white/60 py-10">
+      <div className="flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-[28px] classify-inner-soft py-10">
         <ClassifyLoadingMark size="sm" tone="light" />
       </div>
     );
@@ -103,7 +103,7 @@ export function SavedHub() {
     return user ? (
       <div className="space-y-4">
         <LibraryPreview />
-        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted shadow-[0_18px_34px_rgba(7,17,31,0.06)]">
+        <div className="rounded-[28px] classify-inner-soft px-5 py-5 text-sm text-muted">
           <div className="flex items-start gap-3">
             <Cloud className="mt-0.5 h-5 w-5 text-deep-ink" />
             <div>
@@ -119,7 +119,7 @@ export function SavedHub() {
     ) : (
       <div className="space-y-4">
         <LibraryPreview />
-        <div className="rounded-[28px] border border-border/70 bg-white/62 px-5 py-5 text-sm text-muted shadow-[0_18px_34px_rgba(7,17,31,0.06)]">
+        <div className="rounded-[28px] classify-inner-soft px-5 py-5 text-sm text-muted">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-ink">Turn on cloud saves</p>
@@ -130,7 +130,7 @@ export function SavedHub() {
             </div>
             <Link
               href="/login"
-              className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
             >
               Sign in
             </Link>
@@ -142,7 +142,7 @@ export function SavedHub() {
 
   if (items === null || sets === null) {
     return (
-      <div className="flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-[28px] border border-border/70 bg-white/60 py-10">
+      <div className="flex min-h-[12rem] flex-col items-center justify-center gap-4 rounded-[28px] classify-inner-soft py-10">
         <ClassifyLoadingMark size="sm" tone="light" />
       </div>
     );
@@ -203,7 +203,7 @@ export function SavedHub() {
             {sets.map((s) => (
               <li
                 key={s.id}
-                className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-[24px] classify-inner px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="font-medium text-ink">{s.name}</p>
@@ -247,7 +247,7 @@ export function SavedHub() {
             {items.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-[24px] classify-inner px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted">
@@ -299,7 +299,7 @@ function SummaryCard({
   muted?: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-border/70 bg-white/70 px-4 py-4">
+    <div className="rounded-[24px] classify-inner px-4 py-4">
       <p className="text-xs uppercase tracking-[0.18em] text-muted">{label}</p>
       <p className="mt-2 text-xl font-semibold text-ink">{value}</p>
       {muted ? <p className="mt-1 text-sm text-muted">{muted}</p> : null}
@@ -327,7 +327,7 @@ function LibraryPreview({ compact = false }: { compact?: boolean }) {
   ];
 
   return (
-    <section className="rounded-[28px] border border-border/70 bg-white/56 p-4">
+    <section className="rounded-[28px] classify-inner-soft p-4">
       <p className="eyebrow">Library preview</p>
       {!compact ? (
         <p className="mt-2 text-sm leading-6 text-muted">
@@ -338,7 +338,7 @@ function LibraryPreview({ compact = false }: { compact?: boolean }) {
         {sections.map((section) => (
           <div
             key={section.title}
-            className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-background/82 px-4 py-4"
+            className="classify-inner-soft flex items-start gap-3 rounded-[22px] px-4 py-4"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
               {section.icon}

@@ -1,18 +1,31 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f6f1e8;
   --foreground: #07111f;
   --surface: rgba(255, 252, 247, 0.76);
   --surface-strong: rgba(255, 252, 247, 0.92);
   --border: rgba(7, 17, 31, 0.1);
-  --muted: #5e6776;
+  --border-subtle: rgba(7, 17, 31, 0.07);
+  --border-strong: rgba(7, 17, 31, 0.14);
+  --border-emphasis: rgba(7, 17, 31, 0.22);
+  --surface-raised-top: rgba(255, 255, 255, 0.97);
+  --surface-raised-bottom: rgba(255, 252, 247, 0.9);
+  --surface-raised-soft-top: rgba(255, 255, 255, 0.9);
+  --surface-raised-soft-bottom: rgba(255, 252, 247, 0.8);
+  --surface-well: #e8e3d9;
+  --muted: #4b5563;
   --ink: #07111f;
   --teal: #58c7b8;
   --copper: #c98a57;
   --deep-ink: #08192c;
   --ivory: #f6f1e8;
   --shadow: 0 24px 80px rgba(7, 17, 31, 0.12);
+  --shadow-card: 0 10px 32px rgba(7, 17, 31, 0.078), 0 1px 0 rgba(255, 255, 255, 0.72) inset;
+  --shadow-card-hover: 0 16px 42px rgba(7, 17, 31, 0.105), 0 1px 0 rgba(255, 255, 255, 0.78) inset;
+  --shadow-panel: 0 26px 72px rgba(7, 17, 31, 0.12), 0 1px 0 rgba(255, 255, 255, 0.52) inset;
   --radius-xl: 28px;
   --z-sticky: 40;
   --z-nav: 60;
@@ -62,12 +75,84 @@
   }
 }
 
+/* Bluish night theme aligned with home hero (deep-ink + teal), readable contrast on every surface. */
+html.dark {
+  color-scheme: dark;
+  --background: #0a1018;
+  --foreground: #e9f0f7;
+  --surface: rgba(255, 255, 255, 0.05);
+  --surface-strong: rgba(22, 34, 48, 0.96);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --border-emphasis: rgba(110, 214, 198, 0.45);
+  --surface-raised-top: rgba(40, 56, 74, 0.98);
+  --surface-raised-bottom: rgba(26, 38, 54, 0.94);
+  --surface-raised-soft-top: rgba(34, 48, 66, 0.9);
+  --surface-raised-soft-bottom: rgba(22, 32, 46, 0.92);
+  --surface-well: #121a26;
+  --muted: #9fb3c8;
+  --ink: #f0f6fc;
+  --teal: #6dd4c4;
+  --copper: #e8b07d;
+  --deep-ink: #050a10;
+  --ivory: #f6f1e8;
+  --shadow: 0 28px 88px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 14px 40px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --shadow-card-hover: 0 20px 52px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-panel: 0 32px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+html.dark .classify-chip-surface {
+  background: linear-gradient(180deg, rgba(44, 62, 84, 0.98), rgba(28, 40, 56, 0.94));
+  border-color: var(--border-strong);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .classify-well {
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+html.dark a.bg-deep-ink,
+html.dark button.bg-deep-ink {
+  color: #f4fffc !important;
+}
+
+html.dark a.bg-deep-ink.rounded-full,
+html.dark button.bg-deep-ink.rounded-full {
+  box-shadow:
+    0 3px 16px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+html.dark .grid-fade {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* `deep-ink` is one Tailwind token for both fills and copy; split behavior in dark mode. */
+html.dark .bg-deep-ink {
+  background-color: #2d7a6e !important;
+}
+
+html.dark .text-deep-ink {
+  color: var(--foreground) !important;
+}
+
+html.dark .border-deep-ink {
+  border-color: color-mix(in srgb, var(--teal) 45%, var(--border-strong)) !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-strong: var(--surface-strong);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-emphasis: var(--border-emphasis);
+  --color-surface-well: var(--surface-well);
   --color-muted: var(--muted);
   --color-ink: var(--ink);
   --color-teal: var(--teal);
@@ -76,6 +161,8 @@
   --color-ivory: var(--ivory);
   --font-sans: var(--font-plex-sans);
   --font-display: var(--font-sora);
+  --shadow-classify-card: var(--shadow-card);
+  --shadow-classify-panel: var(--shadow-panel);
 }
 
 * {
@@ -108,6 +195,13 @@ button.bg-deep-ink {
   color: var(--ivory) !important;
 }
 
+a.bg-deep-ink.rounded-full,
+button.bg-deep-ink.rounded-full {
+  box-shadow:
+    0 2px 12px rgba(8, 25, 44, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
 /* Light pill links must stay dark; otherwise they inherit ivory from .glass-line and disappear. */
 a.bg-ivory {
   color: var(--deep-ink) !important;
@@ -131,6 +225,10 @@ a:focus:not(:focus-visible) {
   background: rgba(88, 199, 184, 0.3);
 }
 
+html.dark ::selection {
+  background: rgba(110, 214, 198, 0.38);
+}
+
 ::view-transition-group(*),
 ::view-transition-old(*),
 ::view-transition-new(*) {
@@ -139,10 +237,54 @@ a:focus:not(:focus-visible) {
 }
 
 .soft-panel {
-  background: linear-gradient(180deg, var(--surface-strong), rgba(255, 252, 247, 0.66));
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  background: linear-gradient(
+    180deg,
+    var(--surface-strong) 0%,
+    color-mix(in srgb, var(--deep-ink) 5%, var(--surface-strong)) 100%
+  );
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-panel);
   backdrop-filter: blur(20px);
+}
+
+/* Nested interactive rows / stat cards: brighter lift vs .soft-panel. */
+.classify-inner {
+  background: linear-gradient(168deg, var(--surface-raised-top), var(--surface-raised-bottom));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.classify-inner-soft {
+  background: linear-gradient(168deg, var(--surface-raised-soft-top), var(--surface-raised-soft-bottom));
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.classify-inner--hover {
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+@media (hover: hover) {
+  .classify-inner--hover:hover {
+    border-color: var(--border-emphasis);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+/* Inset wells inside cards (metrics, secondary blocks). */
+.classify-well {
+  background: var(--surface-well);
+  border: 1px solid var(--border-subtle);
+  box-shadow: inset 0 1px 3px rgba(7, 17, 31, 0.07);
+}
+
+/* Pills / sort chips: read clearly on soft panels. */
+.classify-chip-surface {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 252, 247, 0.86));
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 10px rgba(7, 17, 31, 0.055);
 }
 
 .section-shell {
@@ -170,7 +312,7 @@ a:focus:not(:focus-visible) {
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: rgba(7, 17, 31, 0.58);
+  color: color-mix(in srgb, var(--ink) 62%, var(--muted));
 }
 
 /* Deep-ink / gradient hero tiles: default eyebrow ink is illegible on dark glass */
@@ -342,7 +484,7 @@ a:focus:not(:focus-visible) {
   max-width: 64ch;
   font-size: clamp(1rem, 1vw + 0.85rem, 1.125rem);
   line-height: 1.8;
-  color: rgba(7, 17, 31, 0.68);
+  color: color-mix(in srgb, var(--ink) 76%, var(--muted));
 }
 
 @media (prefers-reduced-motion: reduce) {

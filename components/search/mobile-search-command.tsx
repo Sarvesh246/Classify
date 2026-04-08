@@ -20,7 +20,7 @@ export function MobileSearchCommand({
 }) {
   return (
     <div className="space-y-4 md:hidden">
-      <section className="rounded-[30px] border border-border/75 bg-white/72 p-4 shadow-[0_16px_36px_rgba(7,17,31,0.06)]">
+      <section className="classify-inner rounded-[30px] p-4">
         <p className="eyebrow">Search command</p>
         <h1 className="display-title mt-2 text-[2.15rem] font-semibold leading-[0.96] tracking-[-0.08em] text-ink">
           Search schools, courses, and professors in one place.
@@ -100,7 +100,7 @@ function StarterRow({
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 rounded-[24px] border border-border/70 bg-background/82 px-4 py-4 transition hover:bg-white"
+      className="classify-inner-soft flex items-start gap-3 rounded-[24px] px-4 py-4 transition hover:border-border-emphasis"
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
         {icon}

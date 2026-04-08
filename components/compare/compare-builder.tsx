@@ -351,7 +351,7 @@ export function CompareBuilder({
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-border/70 bg-white/72 p-4">
+          <div className="rounded-[24px] classify-inner p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
                 <School className="h-4 w-4" />
@@ -457,7 +457,7 @@ export function CompareBuilder({
             ].map((step, index) => (
               <div
                 key={step}
-                className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-white/72 px-4 py-3"
+                className="flex items-start gap-3 rounded-[22px] classify-inner px-4 py-3"
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-ink text-xs font-semibold text-ivory">
                   {index + 1}
@@ -549,10 +549,10 @@ export function CompareBuilder({
             onClick={() => (isMobile ? setBuilderOpen(true) : setCatalogOpen(true))}
             className="soft-panel flex min-h-[18rem] flex-col items-center justify-center rounded-[28px] border-2 border-dashed border-border bg-transparent p-5 text-center text-muted transition hover:bg-white/55 sm:min-h-[24rem]"
           >
-            <span className="rounded-full border border-border bg-white/72 px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted">
+            <span className="rounded-full classify-chip-surface px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-muted">
               Slot {selected.length + index + 1}
             </span>
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-white/72 text-deep-ink">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full classify-chip-surface text-deep-ink">
               <Plus className="h-5 w-5" />
             </div>
             <p className="mt-4 text-lg font-semibold text-ink">Add a professor</p>
@@ -604,7 +604,7 @@ export function CompareBuilder({
                 <select
                   value={activeCourseSlug}
                   onChange={(event) => setActiveCourseSlug(event.target.value)}
-                  className="h-10 min-w-[16rem] rounded-full border border-border bg-white/72 px-4 text-sm text-ink outline-none"
+                  className="h-10 min-w-[16rem] rounded-full classify-chip-surface px-4 text-sm text-ink outline-none"
                 >
                   <option value="">All courses</option>
                   {courseOptions.map((course) => (
@@ -628,7 +628,7 @@ export function CompareBuilder({
               onClick={() => setCatalogOpen((value) => !value)}
               aria-expanded={catalogOpen}
               aria-controls="compare-catalog-panel"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-white/72 px-4 py-2 text-sm font-medium text-ink"
+              className="inline-flex items-center gap-2 rounded-full classify-chip-surface px-4 py-2 text-sm font-medium text-ink"
             >
               Browse {activeSchool?.schoolName ?? activeSchoolMeta.name ?? "school"} catalog
               <ChevronDown
@@ -650,7 +650,7 @@ export function CompareBuilder({
                   return (
                     <div
                       key={item.id}
-                      className="flex flex-col gap-4 rounded-[24px] border border-border/70 bg-white/72 px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+                      className="flex flex-col gap-4 rounded-[24px] classify-inner px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
                     >
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -764,7 +764,7 @@ export function CompareBuilder({
               />
             </div>
 
-            <div className="rounded-[24px] border border-border/70 bg-white/72 p-4">
+            <div className="rounded-[24px] classify-inner p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
                   <School className="h-4 w-4" />
@@ -867,7 +867,7 @@ export function CompareBuilder({
                   <select
                     value={activeCourseSlug}
                     onChange={(event) => setActiveCourseSlug(event.target.value)}
-                    className="h-11 w-full rounded-full border border-border bg-white/72 px-4 text-base text-ink outline-none"
+                    className="h-11 w-full rounded-full classify-chip-surface px-4 text-base text-ink outline-none"
                   >
                     <option value="">All courses</option>
                     {courseOptions.map((course) => (
@@ -897,7 +897,7 @@ export function CompareBuilder({
                     return (
                       <div
                         key={item.id}
-                        className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4"
+                        className="rounded-[24px] classify-inner px-4 py-4"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-lg font-semibold text-ink">{item.professorName}</h3>

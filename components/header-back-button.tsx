@@ -37,7 +37,7 @@ export function HeaderBackButton({
         "motion-reduce:transition-none",
         tone === "home"
           ? "border-white/15 bg-white/8 text-ivory hover:bg-white/14"
-          : "border-border bg-white/74 text-ink hover:border-teal/35",
+          : "border-border-strong bg-surface-strong/92 text-ink hover:border-teal/35 dark:hover:bg-white/10",
         className,
       )}
       aria-label="Go back to previous page"

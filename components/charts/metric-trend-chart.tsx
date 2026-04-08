@@ -59,7 +59,7 @@ export function MetricTrendChart({
   }
 
   return (
-    <div className={cn("rounded-[24px] border border-border/70 bg-white/72 p-4", className)}>
+    <div className={cn("rounded-[24px] classify-inner p-4", className)}>
       <div className="flex items-baseline justify-between gap-3">
         <p className="eyebrow">{meta.label} trend</p>
         <p className="text-sm text-muted">
@@ -79,7 +79,7 @@ export function MetricTrendChart({
               <div className="text-center text-[0.68rem] font-medium text-ink">
                 {meta.format(value)}
               </div>
-              <div className="mt-2 flex-1 rounded-[20px] bg-background p-1">
+              <div className="classify-well mt-2 flex-1 rounded-[20px] p-1">
                 <div
                   className={cn("w-full rounded-[16px]", meta.bar)}
                   style={{ height: `${height}%` }}

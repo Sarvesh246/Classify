@@ -119,7 +119,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               {primary.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-border bg-white/72 px-4 py-2 text-sm text-ink"
+                  className="rounded-full classify-chip-surface px-4 py-2 text-sm text-ink"
                 >
                   {tag}
                 </span>
@@ -138,16 +138,16 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               <>
                 <TrendSparkline trend={primary.trend} className="mt-6" />
                 <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
-                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                  <span className="rounded-full classify-chip-surface px-3 py-1.5">
                     Freshness {formatFreshnessLabel(primary.evidenceFreshness)}
                   </span>
-                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                  <span className="rounded-full classify-chip-surface px-3 py-1.5">
                     Courses {primary.courseCount}
                   </span>
-                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                  <span className="rounded-full classify-chip-surface px-3 py-1.5">
                     Sample size {primary.sampleSize || "Unavailable"}
                   </span>
-                  <span className="rounded-full border border-border bg-white/72 px-3 py-1.5">
+                  <span className="rounded-full classify-chip-surface px-3 py-1.5">
                     RMP {formatRating(primary.rmpRating)} / diff {formatRating(primary.rmpDifficulty)}
                   </span>
                 </div>
@@ -203,7 +203,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               {primary.departments.map((department) => (
                 <span
                   key={department}
-                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                  className="rounded-full classify-chip-surface px-3 py-1.5"
                 >
                   {department}
                 </span>
@@ -211,7 +211,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               {primary.coursePrefixes.map((prefix) => (
                 <span
                   key={prefix}
-                  className="rounded-full border border-border bg-white/72 px-3 py-1.5"
+                  className="rounded-full classify-chip-surface px-3 py-1.5"
                 >
                   {prefix}
                 </span>
@@ -283,7 +283,7 @@ function StatCard({
   meta: string;
 }) {
   return (
-    <div className="rounded-[26px] border border-border/70 bg-white/72 p-5">
+    <div className="rounded-[26px] classify-inner p-5">
       <p className="eyebrow">{label}</p>
       <p className="mt-3 text-3xl font-semibold text-ink">{value}</p>
       <p className="mt-2 text-sm text-muted">{meta}</p>

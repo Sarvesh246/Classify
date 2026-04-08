@@ -6,6 +6,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { ClassifyLogo } from "@/components/classify-logo";
 import { HeaderAuthControl } from "@/components/auth/header-auth-control";
 import { HeaderBackButton } from "@/components/header-back-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { getRouteShellMeta } from "@/lib/route-shell-meta";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
         "safe-top-pad sticky top-0 z-[62] border-b px-3 pb-3 pt-2 backdrop-blur-2xl md:hidden",
         tone === "home"
           ? "border-white/10 bg-deep-ink/52 text-ivory"
-          : "border-border/70 bg-background/86 text-ink",
+          : "border-border-strong bg-surface-strong/95 text-ink shadow-[0_10px_32px_rgba(7,17,31,0.06)] dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)]",
       )}
     >
       <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
@@ -53,6 +54,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle tone={tone === "home" ? "home" : "app"} compact />
           {meta.actionHref ? (
             <Link
               href={meta.actionHref}
@@ -60,7 +62,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
                 "inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 text-sm font-medium",
                 tone === "home"
                   ? "border border-white/15 bg-white/10 text-ivory"
-                  : "border border-border bg-white/78 text-ink",
+                  : "border border-border bg-surface-strong/90 text-ink dark:bg-surface-raised-bottom/85",
               )}
             >
               {actionIcon}

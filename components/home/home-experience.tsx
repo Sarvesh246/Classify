@@ -416,7 +416,7 @@ export function HomeExperience({
                 {featured.slice(0, 3).map((item) => (
                   <div
                     key={item.id}
-                    className="rounded-[24px] border border-border/70 bg-white/72 px-4 py-4"
+                    className="rounded-[24px] classify-inner px-4 py-4"
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>

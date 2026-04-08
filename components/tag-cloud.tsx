@@ -14,7 +14,7 @@ export function TagCloud({
   }
 
   return (
-    <div className="rounded-[24px] border border-border/70 bg-white/72 p-4">
+    <div className="rounded-[24px] classify-inner p-4">
       <p className="eyebrow">{title}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         {tags.map((tag, index) => (

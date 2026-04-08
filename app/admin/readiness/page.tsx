@@ -74,7 +74,7 @@ export default async function AdminReadinessPage() {
                 {dbHealth.tables.map((table) => (
                   <div
                     key={table.table}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-border/70 bg-white/70 px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] classify-inner px-4 py-3"
                   >
                     <div>
                       <p className="text-sm font-medium text-ink">{table.table}</p>
@@ -102,7 +102,7 @@ export default async function AdminReadinessPage() {
               {weakestSchools.map((school) => (
                 <div
                   key={school.slug}
-                  className="rounded-[20px] border border-border/70 bg-white/70 px-4 py-4"
+                  className="rounded-[20px] classify-inner px-4 py-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -142,7 +142,7 @@ function StatCard({
   meta?: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-border/70 bg-white/70 px-4 py-4">
+    <div className="rounded-[22px] classify-inner px-4 py-4">
       <p className="text-xs uppercase tracking-[0.12em] text-muted">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
       {meta ? <p className="mt-2 text-xs text-muted">{meta}</p> : null}

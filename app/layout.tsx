@@ -6,7 +6,12 @@ import { MobileBottomNav } from "@/components/mobile/mobile-bottom-nav";
 import { MobileInstallBanner } from "@/components/mobile/mobile-install-banner";
 import { WebVitalsReporter } from "@/components/performance/web-vitals";
 import { PwaClient } from "@/components/pwa/pwa-client";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
+import Script from "next/script";
 import "./globals.css";
+
+const themeInitScript = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var s=localStorage.getItem(k);var prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;var dark=s==="dark"||(s!=="light"&&prefersDark);document.documentElement.classList.toggle("dark",dark);document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}})();`;
 
 const sora = Sora({
   variable: "--font-sora",
@@ -77,9 +82,13 @@ export default function RootLayout({
         className="flex min-h-full min-w-0 flex-col bg-background text-foreground"
         suppressHydrationWarning
       >
+        <Script id="classify-theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
+        <ThemeProvider>
         <a
           href="#main-content"
-          className="sr-only absolute left-3 top-3 z-[400] rounded-full bg-white px-4 py-2 text-sm font-medium text-ink shadow-lg focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-teal/35"
+          className="sr-only absolute left-3 top-3 z-[400] rounded-full bg-surface-strong px-4 py-2 text-sm font-medium text-ink shadow-lg focus:not-sr-only focus:outline-none focus:ring-2 focus:ring-teal/35"
         >
           Skip to content
         </a>
@@ -99,6 +108,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <MobileBottomNav />
         </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );

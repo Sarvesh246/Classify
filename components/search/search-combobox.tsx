@@ -559,7 +559,7 @@ export function SearchCombobox({
         />
         <button
           type="submit"
-          className="inline-flex min-h-11 w-[4.5rem] shrink-0 items-center justify-center rounded-full bg-deep-ink px-3 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237] sm:w-auto sm:min-w-[7.25rem] sm:px-5"
+          className="inline-flex min-h-11 w-[4.5rem] shrink-0 items-center justify-center rounded-full bg-deep-ink px-3 py-3 text-sm font-medium text-ivory transition hover:bg-[#0f2237] dark:hover:bg-[#358a7c] sm:w-auto sm:min-w-[7.25rem] sm:px-5"
         >
           <span className="inline-flex items-center justify-center">
             {actionLabel}
@@ -596,7 +596,7 @@ export function SearchCombobox({
                   >
                     <div className="soft-panel mobile-app-scroll max-h-[min(78dvh,44rem)] overflow-y-auto rounded-t-[30px] border-b-0 p-3 pb-6">
                       <div className="mx-auto mb-3 h-1.5 w-14 rounded-full bg-border/90" />
-                      <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 border-b border-border/60 bg-[linear-gradient(180deg,rgba(246,241,232,0.98),rgba(246,241,232,0.92))] px-5 pb-3 pt-4 backdrop-blur-xl">
+                      <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 border-b border-border/60 bg-surface-strong/95 px-5 pb-3 pt-4 backdrop-blur-xl">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="eyebrow">Search results</p>
@@ -607,7 +607,7 @@ export function SearchCombobox({
                           <button
                             type="button"
                             onClick={() => setOpen(false)}
-                            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-white/80 text-ink shadow-sm"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-strong/92 text-ink shadow-sm dark:border-border-strong"
                             aria-label="Dismiss search results"
                           >
                             <X className="h-4 w-4" />
@@ -733,7 +733,9 @@ function SearchResultsPanel({
                     href={item.href}
                     className={cn(
                       "group flex items-start gap-3 rounded-[20px] px-3 py-2.5 transition",
-                      active ? "bg-white" : "hover:bg-white/78",
+                      active
+                        ? "bg-surface-raised-top"
+                        : "hover:bg-surface-raised-top/75 dark:hover:bg-white/8",
                     )}
                     {...getItemProps({
                       onMouseEnter: () => setActiveIndex(index),
@@ -751,7 +753,9 @@ function SearchResultsPanel({
                     type="button"
                     className={cn(
                       "group flex w-full items-start gap-3 rounded-[20px] px-3 py-2.5 text-left transition",
-                      active ? "bg-white" : "hover:bg-white/78",
+                      active
+                        ? "bg-surface-raised-top"
+                        : "hover:bg-surface-raised-top/75 dark:hover:bg-white/8",
                     )}
                     {...getItemProps({
                       onMouseEnter: () => setActiveIndex(index),
@@ -783,7 +787,7 @@ function SearchResultsPanel({
                   key={`${entry.id}:${entry.href}`}
                   href={entry.href}
                   onClick={() => onLinkSelect()}
-                  className="group flex items-start gap-3 rounded-[20px] px-3 py-2.5 transition hover:bg-white/78"
+                  className="group flex items-start gap-3 rounded-[20px] px-3 py-2.5 transition hover:bg-surface-raised-top/75 dark:hover:bg-white/8"
                 >
                   <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-deep-ink/8 text-deep-ink">
                     <Icon className="h-4 w-4" />

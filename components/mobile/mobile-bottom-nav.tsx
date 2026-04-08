@@ -21,7 +21,7 @@ export function MobileBottomNav() {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className="safe-bottom-pad fixed inset-x-0 bottom-0 z-[70] border-t border-border/70 bg-background/88 shadow-[0_-14px_40px_rgba(7,17,31,0.08)] backdrop-blur-xl md:hidden"
+      className="safe-bottom-pad fixed inset-x-0 bottom-0 z-[70] border-t border-border-strong bg-surface-strong/95 shadow-[0_-14px_44px_rgba(7,17,31,0.1)] backdrop-blur-xl dark:shadow-[0_-14px_44px_rgba(0,0,0,0.45)] md:hidden"
     >
       <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-2 px-3 pt-2">
         {items.map((item) => {
@@ -54,7 +54,8 @@ export function MobileBottomNav() {
                 className={cn(
                   "relative z-10 flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.15rem] px-2 py-2 text-[0.72rem] font-medium",
                   active && "!text-ivory",
-                  !active && "transition-colors duration-200 hover:bg-white/78 hover:text-ink",
+                  !active &&
+                    "transition-colors duration-200 hover:bg-surface-raised-top/90 hover:text-ink dark:hover:bg-white/10",
                 )}
               >
                 <motion.span

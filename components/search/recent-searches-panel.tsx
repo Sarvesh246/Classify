@@ -127,7 +127,7 @@ export function RecentSearchesPanel({
                     "rounded-full px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em]",
                     tone === "dark"
                       ? "border border-white/12 bg-white/12 text-white/70"
-                      : "border border-border/70 bg-white text-muted",
+                      : "border border-border-strong bg-surface-well text-muted",
                   )}
                 >
                   {item.type}

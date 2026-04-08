@@ -60,7 +60,7 @@ export function ProfessorGradeTabs({
               className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                 item.id === active.id
                   ? "border-deep-ink bg-deep-ink text-ivory"
-                  : "border-border bg-white/72 text-ink hover:bg-white"
+                  : "classify-chip-surface text-ink hover:bg-white"
               }`}
             >
               {item.courseCode}
@@ -69,7 +69,7 @@ export function ProfessorGradeTabs({
         </div>
       </div>
 
-      <div className="mt-5 rounded-[26px] border border-border/70 bg-white/72 p-5">
+      <div className="mt-5 rounded-[26px] classify-inner p-5">
         <div className="mb-5">
           <p className="text-lg font-semibold text-ink">
             {active.courseCode} - {active.courseName}
