@@ -253,20 +253,20 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href={`/schools/${slug}`}
-              className="min-h-11 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-sm font-medium text-ink sm:min-h-0 sm:py-2"
+              className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full border border-border px-4 py-2.5 text-sm font-medium text-ink sm:min-h-0 sm:py-2"
             >
               School hub
             </Link>
             <Link
               href={`/schools/${slug}/my-courses`}
-              className="min-h-11 touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-center text-sm font-medium text-ivory sm:min-h-0 sm:py-2"
+              className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-sm font-medium text-ivory sm:min-h-0 sm:py-2"
             >
               My courses
             </Link>
           </div>
         </section>
 
-        <section className="mt-6 soft-panel rounded-[26px] p-4 sm:mt-8 sm:rounded-[30px] sm:p-6">
+        <section className="search-elevated-surface mt-6 soft-panel rounded-[26px] p-4 sm:mt-8 sm:rounded-[30px] sm:p-6">
           <div className="max-w-2xl">
             <p className="eyebrow">Filters</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
@@ -356,7 +356,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
             </label>
             <button
               type="submit"
-              className="min-h-11 w-full touch-manipulation rounded-full bg-deep-ink px-6 py-2.5 text-base font-medium text-ivory sm:w-auto sm:text-sm"
+              className="inline-flex min-h-11 w-full items-center justify-center touch-manipulation rounded-full bg-deep-ink px-6 py-2.5 text-base font-medium text-ivory sm:w-auto sm:text-sm"
             >
               Apply filters
             </button>
@@ -493,15 +493,15 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 <div className="flex w-full flex-col gap-2 sm:w-auto md:items-end">
                   <Link
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="min-h-11 touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-center text-base font-medium text-ivory sm:min-h-0 sm:py-2 sm:text-sm"
+                    className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-base font-medium text-ivory sm:min-h-0 sm:py-2 sm:text-sm"
                   >
                     Profile
                   </Link>
                   <Link
                     href={`/compare?ids=${item.id}`}
-                    className="min-h-11 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium text-ink sm:min-h-0 sm:py-2 sm:text-sm"
+                    className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full border border-border px-4 py-2.5 text-base font-medium text-ink sm:min-h-0 sm:py-2 sm:text-sm"
                   >
-                    Open profile
+                    Compare
                   </Link>
                 </div>
               </div>
@@ -527,7 +527,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               {safePage > 1 ? (
                 <Link
                   href={`/schools/${slug}/instructors${href({ page: String(safePage - 1) })}`}
-                  className="min-h-11 min-w-[7rem] flex-1 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
+                  className="inline-flex min-h-11 min-w-[7rem] flex-1 items-center justify-center touch-manipulation rounded-full border border-border px-4 py-2.5 text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
                 >
                   Previous
                 </Link>
@@ -535,7 +535,7 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
               {safePage < totalPages ? (
                 <Link
                   href={`/schools/${slug}/instructors${href({ page: String(safePage + 1) })}`}
-                  className="min-h-11 min-w-[7rem] flex-1 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
+                  className="inline-flex min-h-11 min-w-[7rem] flex-1 items-center justify-center touch-manipulation rounded-full border border-border px-4 py-2.5 text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
                 >
                   Next
                 </Link>

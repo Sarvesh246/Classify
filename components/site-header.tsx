@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Search } from "lucide-react";
 import { HeaderAuthControl } from "@/components/auth/header-auth-control";
 import { ClassifyLogo } from "@/components/classify-logo";
+import { HeaderBackButton } from "@/components/header-back-button";
 import { MobileRouteBar } from "@/components/mobile/mobile-route-bar";
 import { NavSavedLink } from "@/components/nav-saved-link";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,15 @@ export function SiteHeader({ tone = "app" }: SiteHeaderProps) {
         )}
       >
         <div className="section-shell flex min-h-18 items-center justify-between gap-4 py-3 md:py-4">
-          <Link href="/" aria-label="Classify home">
-            <ClassifyLogo />
-          </Link>
+          <div className="flex min-w-0 items-center gap-3">
+            <HeaderBackButton
+              tone={isHome ? "home" : "app"}
+              className="hidden md:inline-flex"
+            />
+            <Link href="/" aria-label="Classify home" className="shrink-0">
+              <ClassifyLogo />
+            </Link>
+          </div>
           <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
             <Link href="/search" className={navLinkClassName}>
               Search

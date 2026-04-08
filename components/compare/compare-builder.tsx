@@ -261,7 +261,7 @@ export function CompareBuilder({
                 });
                 setBuilderOpen(true);
               }}
-              className="min-h-11 min-w-[6.75rem] rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
+              className="inline-flex min-h-11 min-w-[6.75rem] items-center justify-center rounded-full bg-deep-ink px-4 text-sm font-semibold text-ivory"
             >
               Build
             </button>
@@ -274,7 +274,7 @@ export function CompareBuilder({
                 });
                 setCatalogOpen(true);
               }}
-              className="min-h-11 min-w-[6.75rem] rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
+              className="inline-flex min-h-11 min-w-[6.75rem] items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink"
             >
               Browse
             </button>
@@ -580,7 +580,7 @@ export function CompareBuilder({
                 });
                 setCatalogOpen(true);
               }}
-              className="min-h-11 w-full rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-medium text-ink sm:w-auto"
             >
               Browse catalog
           </button>
@@ -784,7 +784,7 @@ export function CompareBuilder({
                     setActiveCourseSlug("");
                     sync(selectedIds, undefined);
                   }}
-                  className="mt-3 min-h-11 w-full rounded-full border border-border px-4 py-2 text-sm font-medium text-ink sm:w-auto"
+                  className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink sm:w-auto"
                 >
                   Clear school
                 </button>
@@ -827,7 +827,7 @@ export function CompareBuilder({
                         loadSavedCompare();
                         setBuilderOpen(false);
                       }}
-                      className="min-h-11 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink disabled:opacity-50"
                     >
                       Load
                     </button>
@@ -835,7 +835,7 @@ export function CompareBuilder({
                       type="button"
                       disabled={saveBusy || selectedIds.length === 0}
                       onClick={() => void saveCompareSnapshot()}
-                      className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-sm font-semibold text-ivory disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-semibold text-ivory disabled:opacity-50"
                     >
                       {saveBusy ? "Saving..." : "Save"}
                     </button>

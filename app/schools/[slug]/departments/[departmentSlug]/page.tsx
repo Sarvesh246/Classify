@@ -149,7 +149,7 @@ export default async function DepartmentPage({
                 <div className="flex flex-col gap-2 lg:items-end">
                   <Link
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory"
+                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory lg:min-h-0"
                   >
                     Open profile
                   </Link>

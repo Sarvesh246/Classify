@@ -92,7 +92,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           schoolShortName={schoolShortName}
         />
 
-        <section className="soft-panel hidden rounded-[34px] p-6 sm:p-8 md:block">
+        <section className="search-elevated-surface soft-panel hidden rounded-[34px] p-6 sm:p-8 md:block">
           <p className="eyebrow">Universal search</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">
             Search schools, courses, and professors in one place

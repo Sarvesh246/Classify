@@ -144,6 +144,13 @@ export function MyCoursesPlanner({
   const recommendationsRef = useRef<HTMLElement>(null);
   const cloudSyncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localTriedRef = useRef(false);
+
+  useEffect(() => {
+    if (!openSuggest) return;
+    const close = () => setOpenSuggest(false);
+    window.addEventListener("scroll", close, true);
+    return () => window.removeEventListener("scroll", close, true);
+  }, [openSuggest]);
   const rankingMode = rankingModeFromSortKey(sortKey);
   const coursesParam = searchParams.get("courses");
 
@@ -528,7 +535,7 @@ export function MyCoursesPlanner({
 
   return (
     <div ref={rootRef} className="space-y-8">
-      <section className="soft-panel rounded-[30px] p-5 sm:p-6">
+      <section className="search-elevated-surface soft-panel rounded-[30px] p-5 sm:p-6">
         <p className="eyebrow">Add courses</p>
         <p className="mt-2 text-sm text-muted">
           Search by course code or title. Lists sync to your account when you sign in with email.
@@ -556,7 +563,7 @@ export function MyCoursesPlanner({
           </div>
         ) : null}
 
-        <div className="relative mt-4 max-w-xl">
+        <div className="relative z-10 mt-4 max-w-xl">
           <input
             value={query}
             onChange={(event) => {
@@ -566,11 +573,11 @@ export function MyCoursesPlanner({
             onFocus={() => setOpenSuggest(true)}
             placeholder="e.g. CSCE 181 or Data Science"
             disabled={!courseGroups.length}
-            className="h-11 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none"
+            className="relative z-0 h-11 w-full rounded-2xl border border-border bg-white/80 px-4 outline-none"
             autoComplete="off"
           />
           {openSuggest && suggestions.length > 0 ? (
-            <ul className="absolute z-20 mt-2 max-h-72 w-full overflow-auto rounded-2xl border border-border bg-background py-1 shadow-lg">
+            <ul className="absolute z-20 mt-2 max-h-72 w-full overflow-auto rounded-2xl border border-border bg-background py-1 shadow-[0_20px_48px_rgba(7,17,31,0.14)]">
               {suggestions.map((course) => (
                 <li key={course.courseSlug}>
                   <button
@@ -918,7 +925,7 @@ export function MyCoursesPlanner({
                       ) : null}
                       <Link
                         href={`/schools/${schoolSlug}/courses/${course.courseSlug}`}
-                          className="min-h-11 w-full rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink sm:w-auto"
+                          className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink sm:w-auto"
                       >
                         Open course page
                       </Link>
@@ -966,13 +973,13 @@ export function MyCoursesPlanner({
                           <div className="grid gap-2 sm:grid-cols-2 lg:flex lg:items-end">
                             <Link
                               href={`/schools/${schoolSlug}/professors/${item.professorSlug}`}
-                              className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-center text-sm font-medium text-ivory"
+                              className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory"
                             >
                               Open profile
                             </Link>
                             <Link
                               href={`/compare?ids=${encodeURIComponent(item.id)}&school=${encodeURIComponent(item.schoolSlug)}`}
-                              className="min-h-11 rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink"
+                              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
                             >
                               Compare
                             </Link>

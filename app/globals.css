@@ -16,6 +16,10 @@
   --radius-xl: 28px;
   --z-sticky: 40;
   --z-nav: 60;
+  /* In-flow search / typeahead blocks: above following .soft-panel siblings (painting order). */
+  --z-search-surface: 100;
+  /* Portaled combobox dropdown + anchor row; above page chrome, at/below modal overlay (240). */
+  --z-search-combobox: 241;
   --z-overlay: 240;
   --z-toast: 320;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -25,6 +29,37 @@
   --mobile-nav-height: 4.75rem;
   --mobile-route-offset: 5.75rem;
   --mobile-install-offset: calc(var(--mobile-nav-height) + var(--safe-bottom) + 1rem);
+  /* Content max width scales up on large monitors; `100%` (not `100vw`) reflows cleanly when zooming. */
+  --page-shell-max: 1180px;
+  --section-shell-max: 1200px;
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --page-shell-max: 1360px;
+    --section-shell-max: 1380px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --page-shell-max: 1560px;
+    --section-shell-max: 1580px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --page-shell-max: 1760px;
+    --section-shell-max: 1780px;
+  }
+}
+
+@media (min-width: 2560px) {
+  :root {
+    --page-shell-max: min(1920px, 92vw);
+    --section-shell-max: min(1960px, 93vw);
+  }
 }
 
 @theme inline {
@@ -49,18 +84,16 @@
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
 }
 
-html,
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-plex-sans), sans-serif;
-  overflow-x: hidden;
-}
-
-body {
+  margin: 0;
   min-height: 100dvh;
+  width: 100%;
   padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom));
 }
 
@@ -113,14 +146,18 @@ a:focus:not(:focus-visible) {
 }
 
 .section-shell {
-  width: min(1200px, calc(100vw - 2rem));
+  width: min(var(--section-shell-max), calc(100% - 2rem));
+  max-width: 100%;
   margin-inline: auto;
+  box-sizing: border-box;
 }
 
 .page-shell {
-  width: min(1180px, calc(100vw - 2rem));
+  width: min(var(--page-shell-max), calc(100% - 2rem));
+  max-width: 100%;
   margin-inline: auto;
   padding-bottom: 5rem;
+  box-sizing: border-box;
 }
 
 .display-title {
@@ -181,6 +218,12 @@ a:focus:not(:focus-visible) {
 
 .overlay-layer {
   z-index: var(--z-overlay);
+}
+
+/* Use on sections/cards that contain a search input + absolute suggestions list. */
+.search-elevated-surface {
+  position: relative;
+  z-index: var(--z-search-surface);
 }
 
 .safe-top-pad {
@@ -320,7 +363,7 @@ a:focus:not(:focus-visible) {
 @media (max-width: 640px) {
   .section-shell,
   .page-shell {
-    width: min(100vw - 1.25rem, 1180px);
+    width: calc(100% - 1.25rem);
   }
 
   .page-shell {

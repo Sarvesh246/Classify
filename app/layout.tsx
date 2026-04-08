@@ -53,6 +53,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** `maximumScale` / `userScalable` omitted so pinching and browser zoom stay enabled (a11y + high-DPI desktops). */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -70,10 +71,10 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${sora.variable} ${plexSans.variable} h-full antialiased`}
+      className={`${sora.variable} ${plexSans.variable} h-full min-w-0 antialiased`}
     >
       <body
-        className="min-h-full flex flex-col bg-background text-foreground"
+        className="flex min-h-full min-w-0 flex-col bg-background text-foreground"
         suppressHydrationWarning
       >
         <a

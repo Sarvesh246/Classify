@@ -196,7 +196,7 @@ export function HomeExperience({
   }
 
   return (
-    <div className="relative overflow-x-hidden">
+    <div className="relative min-w-0 overflow-x-clip">
       <div className="fixed inset-0">
         {useCanvas ? (
           <HomeWebglErrorBoundary fallback={<AmbientBackdrop />}>
@@ -212,18 +212,18 @@ export function HomeExperience({
 
       <div className="relative z-10">
         <section className="section-shell flex flex-col justify-start py-5 sm:py-8 md:min-h-[calc(100svh-4.5rem)] md:justify-center md:py-14">
-          <div className="mx-auto w-full max-w-5xl">
+          <div className="mx-auto w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
             <MobileHomeLaunchpad
               searchableSchools={coverage.searchableSchools}
               plannerReadySchools={coverage.plannerReadySchools}
               evidenceReadySchools={coverage.evidenceReadySchools ?? 0}
             />
 
-            <div className="mx-auto hidden max-w-4xl md:block">
+            <div className="mx-auto hidden max-w-4xl md:block xl:max-w-5xl 2xl:max-w-6xl">
               <SearchCombobox placeholder="Search a school, course code, or professor" />
             </div>
 
-            <div className="mx-auto mt-6 hidden max-w-3xl text-center md:block">
+            <div className="mx-auto mt-6 hidden max-w-3xl text-center md:block 2xl:max-w-4xl">
               <h1 className="display-title text-4xl font-semibold leading-[0.94] tracking-[-0.07em] text-balance sm:text-6xl">
                 Find the professor who actually gives A&apos;s.
               </h1>
@@ -232,7 +232,7 @@ export function HomeExperience({
               </p>
             </div>
 
-            <div className="mx-auto mt-6 hidden max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82 md:flex">
+            <div className="mx-auto mt-6 hidden max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82 md:flex xl:max-w-5xl">
               <InlineStat label="Searchable schools" value={coverage.searchableSchools} />
               <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
               <InlineStat label="Evidence-ready schools" value={coverage.evidenceReadySchools ?? 0} />

@@ -2,162 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { ClassifyLogo } from "@/components/classify-logo";
 import { HeaderAuthControl } from "@/components/auth/header-auth-control";
+import { HeaderBackButton } from "@/components/header-back-button";
+import { getRouteShellMeta } from "@/lib/route-shell-meta";
 import { cn } from "@/lib/utils";
-
-type RouteMeta = {
-  kind: "tab" | "deep";
-  title: string;
-  subtitle: string;
-  backHref?: string;
-  actionHref?: string;
-  actionLabel?: string;
-  actionIcon?: "search" | "filters";
-};
-
-function schoolRootFromPath(pathname: string) {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts[0] === "schools" && parts[1]) {
-    return `/schools/${parts[1]}`;
-  }
-  return "/search";
-}
-
-function getRouteMeta(pathname: string): RouteMeta {
-  if (pathname === "/") {
-    return {
-      kind: "tab",
-      title: "Home",
-      subtitle: "Launch your next decision fast.",
-      actionHref: "/search",
-      actionLabel: "Search",
-      actionIcon: "search",
-    };
-  }
-
-  if (pathname === "/search") {
-    return {
-      kind: "tab",
-      title: "Search",
-      subtitle: "Schools, courses, and professors together.",
-      actionHref: "/compare",
-      actionLabel: "Compare",
-      actionIcon: "filters",
-    };
-  }
-
-  if (pathname === "/compare") {
-    return {
-      kind: "tab",
-      title: "Compare",
-      subtitle: "Build a smarter shortlist.",
-      actionHref: "/search",
-      actionLabel: "Add",
-      actionIcon: "search",
-    };
-  }
-
-  if (pathname === "/saved") {
-    return {
-      kind: "tab",
-      title: "Saved",
-      subtitle: "Your academic workspace.",
-      actionHref: "/search",
-      actionLabel: "Browse",
-      actionIcon: "search",
-    };
-  }
-
-  if (pathname === "/methodology") {
-    return {
-      kind: "deep",
-      title: "Methodology",
-      subtitle: "How Classify earns trust.",
-      backHref: "/search",
-    };
-  }
-
-  if (pathname === "/login") {
-    return {
-      kind: "deep",
-      title: "Sign in",
-      subtitle: "Google or email link.",
-      backHref: "/search",
-    };
-  }
-
-  if (pathname === "/profile") {
-    return {
-      kind: "deep",
-      title: "Profile",
-      subtitle: "Your account.",
-      backHref: "/search",
-    };
-  }
-
-  if (pathname.startsWith("/schools/")) {
-    const schoolRoot = schoolRootFromPath(pathname);
-    if (pathname.includes("/my-courses")) {
-      return {
-      kind: "deep",
-      title: "Planner",
-      subtitle: "Shortlist and build your term.",
-        backHref: schoolRoot,
-      };
-    }
-    if (pathname.includes("/courses/")) {
-      return {
-        kind: "deep",
-        title: "Course",
-        subtitle: "Compare instructors and outcomes fast.",
-        backHref: schoolRoot,
-      };
-    }
-    if (pathname.includes("/professors/")) {
-      return {
-        kind: "deep",
-        title: "Professor",
-        subtitle: "Evidence, trends, and fit at a glance.",
-        backHref: schoolRoot,
-      };
-    }
-    if (pathname.includes("/departments/")) {
-      return {
-        kind: "deep",
-        title: "Department",
-        subtitle: "Ranked by outcomes and difficulty.",
-        backHref: schoolRoot,
-      };
-    }
-    if (pathname.includes("/instructors")) {
-      return {
-        kind: "deep",
-        title: "Instructors",
-        subtitle: "Browse the full school directory.",
-        backHref: schoolRoot,
-      };
-    }
-    return {
-      kind: "deep",
-      title: "School",
-      subtitle: "Courses, instructors, and planning.",
-      backHref: "/search",
-    };
-  }
-
-  return {
-    kind: "deep",
-    title: "Classify",
-    subtitle: "Course intelligence for your next move.",
-    backHref: "/search",
-  };
-}
 
 export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
   const pathname = usePathname();
-  const meta = getRouteMeta(pathname);
+  const meta = getRouteShellMeta(pathname);
   const actionIcon =
     meta.actionIcon === "filters" ? (
       <SlidersHorizontal className="h-4 w-4" />
@@ -178,18 +32,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             {meta.kind === "deep" ? (
-              <Link
-                href={meta.backHref ?? "/search"}
-                className={cn(
-                  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border",
-                  tone === "home"
-                    ? "border-white/15 bg-white/8 text-ivory"
-                    : "border-border bg-white/74 text-ink",
-                )}
-                aria-label="Go back"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Link>
+              <HeaderBackButton tone={tone === "home" ? "home" : "app"} />
             ) : (
               <Link href="/" className="shrink-0" aria-label="Classify home">
                 <ClassifyLogo compact />

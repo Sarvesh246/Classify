@@ -90,13 +90,13 @@ export function CourseProfessorList({
             <div className="flex flex-col gap-2 lg:items-end">
               <Link
                 href={`/schools/${schoolSlug}/professors/${item.professorSlug}`}
-                className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory lg:min-h-0"
               >
                 Open profile
               </Link>
               <Link
                 href={`/compare?ids=${item.id}&school=${item.schoolSlug}`}
-                className="rounded-full border border-border px-4 py-2 text-sm font-medium !text-ink"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium !text-ink lg:min-h-0"
               >
                 Compare selected
               </Link>

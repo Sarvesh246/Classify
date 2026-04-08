@@ -509,10 +509,14 @@ export function SearchCombobox({
   }
 
   return (
-    <div className={cn("relative z-[241] w-full", className)}>
+    <div
+      className={cn("relative w-full", className)}
+      style={{ zIndex: "var(--z-search-combobox)" }}
+    >
       <form
         ref={setReferenceRef}
-        className="soft-panel relative z-[241] flex items-center gap-2 rounded-[26px] p-1.5 sm:gap-3 sm:p-2"
+        className="soft-panel relative flex items-center gap-2 rounded-[26px] p-1.5 sm:gap-3 sm:p-2"
+        style={{ zIndex: "var(--z-search-combobox)" }}
         onSubmit={(event) => {
           event.preventDefault();
           handleSubmit();
@@ -567,7 +571,10 @@ export function SearchCombobox({
         {open ? (
           isMobileSheet ? (
             <FloatingPortal>
-              <div className="overlay-layer fixed inset-0 z-[240]">
+              <div
+                className="fixed inset-0 bg-transparent"
+                style={{ zIndex: "var(--z-overlay)" }}
+              >
                 <motion.button
                   type="button"
                   className="absolute inset-0 bg-deep-ink/50"
@@ -632,8 +639,8 @@ export function SearchCombobox({
             <FloatingPortal>
               <motion.div
                 ref={setFloatingRef}
-                style={floatingStyles}
-                className="overlay-layer"
+                style={{ ...floatingStyles, zIndex: "var(--z-search-combobox)" }}
+                className="min-w-0"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 6 }}
