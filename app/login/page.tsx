@@ -28,7 +28,7 @@ export default function LoginPage() {
 
           <Suspense
             fallback={
-              <div className="rounded-[28px] border border-border/80 bg-white/80 px-4 py-6 sm:px-8">
+              <div className="soft-panel rounded-[28px] px-4 py-6 sm:px-8">
                 <LoadingFallbackCompact className="py-10" />
               </div>
             }

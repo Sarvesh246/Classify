@@ -67,7 +67,7 @@ export function EmailMagicLinkSection() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@school.edu"
-          className="mt-2 h-12 w-full rounded-2xl border border-border bg-white px-4 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-teal/50 focus:ring-2 focus:ring-teal/20"
+          className="mt-2 h-12 w-full rounded-2xl border border-border bg-background px-4 text-base text-ink outline-none transition placeholder:text-muted/80 focus:border-teal/50 focus:ring-2 focus:ring-teal/20"
         />
       </label>
       <button

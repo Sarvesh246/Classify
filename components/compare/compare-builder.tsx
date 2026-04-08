@@ -240,7 +240,7 @@ export function CompareBuilder({
 
   return (
     <div className="space-y-6">
-      <div className="soft-panel sticky top-[calc(var(--safe-top)+var(--mobile-route-offset))] z-30 rounded-[28px] p-4 lg:hidden">
+      <div className="soft-panel rounded-[28px] p-4 lg:hidden">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="eyebrow">Compare builder</p>
@@ -300,12 +300,12 @@ export function CompareBuilder({
         </div>
       </div>
 
-      <div className="soft-panel sticky top-24 z-30 hidden rounded-[30px] p-4 sm:p-5 lg:block">
+      <div className="soft-panel hidden rounded-[30px] p-4 sm:p-5 lg:block">
         <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr_auto] xl:items-end">
           <div>
             <p className="eyebrow">Compare builder</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Pick a school, then search only that campus. The comparison stays front and center.
+              Pick a school, then search only that campus. Your comparison list updates as you add rows below.
             </p>
           </div>
 

@@ -42,7 +42,7 @@ export function LoginForm() {
 
   if (!authReady) {
     return (
-      <div className="flex min-h-[220px] flex-col items-center justify-center gap-6 rounded-[28px] border border-border/80 bg-gradient-to-b from-white to-[var(--surface-strong)] px-8 py-12 shadow-[var(--shadow)]">
+      <div className="soft-panel flex min-h-[220px] flex-col items-center justify-center gap-6 rounded-[28px] px-8 py-12">
         <ClassifyLoadingMark size="md" tone="light" label="Loading sign-in options" />
         <p className="text-sm text-muted">One moment…</p>
       </div>
@@ -53,7 +53,7 @@ export function LoginForm() {
     const methodLabel = user.source === "supabase" ? "Email link" : "Google";
 
     return (
-      <div className="rounded-[28px] border border-border/80 bg-gradient-to-b from-white to-[var(--surface-strong)] px-8 py-10 shadow-[var(--shadow)] sm:px-10 sm:py-12">
+      <div className="soft-panel rounded-[28px] px-8 py-10 sm:px-10 sm:py-12">
         <span className="inline-flex rounded-full bg-teal/12 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-teal">
           Signed in
         </span>
@@ -90,13 +90,13 @@ export function LoginForm() {
           </Link>
           <Link
             href="/"
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border bg-white px-6 text-sm font-semibold text-ink transition hover:bg-white/90 sm:min-w-[10rem] sm:flex-none"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-6 text-sm font-semibold text-ink transition hover:bg-surface-raised-top/90 sm:min-w-[10rem] sm:flex-none"
           >
             Go to home
           </Link>
           <Link
             href="/search"
-            className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border bg-white px-6 text-sm font-semibold text-ink transition hover:bg-white/90 sm:min-w-[10rem] sm:flex-none"
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-border-strong bg-surface-raised-top px-6 text-sm font-semibold text-ink transition hover:bg-surface-raised-top/90 sm:min-w-[10rem] sm:flex-none"
           >
             Open search
           </Link>
@@ -114,7 +114,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="rounded-[28px] border border-border/80 bg-gradient-to-b from-white to-[var(--surface-strong)] px-8 py-10 shadow-[var(--shadow)] sm:px-10 sm:py-12">
+    <div className="soft-panel rounded-[28px] px-8 py-10 sm:px-10 sm:py-12">
       <h2 className="display-title text-2xl font-semibold text-ink sm:text-3xl">Sign in</h2>
       <p className="mt-3 max-w-md text-base leading-relaxed text-muted">
         {isStandalone
@@ -139,8 +139,9 @@ export function LoginForm() {
           onClick={() => void onGoogle()}
           disabled={busy}
           className={cn(
-            "flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border/90 bg-white text-sm font-semibold text-ink shadow-sm transition",
+            "flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border/90 bg-white text-sm font-semibold text-slate-900 shadow-sm transition",
             "hover:border-teal/35 hover:shadow-md",
+            "dark:border-white/18 dark:bg-white dark:text-slate-900",
             "disabled:cursor-not-allowed disabled:opacity-55",
           )}
         >

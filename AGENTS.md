@@ -33,3 +33,16 @@ Avoid:
 - [insert common mistakes]
 
 The final result should feel like a distinct, original product built specifically for this idea.
+
+## Learned User Preferences
+
+- Restore missing or empty `.env.local` from `.env.example` (variable names) and provider dashboards (values); ignored env files are not in git.
+- Home should look the same after client-side navigation back to `/` as on first load (dark hero shell, hero scroll position, WebGL background when the device supports it).
+
+## Learned Workspace Facts
+
+- The Next.js dev indicator “Cache disabled” reflects `next dev` behavior, not broken `cacheComponents` or `"use cache"` usage; validate caching with `next build` / `next start` or production.
+- `three` is pinned to `0.182.0` to avoid `THREE.Clock` deprecation console noise until `@react-three/fiber` moves off `Clock` internally.
+- Home “National school graph” spotlights use `getSchoolsForHomeNationalGraphSpotlights()` in `lib/catalog.ts` with `HOME_NATIONAL_GRAPH_PRIMARY_SLUG` (`texas-am`), up to eight schools whose `plannerReadiness` is `catalog_ready`, `schedule_ready`, or `evidence_ready`.
+- School depth is `supportProfile.plannerReadiness` from `buildSchoolSupportProfile` in `lib/catalog.ts`; `directory_ready` is directory/search-only until merged catalog rows exist.
+- Published data path: merge the catalog (`npm run catalog:merge`, artifact under `etl/output/`), then publish to Supabase with the repo publish flow when using remote storage.
