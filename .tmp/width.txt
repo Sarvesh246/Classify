@@ -1,0 +1,1 @@
+"{\"width\":1440,\"min768\":true,\"hiddens\":[{\"placeholder\":\"Search schools, courses, or professors\",\"display\":\"block\",\"hiddenClass\":true}]}"

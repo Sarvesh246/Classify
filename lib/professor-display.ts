@@ -170,5 +170,13 @@ export function resolveProfessorProfileName(
     .filter((candidate) => getGivenName(candidate).charAt(0) === primaryInitial)
     .sort((left, right) => scoreFullNameCandidate(right) - scoreFullNameCandidate(left));
 
-  return matches[0] ?? formattedPrimary;
+  const uniqueMatches = [...new Map(
+    matches.map((candidate) => [normalizeComparableName(candidate), candidate]),
+  ).values()];
+
+  if (uniqueMatches.length !== 1) {
+    return formattedPrimary;
+  }
+
+  return uniqueMatches[0];
 }

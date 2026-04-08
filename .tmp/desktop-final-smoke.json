@@ -1,0 +1,69 @@
+{
+    "routes":  [
+                   {
+                       "path":  "/",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"Find the professor who actually gives A\u0027s.\"",
+                       "markerOk":  "false",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/search",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"Search schools, courses, and professors in one place\"",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/compare",
+                       "title":  "\"Classify\"",
+                       "h1":  "null",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/saved",
+                       "title":  "\"Saved | Classify\"",
+                       "h1":  "\"Saved\"",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/login",
+                       "title":  "\"Sign in | Classify\"",
+                       "h1":  "\"Welcome\"",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/schools/texas-am",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"Texas A\u0026M University\"",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/schools/texas-am/instructors",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"All instructors\"",
+                       "markerOk":  "false",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/schools/texas-am/professors/altemose-a",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"Alicia Altemose\"",
+                       "markerOk":  "true",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   },
+                   {
+                       "path":  "/schools/texas-am/my-courses",
+                       "title":  "\"Classify\"",
+                       "h1":  "\"My courses\"",
+                       "markerOk":  "false",
+                       "errors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+                   }
+               ],
+    "search":  "",
+    "searchErrors":  "Total messages: 0 (Errors: 0, Warnings: 0)\n"
+}

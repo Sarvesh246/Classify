@@ -1,0 +1,13 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e7]:
+      - paragraph [ref=e8]: Opening Classify
+      - heading "Your course decision workspace is loading." [level=1] [ref=e9]
+      - paragraph [ref=e10]: Pulling school coverage, instructor picks, and planner-ready options.
+      - generic [ref=e11]:
+        - status "Loading" [ref=e12]
+        - generic [ref=e19]:
+          - paragraph [ref=e20]: Building your launchpad
+          - paragraph [ref=e21]: Search, compare, and saved work are getting ready.

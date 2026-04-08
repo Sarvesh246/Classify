@@ -1,0 +1,33 @@
+[  103059ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  104051ms] HierarchyRequestError: The operation would yield an incorrect node tree.
+    at insertBefore (http://127.0.0.1:3200/search:1:27370)
+    at $RV (http://127.0.0.1:3200/search:1:27370)
+[  104141ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at reportError (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:46616)
+    at f (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:4206)
+    at sk (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:155586)
+    at unknown (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153302)
+    at sv (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153306)
+    at st (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:136459)
+    at se (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:134695)
+    at s$ (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:159895)
+    at O (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:8059)
+[  135801ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  137556ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  139074ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  140973ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  142319ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  143731ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  144654ms] HierarchyRequestError: The operation would yield an incorrect node tree.
+    at insertBefore (http://127.0.0.1:3200/search:1:27370)
+    at $RV (http://127.0.0.1:3200/search:1:27370)
+[  144759ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at reportError (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:46616)
+    at f (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:4206)
+    at sk (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:155586)
+    at unknown (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153302)
+    at sv (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153306)
+    at st (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:136459)
+    at se (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:134695)
+    at s$ (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:159895)
+    at O (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:8059)

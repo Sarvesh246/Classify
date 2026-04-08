@@ -8,6 +8,7 @@ const CompareBuilder = dynamic(
   () =>
     import("@/components/compare/compare-builder").then((m) => m.CompareBuilder),
   {
+    ssr: false,
     loading: () => (
       <div
         aria-busy="true"

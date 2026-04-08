@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { CompareBuilderClient } from "./compare-builder-client";
 import { SiteHeader } from "@/components/site-header";
 import { getCatalogOfferingsByIds, getCatalogOfferingsForSchool } from "@/lib/catalog";
@@ -7,6 +8,7 @@ type ComparePageProps = {
 };
 
 export default async function ComparePage({ searchParams }: ComparePageProps) {
+  await connection();
   const params = await searchParams;
   const ids = params.ids?.split(",").filter(Boolean) ?? [];
   const school = params.school?.trim() || undefined;

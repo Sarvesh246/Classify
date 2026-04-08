@@ -1,0 +1,23 @@
+[   10990ms] [LOG] [HMR] connected @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   11236ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   11462ms] [INFO] [perf] web_vital_fcp: 10873ms {duration_ms: 10873, rating: poor, nav_type: navigate} @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   11469ms] [INFO] [perf] web_vital_ttfb: 1305ms {duration_ms: 1305, rating: needs-improvement, nav_type: navigate} @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   11471ms] [LOG] [Fast Refresh] done in 372ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   11614ms] [ERROR] The result of getServerSnapshot should be cached to avoid an infinite loop @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:3771
+[   11937ms] [ERROR] Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render. @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:3771
+[   11992ms] [ERROR] %o
+
+%s Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops. The above error occurred in the <RecentSearchesPanel> component. It was handled by the <ErrorBoundaryHandler> error boundary. @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:1998
+[   11999ms] [ERROR] Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops. @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:3771
+[   12000ms] [ERROR] Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops. @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:3771
+[   12014ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   12026ms] [LOG] [Fast Refresh] done in 370ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   12148ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   12170ms] [LOG] [Fast Refresh] done in 135ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   12489ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[   38795ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   38842ms] [LOG] [Fast Refresh] done in 84ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   52532ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   52533ms] [LOG] [Fast Refresh] done in 104ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   87278ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930
+[   87281ms] [LOG] [Fast Refresh] done in 115ms @ http://127.0.0.1:3201/_next/static/chunks/node_modules_next_dist_0ifwd0~._.js:2930

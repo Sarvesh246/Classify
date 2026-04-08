@@ -640,80 +640,80 @@ export function CompareBuilder({
 
         {catalogOpen ? (
           <div id="compare-catalog-panel">
-          activeSchoolSlug ? (
-            visibleCatalog.length ? (
-              <div className="mt-5 space-y-2">
-                {visibleCatalog.map((item) => {
-                  const selectedAlready = selectedIds.includes(item.id);
-                  const atLimit = !selectedAlready && selectedIds.length >= 4;
+            {activeSchoolSlug ? (
+              visibleCatalog.length ? (
+                <div className="mt-5 space-y-2">
+                  {visibleCatalog.map((item) => {
+                    const selectedAlready = selectedIds.includes(item.id);
+                    const atLimit = !selectedAlready && selectedIds.length >= 4;
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col gap-4 rounded-[24px] classify-inner px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
-                    >
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-semibold text-ink">{item.professorName}</h3>
-                          <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex flex-col gap-4 rounded-[24px] classify-inner px-4 py-4 lg:flex-row lg:items-center lg:justify-between"
+                      >
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-semibold text-ink">{item.professorName}</h3>
+                            <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+                          </div>
+                          <p className="text-sm text-muted">
+                            {item.courseCode} - {item.courseName} - {item.department}
+                          </p>
+                          <p className="mt-2 text-sm text-ink/78">{item.professorSummary}</p>
                         </div>
-                        <p className="text-sm text-muted">
-                          {item.courseCode} - {item.courseName} - {item.department}
-                        </p>
-                        <p className="mt-2 text-sm text-ink/78">{item.professorSummary}</p>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                            {scoreToLabel(item.classifyScore)}{" "}
+                            <span className="text-muted">({formatScore(item.classifyScore)})</span>
+                          </span>
+                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                            GPA {formatGpa(item.expectedGpa)}
+                          </span>
+                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                            {item.hasSectionPlanning ? "Section timing" : "No meeting time"}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={atLimit}
+                            onClick={() =>
+                              sync(
+                                selectedAlready
+                                  ? selectedIds.filter((id) => id !== item.id)
+                                  : [...selectedIds, item.id],
+                              )
+                            }
+                            className="inline-flex items-center gap-2 rounded-full bg-deep-ink px-4 py-2 font-medium text-ivory disabled:cursor-not-allowed disabled:bg-deep-ink/40"
+                          >
+                            {selectedAlready ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                            {selectedAlready
+                              ? "Remove"
+                              : atLimit
+                                ? "Limit reached"
+                                : "Add"}
+                          </button>
+                          <Link
+                            href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
+                            className="inline-flex items-center rounded-full border border-border px-4 py-2 font-medium text-ink"
+                          >
+                            Plan
+                          </Link>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-                        <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                          {scoreToLabel(item.classifyScore)}{" "}
-                          <span className="text-muted">({formatScore(item.classifyScore)})</span>
-                        </span>
-                        <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                          GPA {formatGpa(item.expectedGpa)}
-                        </span>
-                        <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                          {item.hasSectionPlanning ? "Section timing" : "No meeting time"}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={atLimit}
-                          onClick={() =>
-                            sync(
-                              selectedAlready
-                                ? selectedIds.filter((id) => id !== item.id)
-                                : [...selectedIds, item.id],
-                            )
-                          }
-                          className="inline-flex items-center gap-2 rounded-full bg-deep-ink px-4 py-2 font-medium text-ivory disabled:cursor-not-allowed disabled:bg-deep-ink/40"
-                        >
-                          {selectedAlready ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                          {selectedAlready
-                            ? "Remove"
-                            : atLimit
-                              ? "Limit reached"
-                              : "Add"}
-                        </button>
-                        <Link
-                          href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
-                          className="inline-flex items-center rounded-full border border-border px-4 py-2 font-medium text-ink"
-                        >
-                          Plan
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mt-5 rounded-[26px] border border-dashed border-border px-4 py-12 text-sm text-muted">
+                  This school is searchable, but there are no compare-ready professor-course
+                  aggregates published for it yet.
+                </div>
+              )
             ) : (
               <div className="mt-5 rounded-[26px] border border-dashed border-border px-4 py-12 text-sm text-muted">
-                This school is searchable, but there are no compare-ready professor-course
-                aggregates published for it yet.
+                Choose a school above to reveal its compare-ready professor catalog.
               </div>
-            )
-          ) : (
-            <div className="mt-5 rounded-[26px] border border-dashed border-border px-4 py-12 text-sm text-muted">
-              Choose a school above to reveal its compare-ready professor catalog.
-            </div>
-          )
+            )}
           </div>
         ) : null}
       </div>

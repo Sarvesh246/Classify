@@ -1,0 +1,68 @@
+[   92078ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[   92577ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[   92578ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[   92578ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  112234ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  112235ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  112306ms] HierarchyRequestError: The operation would yield an incorrect node tree.
+    at insertBefore (http://127.0.0.1:3200/search:1:27370)
+    at $RV (http://127.0.0.1:3200/search:1:27370)
+[  112449ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at reportError (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:46616)
+    at f (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:4206)
+    at sk (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:155586)
+    at unknown (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153302)
+    at sv (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153306)
+    at st (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:136459)
+    at se (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:134695)
+    at s$ (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:159895)
+    at O (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:8059)
+[  112614ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  112644ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  143918ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  143983ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  143983ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  143984ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  144444ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  145938ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  145974ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  145975ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  145975ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  146255ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  147460ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  147494ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  147495ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  147496ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  147818ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  149402ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  149431ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  149431ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  149432ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  149809ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  150953ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  150985ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  150985ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  150986ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  151163ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  152350ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  152382ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  152382ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  152410ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0
+[  152651ms] [WARNING] Info: The current domain is not authorized for OAuth operations. This will prevent signInWithPopup, signInWithRedirect, linkWithPopup and linkWithRedirect from working. Add your domain (127.0.0.1) to the OAuth redirect domains list in the Firebase console -> Authentication -> Settings -> Authorized domains tab. @ https://classify-a5378.firebaseapp.com/__/auth/iframe.js:310
+[  153573ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0f5a9av96q~q5.js:0
+[  153574ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0~_q..wyvp0me.js:0
+[  153589ms] HierarchyRequestError: The operation would yield an incorrect node tree.
+    at insertBefore (http://127.0.0.1:3200/search:1:27370)
+    at $RV (http://127.0.0.1:3200/search:1:27370)
+[  153713ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at reportError (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:46616)
+    at f (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:4206)
+    at sk (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:155586)
+    at unknown (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153302)
+    at sv (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153306)
+    at st (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:136459)
+    at se (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:134695)
+    at s$ (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:159895)
+    at O (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:8059)
+[  153813ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/0-8j4f72np_zp.js:0
+[  153845ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3200/_next/static/chunks/16z00k5kgo946.js:0

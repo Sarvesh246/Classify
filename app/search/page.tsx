@@ -1,12 +1,10 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { Search } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
-import { MobileSearchCommand } from "@/components/search/mobile-search-command";
-import { SearchCombobox } from "@/components/search/search-combobox";
-import { SearchScopeChips } from "@/components/search/search-scope-chips";
+import { SearchEntrySurfaceIsland } from "@/components/search/search-entry-surface-island";
 import { SiteHeader } from "@/components/site-header";
-import { getFeaturedOfferings } from "@/lib/catalog";
 import { getDirectorySchoolBySlug, searchDirectoryWithTotal } from "@/lib/server-directory";
 import { type SearchHit, type SearchHitType } from "@/lib/types";
 import { formatScore, scoreToLabel } from "@/lib/utils";
@@ -23,6 +21,7 @@ function parseFilterType(raw: string | undefined): SearchHitType | "all" {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  await connection();
   const params = await searchParams;
   // Legacy web-app shortcuts may still launch with `/search?source=pwa`.
   // Home is the intended standalone entry surface.
@@ -74,7 +73,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     results = batch.results;
   }
 
-  const featured = shouldSearch ? [] : await getFeaturedOfferings();
   const grouped = {
     school: results.filter((item) => item.type === "school"),
     course: results.filter((item) => item.type === "course"),
@@ -85,39 +83,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <main className="min-h-screen bg-background">
       <SiteHeader />
       <div className="page-shell pt-4 pb-16 md:pt-10 md:pb-10">
-        <MobileSearchCommand
+        <SearchEntrySurfaceIsland
           query={query}
           schoolSlug={schoolParam}
           filterType={filterType}
           schoolShortName={schoolShortName}
         />
-
-        <section className="search-elevated-surface soft-panel hidden rounded-[34px] p-6 sm:p-8 md:block">
-          <p className="eyebrow">Universal search</p>
-          <h1 className="app-page-title mt-3 font-semibold text-ink">
-            Search schools, courses, and professors in one place
-          </h1>
-          <p className="app-lead mt-4">
-            Any searchable school can land in the same Classify workflow. Start
-            with a school, course, or professor and then narrow into the school hub,
-            planner, course view, or instructor comparison surface.
-          </p>
-          <div className="mt-8">
-            <SearchCombobox
-              initialQuery={query}
-              searchType={filterType}
-              schoolSlug={schoolParam}
-              syncSearchUrl
-              liveSyncSearchPage
-            />
-            <SearchScopeChips
-              query={query}
-              schoolSlug={schoolParam}
-              filterType={filterType}
-              schoolShortName={schoolShortName}
-            />
-          </div>
-        </section>
 
         {shouldSearch ? (
           <section className="mt-8 space-y-8">
@@ -292,59 +263,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </nav>
             ) : null}
           </section>
-        ) : (
-          <section className="mt-8 hidden gap-6 lg:grid-cols-[1.05fr_0.95fr] md:grid">
-            <div className="soft-panel rounded-[30px] p-5 sm:p-6">
-              <p className="eyebrow">Search cues</p>
-              <h2 className="mt-3 text-3xl font-semibold text-ink">
-                What to search first
-              </h2>
-              <div className="mt-6 space-y-3 text-sm text-muted">
-                <div className="rounded-[24px] classify-inner px-4 py-4">
-                  Try a school name first if you want the full school hub, planner
-                  entry point, and instructor directory.
-                </div>
-                <div className="rounded-[24px] classify-inner px-4 py-4">
-                  Try a course code like <code>CS 312</code>{" "}if your question is{" "}
-                  &quot;who teaches this class and gives the best outcomes?&quot;
-                </div>
-                <div className="rounded-[24px] classify-inner px-4 py-4">
-                  Try a professor name if you already know the person and want a
-                  direct path into the profile page and compare flow.
-                </div>
-              </div>
-            </div>
-            <div className="soft-panel rounded-[30px] p-5 sm:p-6">
-              <p className="eyebrow">Featured course options</p>
-              <div className="mt-5 space-y-3">
-                {featured.slice(0, 4).map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                    className="block rounded-[24px] classify-inner px-4 py-4"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-semibold text-ink">{item.professorName}</p>
-                        <p className="text-sm text-muted">
-                          {item.courseCode} - {item.courseName}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-ink">
-                          {scoreToLabel(item.classifyScore)}
-                        </p>
-                        <p className="text-xs text-muted">
-                          score {formatScore(item.classifyScore)}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        ) : null}
       </div>
     </main>
   );

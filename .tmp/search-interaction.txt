@@ -1,0 +1,11 @@
+desktopLive="http://127.0.0.1:3200/search"
+desktopSchool=
+desktopListbox=### Error
+SyntaxError: Unexpected identifier 'raw'
+    at eval (eval at evaluate (:302:30), <anonymous>:2:38)
+    at UtilityScript.evaluate (<anonymous>:304:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+desktopDelta=
+mobileLive="http://127.0.0.1:3200/search"
+mobileSchool=
+mobileSheet=false

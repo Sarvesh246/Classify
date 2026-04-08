@@ -1,0 +1,102 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - link "Classify home" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - generic [ref=e16]:
+            - generic [ref=e17]: Classify
+            - generic [ref=e18]: Course Intelligence
+      - navigation [ref=e19]:
+        - link "Search" [ref=e20] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e21] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e22] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e23] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e24] [cursor=pointer]:
+          - /url: /search?type=school
+      - generic [ref=e25]:
+        - button "Toggle color theme" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+        - link "Search" [ref=e33] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e34]
+          - text: Search
+        - status [ref=e37]: Loading...
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - paragraph [ref=e40]: Universal search
+        - heading "Search schools, courses, and professors in one place" [level=1] [ref=e41]
+        - paragraph [ref=e42]: Any searchable school can land in the same Classify workflow. Start with a school, course, or professor and then narrow into the school hub, planner, course view, or instructor comparison surface.
+        - generic [ref=e43]:
+          - generic [ref=e45]:
+            - img [ref=e47]
+            - combobox "Search schools, courses, or professors" [ref=e50]
+            - button "Explore" [ref=e51] [cursor=pointer]:
+              - generic [ref=e52]: Explore
+          - generic [ref=e54]:
+            - link "All types" [ref=e55] [cursor=pointer]:
+              - /url: /search
+            - link "Schools" [ref=e56] [cursor=pointer]:
+              - /url: /search?type=school
+            - link "Courses" [ref=e57] [cursor=pointer]:
+              - /url: /search?type=course
+            - link "Professors" [ref=e58] [cursor=pointer]:
+              - /url: /search?type=professor
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - paragraph [ref=e61]: Search cues
+          - heading "What to search first" [level=2] [ref=e62]
+          - generic [ref=e63]:
+            - generic [ref=e64]: Try a school name first if you want the full school hub, planner entry point, and instructor directory.
+            - generic [ref=e65]:
+              - text: Try a course code like
+              - code [ref=e66]: CS 312
+              - text: if your question is "who teaches this class and gives the best outcomes?"
+            - generic [ref=e67]: Try a professor name if you already know the person and want a direct path into the profile page and compare flow.
+        - generic [ref=e68]:
+          - paragraph [ref=e69]: Featured course options
+          - generic [ref=e70]:
+            - link "J. Lopez COMM 410 - Radio, Records, and Popular Music Easy score 96" [ref=e71] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/lopez-j
+              - generic [ref=e72]:
+                - generic [ref=e73]:
+                  - paragraph [ref=e74]: J. Lopez
+                  - paragraph [ref=e75]: COMM 410 - Radio, Records, and Popular Music
+                - generic [ref=e76]:
+                  - paragraph [ref=e77]: Easy
+                  - paragraph [ref=e78]: score 96
+            - link "K. Anders ENGL 210 - Technical and Professional Writing Easy score 96" [ref=e79] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/anders-k
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - paragraph [ref=e82]: K. Anders
+                  - paragraph [ref=e83]: ENGL 210 - Technical and Professional Writing
+                - generic [ref=e84]:
+                  - paragraph [ref=e85]: Easy
+                  - paragraph [ref=e86]: score 96
+            - link "H. Salman STAT 683 - Statistics Easy score 96" [ref=e87] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/salman-h
+              - generic [ref=e88]:
+                - generic [ref=e89]:
+                  - paragraph [ref=e90]: H. Salman
+                  - paragraph [ref=e91]: STAT 683 - Statistics
+                - generic [ref=e92]:
+                  - paragraph [ref=e93]: Easy
+                  - paragraph [ref=e94]: score 96
+            - link "H. Benzina INST 363 - English as a Second Language Methods II Easy score 96" [ref=e95] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/benzina-h
+              - generic [ref=e96]:
+                - generic [ref=e97]:
+                  - paragraph [ref=e98]: H. Benzina
+                  - paragraph [ref=e99]: INST 363 - English as a Second Language Methods II
+                - generic [ref=e100]:
+                  - paragraph [ref=e101]: Easy
+                  - paragraph [ref=e102]: score 96
+  - alert [ref=e103]

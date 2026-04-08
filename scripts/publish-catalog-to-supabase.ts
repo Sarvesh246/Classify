@@ -26,7 +26,7 @@ export async function main() {
   }
 
   const client = createSupabaseAdminClient();
-  const dbValidation = await validateAgainstDb(client, payload, allowRegression);
+  const dbValidation = await validateAgainstDb(client, payload, { allowRegression });
   if (!dbValidation.ok) {
     throw new Error(`DB validation failed: ${dbValidation.failures.join(" | ")}`);
   }

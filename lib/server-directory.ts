@@ -614,7 +614,7 @@ async function collectSortedSearchRows(
     catalogHits = dedupeProfessorHitsForBrowse(catalogHits, offeringLookup);
   }
   const hits = [
-    ...(type === "all" || type === "school" ? schoolHits : []),
+    ...(type === "all" ? schoolHits : []),
     ...(type === "all" || type === "course" || type === "professor" ? catalogHits : []),
   ];
 

@@ -1,0 +1,3 @@
+title="Classify"
+h1="Search schools, courses, and professors in one place"
+errors=Total messages: 0 (Errors: 0, Warnings: 0) 

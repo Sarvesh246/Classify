@@ -18,7 +18,10 @@ export async function main() {
   }
 
   const client = createSupabaseAdminClient();
-  const dbValidation = await validateAgainstDb(client, payload, allowRegression);
+  const dbValidation = await validateAgainstDb(client, payload, {
+    allowRegression,
+    requireExactCounts: true,
+  });
   const publishSupport = await validatePublishSupport(client);
   const databaseEmpty =
     snapshotValidation.summary.required.schools > 0 &&

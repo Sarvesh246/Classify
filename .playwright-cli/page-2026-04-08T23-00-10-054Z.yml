@@ -1,0 +1,52 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - link "Classify home" [ref=e9]:
+          - /url: /
+          - img [ref=e12]
+        - generic [ref=e17]:
+          - paragraph [ref=e18]: Home
+          - paragraph [ref=e19]: Launch your next decision fast.
+      - generic [ref=e20]:
+        - button "Toggle color theme" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+        - link "Search" [ref=e28]:
+          - /url: /search
+          - img [ref=e29]
+          - generic [ref=e32]: Search
+        - status [ref=e33]: Loading...
+    - generic [ref=e36]:
+      - paragraph [ref=e37]: Opening Classify
+      - heading "Your course decision workspace is loading." [level=1] [ref=e38]
+      - paragraph [ref=e39]: Pulling school coverage, instructor picks, and planner-ready options.
+      - generic [ref=e40]:
+        - status "Loading" [ref=e41]
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: Building your launchpad
+          - paragraph [ref=e50]: Search, compare, and saved work are getting ready.
+  - alert [ref=e51]
+  - navigation [ref=e52]:
+    - generic [ref=e53]:
+      - link "Home" [ref=e54]:
+        - /url: /
+        - generic [ref=e56]:
+          - img [ref=e58]
+          - generic [ref=e61]: Home
+      - link "Search" [ref=e62]:
+        - /url: /search
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - generic [ref=e68]: Search
+      - link "Compare" [ref=e69]:
+        - /url: /compare
+        - generic [ref=e70]:
+          - img [ref=e72]
+          - generic [ref=e76]: Compare
+      - link "Saved" [ref=e77]:
+        - /url: /saved
+        - generic [ref=e78]:
+          - img [ref=e80]
+          - generic [ref=e82]: Saved

@@ -1,0 +1,5 @@
+desktop=Total messages: 0 (Errors: 0, Warnings: 0)
+
+mobile=Total messages: 1 (Errors: 0, Warnings: 1)
+Returning 0 messages for level "error"
+

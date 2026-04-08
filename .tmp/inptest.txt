@@ -1,0 +1,1 @@
+"[{\"type\":\"text\",\"auto\":\"list\",\"placeholder\":\"Search schools, courses, or professors\",\"value\":\"\",\"hidden\":true}]"

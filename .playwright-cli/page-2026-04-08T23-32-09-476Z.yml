@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - link "Classify home" [ref=e9]:
+          - /url: /
+          - img [ref=e12]
+        - generic [ref=e17]:
+          - paragraph [ref=e18]: Saved
+          - paragraph [ref=e19]: Your academic workspace.
+      - generic [ref=e20]:
+        - button "Toggle color theme" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+        - link "Browse" [ref=e28]:
+          - /url: /search
+          - img [ref=e29]
+          - generic [ref=e32]: Browse
+        - status [ref=e33]: Loading...
+    - generic [ref=e34]:
+      - generic [ref=e35]:
+        - paragraph [ref=e36]: Your library
+        - heading "Saved" [level=1] [ref=e37]
+        - paragraph [ref=e38]: Your saved professors, courses, compare sets, and planner drafts live here.
+      - status "Loading" [ref=e41]
+  - navigation [ref=e48]:
+    - generic [ref=e49]:
+      - link "Home" [ref=e50]:
+        - /url: /
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - generic [ref=e56]: Home
+      - link "Search" [ref=e57]:
+        - /url: /search
+        - generic [ref=e58]:
+          - img [ref=e60]
+          - generic [ref=e63]: Search
+      - link "Compare" [ref=e64]:
+        - /url: /compare
+        - generic [ref=e65]:
+          - img [ref=e67]
+          - generic [ref=e71]: Compare
+      - link "Saved" [ref=e72]:
+        - /url: /saved
+        - generic [ref=e74]:
+          - img [ref=e76]
+          - generic [ref=e78]: Saved

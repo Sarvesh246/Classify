@@ -1,0 +1,113 @@
+async (page) => {
+  const routes = [
+    { path: "/", waitFor: 'input[placeholder*="school" i]', waitOrder: "first" },
+    { path: "/search", waitFor: 'input[aria-autocomplete="list"]', waitOrder: "first" },
+    { path: "/schools/texas-am", waitFor: "h1", waitOrder: "first" },
+    { path: "/schools/texas-am/instructors", waitFor: "h1", waitOrder: "first" },
+    { path: "/schools/texas-am/professors/altemose-a", waitFor: "h1", waitOrder: "first" },
+    { path: "/schools/texas-am/my-courses", waitFor: "h1", waitOrder: "first" },
+    { path: "/login", waitFor: "h1", waitOrder: "first" },
+    { path: "/saved", waitFor: "h1", waitOrder: "first" },
+  ];
+
+  const pageErrors = [];
+  page.on("pageerror", (err) => {
+    pageErrors.push(String(err?.message ?? err));
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  const results = [];
+
+  for (const route of routes) {
+    const consoleErrors = [];
+    const handler = (msg) => {
+      if (msg.type() === "error") {
+        consoleErrors.push(msg.text());
+      }
+    };
+
+    page.on("console", handler);
+    pageErrors.length = 0;
+
+    try {
+      const waitLocator =
+        route.waitOrder === "last"
+          ? page.locator(route.waitFor).last()
+          : page.locator(route.waitFor).first();
+      await page.goto(`http://127.0.0.1:3200${route.path}`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
+      await waitLocator.waitFor({
+        state: "visible",
+        timeout: 20_000,
+      });
+      await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
+      await page.waitForTimeout(350);
+
+      results.push({
+        path: route.path,
+        url: page.url(),
+        title: await page.title(),
+        h1: await page.locator("h1").first().textContent().catch(() => null),
+        consoleErrors,
+        pageErrors: [...pageErrors],
+        offlineRoute: page.url().includes("/offline"),
+      });
+    } catch (error) {
+      results.push({
+        path: route.path,
+        url: page.url(),
+        failed: String(error?.message ?? error),
+        consoleErrors,
+        pageErrors: [...pageErrors],
+      });
+    } finally {
+      page.off("console", handler);
+    }
+  }
+
+  const search = {};
+  try {
+    await page.goto("http://127.0.0.1:3200/search", {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    const searchInput = page.locator('input[aria-autocomplete="list"]').first();
+    await searchInput.waitFor({
+      state: "visible",
+      timeout: 20_000,
+    });
+
+    await searchInput.click();
+    await searchInput.fill("Texas A&M");
+    await page.waitForTimeout(900);
+
+    const sheet = page.locator(".mobile-sheet-shell").first();
+    const sheetVisible = await sheet.isVisible().catch(() => false);
+    const suggestionLinks = await page
+      .locator('a[href*="/schools/"], a[href*="/professors/"], a[href*="/courses/"]')
+      .evaluateAll((nodes) =>
+        nodes.slice(0, 8).map((node) => ({
+          text: node.textContent?.replace(/\s+/g, " ").trim() ?? "",
+          href: node.getAttribute("href") ?? "",
+        })),
+      );
+
+    Object.assign(search, {
+      liveUrl: page.url(),
+      sheetVisible,
+      suggestionLinks,
+    });
+  } catch (error) {
+    Object.assign(search, {
+      failed: String(error?.message ?? error),
+    });
+  }
+
+  return {
+    routes: results,
+    search,
+  };
+}

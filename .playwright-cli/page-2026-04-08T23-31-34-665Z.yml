@@ -1,0 +1,1577 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - button "Go back to previous page" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+        - generic [ref=e12]:
+          - paragraph [ref=e13]: Instructors
+          - paragraph [ref=e14]: Browse the full school directory.
+      - generic [ref=e15]:
+        - button "Toggle color theme" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+        - status [ref=e23]: Loading...
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - paragraph [ref=e26]: Texas A&M
+        - heading "All instructors" [level=1] [ref=e27]
+        - paragraph [ref=e28]: Browse every professor identity we publish for this school (6381 total). Filter by department or class, sort by department or name, and scan the courses each instructor teaches next to their name.
+        - generic [ref=e29]:
+          - link "School hub" [ref=e30]:
+            - /url: /schools/texas-am
+          - link "My courses" [ref=e31]:
+            - /url: /schools/texas-am/my-courses
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - paragraph [ref=e34]: Filters
+          - paragraph [ref=e35]: Narrow who appears in the list. Your sort choice below applies to the filtered results.
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: Search
+            - textbox "Search" [ref=e39]:
+              - /placeholder: Name, course prefix, department...
+          - generic [ref=e40]:
+            - generic [ref=e41]: Department
+            - combobox "Department" [ref=e42]:
+              - option "All departments" [selected]
+              - option "Accounting"
+              - option "ACCOUNTING"
+              - option "Aerospace Engineering"
+              - option "AEROSPACE ENGINEERING"
+              - option "African Studies"
+              - option "African-American Studies"
+              - option "AG LEADERSHIP, EDUC & COMM"
+              - option "Agricultural Economics"
+              - option "AGRICULTURAL ECONOMICS"
+              - option "Agriculture"
+              - option "Agronomy"
+              - option "Air Force Studies"
+              - option "American Studies"
+              - option "Analytical"
+              - option "Animal Science"
+              - option "ANIMAL SCIENCE"
+              - option "Anthropology"
+              - option "ANTHROPOLOGY"
+              - option "Architectural Engineering"
+              - option "Architecture"
+              - option "ARCHITECTURE"
+              - option "Art"
+              - option "Art Design"
+              - option "Art & Design"
+              - option "Art Education"
+              - option "Art History"
+              - option "Arts & Sciences"
+              - option "Astronomy"
+              - option "Athletic Training"
+              - option "Athletics"
+              - option "Atmospheric Sciences"
+              - option "ATMOSPHERIC SCIENCES"
+              - option "Behavioral Sciences"
+              - option "Biochemistry"
+              - option "BIOCHEMISTRY & BIOPHYSICS"
+              - option "BIOLOGICAL & AGRICULTURAL ENG"
+              - option "Biological Sciences"
+              - option "Biology"
+              - option "BIOLOGY"
+              - option "Biomedical"
+              - option "Biomedical Engineering"
+              - option "BIOMEDICAL ENGINEERING"
+              - option "Botany"
+              - option "BUSH SCHOOL OF GOVT. - DEANS"
+              - option "Business"
+              - option "Chemical Engineering"
+              - option "CHEMICAL ENGINEERING"
+              - option "Chemistry"
+              - option "CHEMISTRY"
+              - option "CIVIL & ENVIRONMENTAL ENGR"
+              - option "Civil Engineering"
+              - option "Classics"
+              - option "COLLEGE OF AG. & LIFE SCIENCES"
+              - option "COLLEGE OF ARCHITECTURE"
+              - option "COLLEGE OF ARTS & SCIENCES"
+              - option "COLLEGE OF BUSINESS"
+              - option "COLLEGE OF ENGINEERING"
+              - option "COLLEGE OF MEDICINE"
+              - option "COLLEGE OF VETERINARY MEDICINE"
+              - option "Communication"
+              - option "COMMUNICATION & JOURNALISM"
+              - option "Computer Engineering"
+              - option "Computer Science"
+              - option "COMPUTER SCIENCE & ENGINEERING"
+              - option "Construction"
+              - option "CONSTRUCTION SCIENCE"
+              - option "Construction Technology"
+              - option "Earth Science"
+              - option "ECOLOGY & CONSERVATION BIOLOGY"
+              - option "Economics"
+              - option "ECONOMICS"
+              - option "Ecosystem Science & Management"
+              - option "Ecosystem Science amp Management"
+              - option "EDUC ADMN & HUMAN RESOURCE DEV"
+              - option "Education"
+              - option "Education Administration"
+              - option "EDUCATIONAL PSYCHOLOGY"
+              - option "ELECTRICAL & COMPUTER ENG"
+              - option "Electrical & Computer Engineering"
+              - option "Electrical Engineering"
+              - option "ENG TECH & IND DISTRIBUTION"
+              - option "Engineering"
+              - option "English"
+              - option "ENGLISH"
+              - option "Entomology"
+              - option "ENTOMOLOGY"
+              - option "ENVIRONMENTAL & OCCPTNL HLTH"
+              - option "EPIDEMIOLOGY & BIOSTATISTICS"
+              - option "Ethnic Studies"
+              - option "Film"
+              - option "Finance"
+              - option "FINANCE"
+              - option "Fine Arts"
+              - option "Food Science"
+              - option "FOOD SCIENCE & TECHNOLOGY"
+              - option "Foreign Languages"
+              - option "French"
+              - option "General Studies"
+              - option "Genetics"
+              - option "Geography"
+              - option "GEOGRAPHY"
+              - option "Geology"
+              - option "GEOLOGY & GEOPHYSICS"
+              - option "GLOBAL LANGUAGES & CULTURES"
+              - option "Graphic Arts"
+              - option "Health Physical Education"
+              - option "Health & Kinesiology"
+              - option "Health & Physical Education"
+              - option "Health amp Kinesiology"
+              - option "Health amp Physical Education"
+              - option "HEALTH BEHAVIOR"
+              - option "HEALTH EDUCATION PROGRAMS"
+              - option "HEALTH POLICY & MANAGEMENT"
+              - option "Health Science"
+              - option "Hispanic Studies"
+              - option "History"
+              - option "HISTORY"
+              - option "HORTICULTURAL SCIENCES"
+              - option "Horticulture"
+              - option "Hospitality"
+              - option "HOSPITALITY HOTEL MGMT TOURISM"
+              - option "Humanities"
+              - option "INDUSTRIAL & SYSTEMS ENG"
+              - option "INFORMATION & OPERATIONS MGMT"
+              - option "Information Science"
+              - option "INTERNATIONAL AFFAIRS"
+              - option "International Studies"
+              - option "Journalism"
+              - option "KINESIOLOGY & SPORT MANAGEMENT"
+              - option "LAND ARCH & URBAN PLANNING"
+              - option "Languages"
+              - option "Law"
+              - option "Life Science"
+              - option "Linguistics"
+              - option "Management"
+              - option "MANAGEMENT"
+              - option "Marketing"
+              - option "MARKETING"
+              - option "Materials Science & Eng."
+              - option "MATERIALS SCIENCE & ENGR"
+              - option "Materials Science amp Eng."
+              - option "Mathematics"
+              - option "MATHEMATICS"
+              - option "Mechanical Engineering"
+              - option "MECHANICAL ENGINEERING"
+              - option "Mechanical Engineering Technology"
+              - option "Meteorology"
+              - option "Microbiology"
+              - option "Military Science"
+              - option "Modern Languages"
+              - option "MULTIDISCIPLINARY ENGINEERING"
+              - option "Music"
+              - option "Not Specified"
+              - option "Nuclear Engineering"
+              - option "NUCLEAR ENGINEERING"
+              - option "Nursing"
+              - option "NUTRITION"
+              - option "Nutrition Foods"
+              - option "Nutrition & Foods"
+              - option "Nutrition amp Foods"
+              - option "OCEAN ENGINEERING"
+              - option "OCEANOGRAPHY"
+              - option "Performance Studies"
+              - option "PETROLEUM ENGINEERING"
+              - option "Philosophy"
+              - option "PHILOSOPHY"
+              - option "Physical Education"
+              - option "Physical Sciences"
+              - option "Physics"
+              - option "Physics Astronomy"
+              - option "Physics & Astronomy"
+              - option "PHYSICS & ASTRONOMY"
+              - option "Physics & Chemistry"
+              - option "Physics amp Astronomy"
+              - option "PLANT PATHOLOGY & MICROBIOLOGY"
+              - option "Political Science"
+              - option "POLITICAL SCIENCE"
+              - option "POULTRY SCIENCE"
+              - option "PSYCHOLOGICAL & BRAIN SCIENCES"
+              - option "Psychology"
+              - option "Psychology Sociology"
+              - option "Psychology & Sociology"
+              - option "Public Health"
+              - option "PUBLIC SERVICE &ADMINISTRATION"
+              - option "RANGELAND WILDLIFE & FISH MGMT"
+              - option "Recreation Parks Tourism"
+              - option "Recreation Parks amp Tourism"
+              - option "Recreation, Parks & Tourism"
+              - option "Recreation, Parks, & Tourism"
+              - option "Religion"
+              - option "Rhetoric & Communication"
+              - option "SCHOOL OF PUBLIC HEALTH"
+              - option "Science"
+              - option "Select department"
+              - option "Social Science"
+              - option "Sociology"
+              - option "SOCIOLOGY"
+              - option "SOIL & CROP SCIENCES"
+              - option "Soils"
+              - option "Spanish"
+              - option "Speech"
+              - option "Statistics"
+              - option "STATISTICS"
+              - option "TEACHING, LEARNING & CULTURE"
+              - option "Technology Management"
+              - option "Theater"
+              - option "VET INTEGRATIVE BIOSCIENCES"
+              - option "VET PHYSIOLOGY & PHARMACOLOGY"
+              - option "VETERINARY PATHOBIOLOGY"
+              - option "Veterinary Sciences"
+              - option "Wildlife Fisheries Sciences"
+              - option "Wildlife & Fisheries Sciences"
+              - option "Wildlife amp Fisheries Sciences"
+              - option "Women's Studies"
+          - generic [ref=e43]:
+            - generic [ref=e44]: Class / course
+            - textbox "Class / course" [ref=e45]:
+              - /placeholder: Code or title, e.g. CSCE 121
+          - generic [ref=e46]:
+            - generic [ref=e47]: Evidence
+            - combobox "Evidence" [ref=e48]:
+              - option "All evidence" [selected]
+              - option "Institutional stats"
+              - option "RMP-backed only"
+              - option "Identity only / thin stats"
+          - generic [ref=e49]:
+            - generic [ref=e50]: Planning
+            - combobox "Planning" [ref=e51]:
+              - option "All planning states" [selected]
+              - option "Section timing ready"
+              - option "Catalog only"
+          - generic [ref=e52]:
+            - generic [ref=e53]: Source
+            - combobox "Source" [ref=e54]:
+              - option "All sources" [selected]
+              - option "Official outcomes"
+              - option "Schedule-linked"
+              - option "RMP-backed"
+              - option "Identity only"
+          - button "Apply filters" [ref=e55] [cursor=pointer]
+        - generic "Sort order" [ref=e56]:
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - heading "Sort order" [level=2] [ref=e59]
+              - paragraph [ref=e60]: Pick one option. Browse keeps lists alphabetical; outcomes rank instructors by the metric shown.
+            - paragraph [ref=e61]:
+              - generic [ref=e62]: Active
+              - generic [ref=e63]: Last name (A–Z)
+          - generic [ref=e64]:
+            - group "Alphabetical" [ref=e65]:
+              - generic [ref=e66]:
+                - heading "Alphabetical" [level=3] [ref=e67]
+                - generic [ref=e68]: Sort by name or department
+              - generic [ref=e69]:
+                - link "Last name" [ref=e70]:
+                  - /url: /schools/texas-am/instructors?sort=name
+                - link "Department" [ref=e71]:
+                  - /url: /schools/texas-am/instructors?sort=dept
+            - group "Outcomes & reviews" [ref=e72]:
+              - generic [ref=e73]:
+                - heading "Outcomes & reviews" [level=3] [ref=e74]
+                - generic [ref=e75]: Higher values first when data exists
+              - generic [ref=e76]:
+                - link "Classify score" [ref=e77]:
+                  - /url: /schools/texas-am/instructors?sort=classify
+                - link "Expected GPA" [ref=e78]:
+                  - /url: /schools/texas-am/instructors?sort=gpa
+                - link "A-rate" [ref=e79]:
+                  - /url: /schools/texas-am/instructors?sort=arate
+                - link "Trend" [ref=e80]:
+                  - /url: /schools/texas-am/instructors?sort=trend
+                - link "RMP rating" [ref=e81]:
+                  - /url: /schools/texas-am/instructors?sort=rating
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - heading "St. Clair A" [level=2] [ref=e86]
+              - generic [ref=e87]: Official data
+            - paragraph [ref=e88]: BIOLOGY
+            - generic [ref=e89]:
+              - paragraph [ref=e90]: Classes taught
+              - list [ref=e91]:
+                - listitem [ref=e92]:
+                  - text: BIOL 401
+                  - generic [ref=e93]: — Critical Writing in Biology
+            - paragraph [ref=e94]: Teaches BIOL 401.
+          - generic [ref=e95]:
+            - generic [ref=e96]: Average (56)
+            - generic [ref=e97]: GPA 3.48
+            - generic [ref=e98]: A-rate 74%
+            - generic [ref=e99]: RMP Unavailable
+            - generic [ref=e100]: Directory only
+            - generic [ref=e101]: Partial stats
+            - generic [ref=e102]: Stats expanding
+          - generic [ref=e103]:
+            - link "Profile" [ref=e104]:
+              - /url: /schools/texas-am/professors/st-clair-a
+            - link "Compare" [ref=e105]:
+              - /url: /compare?ids=profdir:texas-am:st-clair-a
+        - generic [ref=e106]:
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - heading "P. Aasi" [level=2] [ref=e109]
+              - generic [ref=e110]: High evidence
+            - paragraph [ref=e111]: INFORMATION & OPERATIONS MGMT
+            - generic [ref=e112]:
+              - paragraph [ref=e113]: Classes taught
+              - list [ref=e114]:
+                - listitem [ref=e115]:
+                  - text: ISTM 410
+                  - generic [ref=e116]: — Management of Information Systems
+            - paragraph [ref=e117]: Teaches ISTM 410.
+          - generic [ref=e118]:
+            - generic [ref=e119]: Above avg (72)
+            - generic [ref=e120]: GPA 3.66
+            - generic [ref=e121]: A-rate 68%
+            - generic [ref=e122]: RMP 3.4
+            - generic [ref=e123]: Directory only
+            - generic [ref=e124]: Full stats
+            - generic [ref=e125]: Institutional outcomes live
+          - generic [ref=e126]:
+            - link "Profile" [ref=e127]:
+              - /url: /schools/texas-am/professors/aasi-p
+            - link "Compare" [ref=e128]:
+              - /url: /compare?ids=profdir:texas-am:aasi-p
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - heading "Parisa Aasi" [level=2] [ref=e132]
+              - generic [ref=e133]: Limited evidence
+            - paragraph [ref=e134]: Information Science
+            - generic [ref=e135]:
+              - paragraph [ref=e136]: Classes taught
+              - list
+              - paragraph [ref=e137]: Course list expanding from catalog
+            - paragraph [ref=e138]: Parisa Aasi is in the published instructor directory for Texas A&M.
+          - generic [ref=e139]:
+            - generic [ref=e140]: Unavailable (Unavailable)
+            - generic [ref=e141]: GPA Unavailable
+            - generic [ref=e142]: A-rate Unavailable
+            - generic [ref=e143]: RMP 3.4
+            - generic [ref=e144]: Directory only
+            - generic [ref=e145]: RMP signals
+            - generic [ref=e146]: Stats expanding
+          - generic [ref=e147]:
+            - link "Profile" [ref=e148]:
+              - /url: /schools/texas-am/professors/parisa-aasi
+            - link "Compare" [ref=e149]:
+              - /url: /compare?ids=profdir:texas-am:parisa-aasi
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - heading "Aasterud" [level=2] [ref=e153]
+              - generic [ref=e154]: Official data
+            - paragraph [ref=e155]: FINANCE
+            - generic [ref=e156]:
+              - paragraph [ref=e157]: Classes taught
+              - list [ref=e158]:
+                - listitem [ref=e159]:
+                  - text: FINC 685
+                  - generic [ref=e160]: — Finance
+            - paragraph [ref=e161]: Teaches FINC 685.
+          - generic [ref=e162]:
+            - generic [ref=e163]: Average (64)
+            - generic [ref=e164]: GPA 3.83
+            - generic [ref=e165]: A-rate 88%
+            - generic [ref=e166]: RMP Unavailable
+            - generic [ref=e167]: Directory only
+            - generic [ref=e168]: Partial stats
+            - generic [ref=e169]: Stats expanding
+          - generic [ref=e170]:
+            - link "Profile" [ref=e171]:
+              - /url: /schools/texas-am/professors/aasterud
+            - link "Compare" [ref=e172]:
+              - /url: /compare?ids=profdir:texas-am:aasterud
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - heading "A. Abanov" [level=2] [ref=e176]
+              - generic [ref=e177]: High evidence
+            - paragraph [ref=e178]: PHYSICS & ASTRONOMY
+            - generic [ref=e179]:
+              - paragraph [ref=e180]: Classes taught
+              - list [ref=e181]:
+                - listitem [ref=e182]:
+                  - text: PHYS 302
+                  - generic [ref=e183]: — Advanced Mechanics I
+            - paragraph [ref=e184]: Teaches PHYS 302.
+          - generic [ref=e185]:
+            - generic [ref=e186]: Above avg (68)
+            - generic [ref=e187]: GPA 3.46
+            - generic [ref=e188]: A-rate 65%
+            - generic [ref=e189]: RMP 4.3
+            - generic [ref=e190]: Directory only
+            - generic [ref=e191]: Full stats
+            - generic [ref=e192]: Institutional outcomes live
+          - generic [ref=e193]:
+            - link "Profile" [ref=e194]:
+              - /url: /schools/texas-am/professors/abanov-a
+            - link "Compare" [ref=e195]:
+              - /url: /compare?ids=profdir:texas-am:abanov-a
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - heading "Artem Abanov" [level=2] [ref=e199]
+              - generic [ref=e200]: Limited evidence
+            - paragraph [ref=e201]: Physics
+            - generic [ref=e202]:
+              - paragraph [ref=e203]: Classes taught
+              - list
+              - paragraph [ref=e204]: Course list expanding from catalog
+            - paragraph [ref=e205]: Artem Abanov is in the published instructor directory for Texas A&M.
+          - generic [ref=e206]:
+            - generic [ref=e207]: Unavailable (Unavailable)
+            - generic [ref=e208]: GPA Unavailable
+            - generic [ref=e209]: A-rate Unavailable
+            - generic [ref=e210]: RMP 4.3
+            - generic [ref=e211]: Directory only
+            - generic [ref=e212]: RMP signals
+            - generic [ref=e213]: Stats expanding
+          - generic [ref=e214]:
+            - link "Profile" [ref=e215]:
+              - /url: /schools/texas-am/professors/artem-abanov
+            - link "Compare" [ref=e216]:
+              - /url: /compare?ids=profdir:texas-am:artem-abanov
+        - generic [ref=e217]:
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - heading "R. Abbassi" [level=2] [ref=e220]
+              - generic [ref=e221]: Official data
+            - paragraph [ref=e222]: CHEMICAL ENGINEERING
+            - generic [ref=e223]:
+              - paragraph [ref=e224]: Classes taught
+              - list [ref=e225]:
+                - listitem [ref=e226]:
+                  - text: SENG 310
+                  - generic [ref=e227]: — Fundamentals of Safety Engineering
+                - listitem [ref=e228]:
+                  - text: SENG 680
+                  - generic [ref=e229]: — Chemical Engineering
+            - paragraph [ref=e230]: Teaches SENG 310, SENG 680.
+          - generic [ref=e231]:
+            - generic [ref=e232]: Tough (50)
+            - generic [ref=e233]: GPA 3.51
+            - generic [ref=e234]: A-rate 54%
+            - generic [ref=e235]: RMP Unavailable
+            - generic [ref=e236]: Directory only
+            - generic [ref=e237]: Partial stats
+            - generic [ref=e238]: Stats expanding
+          - generic [ref=e239]:
+            - link "Profile" [ref=e240]:
+              - /url: /schools/texas-am/professors/abbassi-r
+            - link "Compare" [ref=e241]:
+              - /url: /compare?ids=profdir:texas-am:abbassi-r
+        - generic [ref=e242]:
+          - generic [ref=e243]:
+            - generic [ref=e244]:
+              - heading "J. Abbey" [level=2] [ref=e245]
+              - generic [ref=e246]: High evidence
+            - paragraph [ref=e247]: INFORMATION & OPERATIONS MGMT
+            - generic [ref=e248]:
+              - paragraph [ref=e249]: Classes taught
+              - list [ref=e250]:
+                - listitem [ref=e251]:
+                  - text: ISTM 660
+                  - generic [ref=e252]: — Applied Predictive Analytics for Business
+                - listitem [ref=e253]:
+                  - text: SCMT 364
+                  - generic [ref=e254]: — Operations Management
+            - paragraph [ref=e255]: Teaches ISTM 660, SCMT 364.
+          - generic [ref=e256]:
+            - generic [ref=e257]: Above avg (74)
+            - generic [ref=e258]: GPA 3.73
+            - generic [ref=e259]: A-rate 79%
+            - generic [ref=e260]: RMP 2.8
+            - generic [ref=e261]: Directory only
+            - generic [ref=e262]: Full stats
+            - generic [ref=e263]: Institutional outcomes live
+          - generic [ref=e264]:
+            - link "Profile" [ref=e265]:
+              - /url: /schools/texas-am/professors/abbey-j
+            - link "Compare" [ref=e266]:
+              - /url: /compare?ids=profdir:texas-am:abbey-j
+        - generic [ref=e267]:
+          - generic [ref=e268]:
+            - generic [ref=e269]:
+              - heading "James Abbey" [level=2] [ref=e270]
+              - generic [ref=e271]: Limited evidence
+            - paragraph [ref=e272]: Business
+            - generic [ref=e273]:
+              - paragraph [ref=e274]: Classes taught
+              - list
+              - paragraph [ref=e275]: Course list expanding from catalog
+            - paragraph [ref=e276]: James Abbey is in the published instructor directory for Texas A&M.
+          - generic [ref=e277]:
+            - generic [ref=e278]: Unavailable (Unavailable)
+            - generic [ref=e279]: GPA Unavailable
+            - generic [ref=e280]: A-rate Unavailable
+            - generic [ref=e281]: RMP 2.8
+            - generic [ref=e282]: Directory only
+            - generic [ref=e283]: RMP signals
+            - generic [ref=e284]: Stats expanding
+          - generic [ref=e285]:
+            - link "Profile" [ref=e286]:
+              - /url: /schools/texas-am/professors/james-abbey
+            - link "Compare" [ref=e287]:
+              - /url: /compare?ids=profdir:texas-am:james-abbey
+        - generic [ref=e288]:
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - heading "J. Abbott" [level=2] [ref=e291]
+              - generic [ref=e292]: Official data
+            - paragraph [ref=e293]: COLLEGE OF BUSINESS
+            - generic [ref=e294]:
+              - paragraph [ref=e295]: Classes taught
+              - list [ref=e296]:
+                - listitem [ref=e297]:
+                  - text: BUAD 679
+                  - generic [ref=e298]: — College OF Business
+            - paragraph [ref=e299]: Teaches BUAD 679.
+          - generic [ref=e300]:
+            - generic [ref=e301]: Above avg (70)
+            - generic [ref=e302]: GPA 4.00
+            - generic [ref=e303]: A-rate 100%
+            - generic [ref=e304]: RMP Unavailable
+            - generic [ref=e305]: Directory only
+            - generic [ref=e306]: Partial stats
+            - generic [ref=e307]: Stats expanding
+          - generic [ref=e308]:
+            - link "Profile" [ref=e309]:
+              - /url: /schools/texas-am/professors/abbott-j
+            - link "Compare" [ref=e310]:
+              - /url: /compare?ids=profdir:texas-am:abbott-j
+        - generic [ref=e311]:
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - heading "Ahmed Abdelaal" [level=2] [ref=e314]
+              - generic [ref=e315]: Limited evidence
+            - paragraph [ref=e316]: Engineering
+            - generic [ref=e317]:
+              - paragraph [ref=e318]: Classes taught
+              - list
+              - paragraph [ref=e319]: Course list expanding from catalog
+            - paragraph [ref=e320]: Ahmed Abdelaal is in the published instructor directory for Texas A&M.
+          - generic [ref=e321]:
+            - generic [ref=e322]: Unavailable (Unavailable)
+            - generic [ref=e323]: GPA Unavailable
+            - generic [ref=e324]: A-rate Unavailable
+            - generic [ref=e325]: RMP 4.7
+            - generic [ref=e326]: Directory only
+            - generic [ref=e327]: RMP signals
+            - generic [ref=e328]: Stats expanding
+          - generic [ref=e329]:
+            - link "Profile" [ref=e330]:
+              - /url: /schools/texas-am/professors/ahmed-abdelaal
+            - link "Compare" [ref=e331]:
+              - /url: /compare?ids=profdir:texas-am:ahmed-abdelaal
+        - generic [ref=e332]:
+          - generic [ref=e333]:
+            - generic [ref=e334]:
+              - heading "H. Abdelhady" [level=2] [ref=e335]
+              - generic [ref=e336]: Official data
+            - paragraph [ref=e337]: GEOGRAPHY
+            - generic [ref=e338]:
+              - paragraph [ref=e339]: Classes taught
+              - list [ref=e340]:
+                - listitem [ref=e341]:
+                  - text: GEOG 360
+                  - generic [ref=e342]: — Natural Hazards
+            - paragraph [ref=e343]: Teaches GEOG 360.
+          - generic [ref=e344]:
+            - generic [ref=e345]: Hard (25)
+            - generic [ref=e346]: GPA 2.14
+            - generic [ref=e347]: A-rate 18%
+            - generic [ref=e348]: RMP Unavailable
+            - generic [ref=e349]: Directory only
+            - generic [ref=e350]: Partial stats
+            - generic [ref=e351]: Stats expanding
+          - generic [ref=e352]:
+            - link "Profile" [ref=e353]:
+              - /url: /schools/texas-am/professors/abdelhady-h
+            - link "Compare" [ref=e354]:
+              - /url: /compare?ids=profdir:texas-am:abdelhady-h
+        - generic [ref=e355]:
+          - generic [ref=e356]:
+            - generic [ref=e357]:
+              - heading "S. Abdelmutaal" [level=2] [ref=e358]
+              - generic [ref=e359]: Official data
+            - paragraph [ref=e360]: CONSTRUCTION SCIENCE
+            - generic [ref=e361]:
+              - paragraph [ref=e362]: Classes taught
+              - list [ref=e363]:
+                - listitem [ref=e364]:
+                  - text: COSC 606
+                  - generic [ref=e365]: — Construction Science
+            - paragraph [ref=e366]: Teaches COSC 606.
+          - generic [ref=e367]:
+            - generic [ref=e368]: Average (58)
+            - generic [ref=e369]: GPA 3.67
+            - generic [ref=e370]: A-rate 75%
+            - generic [ref=e371]: RMP Unavailable
+            - generic [ref=e372]: Directory only
+            - generic [ref=e373]: Partial stats
+            - generic [ref=e374]: Stats expanding
+          - generic [ref=e375]:
+            - link "Profile" [ref=e376]:
+              - /url: /schools/texas-am/professors/abdelmutaal-s
+            - link "Compare" [ref=e377]:
+              - /url: /compare?ids=profdir:texas-am:abdelmutaal-s
+        - generic [ref=e378]:
+          - generic [ref=e379]:
+            - generic [ref=e380]:
+              - heading "R. Abel" [level=2] [ref=e381]
+              - generic [ref=e382]: High evidence
+            - paragraph [ref=e383]: SOCIOLOGY
+            - generic [ref=e384]:
+              - paragraph [ref=e385]: Classes taught
+              - list [ref=e386]:
+                - listitem [ref=e387]:
+                  - text: SOCI 205
+                  - generic [ref=e388]: — Introduction to Sociology
+                - listitem [ref=e389]:
+                  - text: SOCI 211
+                  - generic [ref=e390]: — Sociology of Deviance
+                - listitem [ref=e391]:
+                  - text: SOCI 220
+                  - generic [ref=e392]: — Methods of Social Research
+            - paragraph [ref=e393]: Teaches SOCI 205, SOCI 211, SOCI 220.
+          - generic [ref=e394]:
+            - generic [ref=e395]: Average (53)
+            - generic [ref=e396]: GPA 3.00
+            - generic [ref=e397]: A-rate 35%
+            - generic [ref=e398]: RMP 3.2
+            - generic [ref=e399]: Directory only
+            - generic [ref=e400]: Full stats
+            - generic [ref=e401]: Institutional outcomes live
+          - generic [ref=e402]:
+            - link "Profile" [ref=e403]:
+              - /url: /schools/texas-am/professors/abel-r
+            - link "Compare" [ref=e404]:
+              - /url: /compare?ids=profdir:texas-am:abel-r
+        - generic [ref=e405]:
+          - generic [ref=e406]:
+            - generic [ref=e407]:
+              - heading "Richard Abel" [level=2] [ref=e408]
+              - generic [ref=e409]: Limited evidence
+            - paragraph [ref=e410]: Sociology
+            - generic [ref=e411]:
+              - paragraph [ref=e412]: Classes taught
+              - list
+              - paragraph [ref=e413]: Course list expanding from catalog
+            - paragraph [ref=e414]: Richard Abel is in the published instructor directory for Texas A&M.
+          - generic [ref=e415]:
+            - generic [ref=e416]: Unavailable (Unavailable)
+            - generic [ref=e417]: GPA Unavailable
+            - generic [ref=e418]: A-rate Unavailable
+            - generic [ref=e419]: RMP 3.2
+            - generic [ref=e420]: Directory only
+            - generic [ref=e421]: RMP signals
+            - generic [ref=e422]: Stats expanding
+          - generic [ref=e423]:
+            - link "Profile" [ref=e424]:
+              - /url: /schools/texas-am/professors/richard-abel
+            - link "Compare" [ref=e425]:
+              - /url: /compare?ids=profdir:texas-am:richard-abel
+        - generic [ref=e426]:
+          - generic [ref=e427]:
+            - generic [ref=e428]:
+              - heading "Michael Abelson" [level=2] [ref=e429]
+              - generic [ref=e430]: Limited evidence
+            - paragraph [ref=e431]: Management
+            - generic [ref=e432]:
+              - paragraph [ref=e433]: Classes taught
+              - list
+              - paragraph [ref=e434]: Course list expanding from catalog
+            - paragraph [ref=e435]: Michael Abelson is in the published instructor directory for Texas A&M.
+          - generic [ref=e436]:
+            - generic [ref=e437]: Unavailable (Unavailable)
+            - generic [ref=e438]: GPA Unavailable
+            - generic [ref=e439]: A-rate Unavailable
+            - generic [ref=e440]: RMP 3.6
+            - generic [ref=e441]: Directory only
+            - generic [ref=e442]: RMP signals
+            - generic [ref=e443]: Stats expanding
+          - generic [ref=e444]:
+            - link "Profile" [ref=e445]:
+              - /url: /schools/texas-am/professors/michael-abelson
+            - link "Compare" [ref=e446]:
+              - /url: /compare?ids=profdir:texas-am:michael-abelson
+        - generic [ref=e447]:
+          - generic [ref=e448]:
+            - generic [ref=e449]:
+              - heading "M. Abido" [level=2] [ref=e450]
+              - generic [ref=e451]: High evidence
+            - paragraph [ref=e452]: MECHANICAL ENGINEERING
+            - generic [ref=e453]:
+              - paragraph [ref=e454]: Classes taught
+              - list [ref=e455]:
+                - listitem [ref=e456]:
+                  - text: MEEN 344
+                  - generic [ref=e457]: — Fluid Mechanics
+            - paragraph [ref=e458]: Teaches MEEN 344.
+          - generic [ref=e459]:
+            - generic [ref=e460]: Above avg (70)
+            - generic [ref=e461]: GPA 3.34
+            - generic [ref=e462]: A-rate 55%
+            - generic [ref=e463]: RMP 5.0
+            - generic [ref=e464]: Directory only
+            - generic [ref=e465]: Full stats
+            - generic [ref=e466]: Institutional outcomes live
+          - generic [ref=e467]:
+            - link "Profile" [ref=e468]:
+              - /url: /schools/texas-am/professors/abido-m
+            - link "Compare" [ref=e469]:
+              - /url: /compare?ids=profdir:texas-am:abido-m
+        - generic [ref=e470]:
+          - generic [ref=e471]:
+            - generic [ref=e472]:
+              - heading "Mahmoud Abido" [level=2] [ref=e473]
+              - generic [ref=e474]: Limited evidence
+            - paragraph [ref=e475]: Mechanical Engineering
+            - generic [ref=e476]:
+              - paragraph [ref=e477]: Classes taught
+              - list
+              - paragraph [ref=e478]: Course list expanding from catalog
+            - paragraph [ref=e479]: Mahmoud Abido is in the published instructor directory for Texas A&M.
+          - generic [ref=e480]:
+            - generic [ref=e481]: Unavailable (Unavailable)
+            - generic [ref=e482]: GPA Unavailable
+            - generic [ref=e483]: A-rate Unavailable
+            - generic [ref=e484]: RMP 5.0
+            - generic [ref=e485]: Directory only
+            - generic [ref=e486]: RMP signals
+            - generic [ref=e487]: Stats expanding
+          - generic [ref=e488]:
+            - link "Profile" [ref=e489]:
+              - /url: /schools/texas-am/professors/mahmoud-abido
+            - link "Compare" [ref=e490]:
+              - /url: /compare?ids=profdir:texas-am:mahmoud-abido
+        - generic [ref=e491]:
+          - generic [ref=e492]:
+            - generic [ref=e493]:
+              - heading "Y. Abraham" [level=2] [ref=e494]
+              - generic [ref=e495]: Official data
+            - paragraph [ref=e496]: CONSTRUCTION SCIENCE
+            - generic [ref=e497]:
+              - paragraph [ref=e498]: Classes taught
+              - list [ref=e499]:
+                - listitem [ref=e500]:
+                  - text: COSC 602
+                  - generic [ref=e501]: — Construction Science
+            - paragraph [ref=e502]: Teaches COSC 602.
+          - generic [ref=e503]:
+            - generic [ref=e504]: Above avg (66)
+            - generic [ref=e505]: GPA 3.90
+            - generic [ref=e506]: A-rate 91%
+            - generic [ref=e507]: RMP Unavailable
+            - generic [ref=e508]: Directory only
+            - generic [ref=e509]: Partial stats
+            - generic [ref=e510]: Stats expanding
+          - generic [ref=e511]:
+            - link "Profile" [ref=e512]:
+              - /url: /schools/texas-am/professors/abraham-y
+            - link "Compare" [ref=e513]:
+              - /url: /compare?ids=profdir:texas-am:abraham-y
+        - generic [ref=e514]:
+          - generic [ref=e515]:
+            - generic [ref=e516]:
+              - heading "A. Abuabara" [level=2] [ref=e517]
+              - generic [ref=e518]: High evidence
+            - paragraph [ref=e519]: INDUSTRIAL & SYSTEMS ENG
+            - generic [ref=e520]:
+              - paragraph [ref=e521]: Classes taught
+              - list [ref=e522]:
+                - listitem [ref=e523]:
+                  - text: DAEN 427
+                  - generic [ref=e524]: — Decision and Risk Analysis
+                - listitem [ref=e525]:
+                  - text: DAEN 459
+                  - generic [ref=e526]: — Capstone Senior Design Planning
+                - listitem [ref=e527]:
+                  - text: ISEN 427
+                  - generic [ref=e528]: — Decision and Risk Analysis
+            - paragraph [ref=e529]: Teaches DAEN 427, DAEN 459, ISEN 427.
+          - generic [ref=e530]:
+            - generic [ref=e531]: Above avg (71)
+            - generic [ref=e532]: GPA 3.47
+            - generic [ref=e533]: A-rate 62%
+            - generic [ref=e534]: RMP 4.4
+            - generic [ref=e535]: Directory only
+            - generic [ref=e536]: Full stats
+            - generic [ref=e537]: Institutional outcomes live
+          - generic [ref=e538]:
+            - link "Profile" [ref=e539]:
+              - /url: /schools/texas-am/professors/abuabara-a
+            - link "Compare" [ref=e540]:
+              - /url: /compare?ids=profdir:texas-am:abuabara-a
+        - generic [ref=e541]:
+          - generic [ref=e542]:
+            - generic [ref=e543]:
+              - heading "Alexander Abuabara" [level=2] [ref=e544]
+              - generic [ref=e545]: Limited evidence
+            - paragraph [ref=e546]: Architecture
+            - generic [ref=e547]:
+              - paragraph [ref=e548]: Classes taught
+              - list
+              - paragraph [ref=e549]: Course list expanding from catalog
+            - paragraph [ref=e550]: Alexander Abuabara is in the published instructor directory for Texas A&M.
+          - generic [ref=e551]:
+            - generic [ref=e552]: Unavailable (Unavailable)
+            - generic [ref=e553]: GPA Unavailable
+            - generic [ref=e554]: A-rate Unavailable
+            - generic [ref=e555]: RMP 4.4
+            - generic [ref=e556]: Directory only
+            - generic [ref=e557]: RMP signals
+            - generic [ref=e558]: Stats expanding
+          - generic [ref=e559]:
+            - link "Profile" [ref=e560]:
+              - /url: /schools/texas-am/professors/alexander-abuabara
+            - link "Compare" [ref=e561]:
+              - /url: /compare?ids=profdir:texas-am:alexander-abuabara
+        - generic [ref=e562]:
+          - generic [ref=e563]:
+            - generic [ref=e564]:
+              - heading "Mahmoud Abunawas" [level=2] [ref=e565]
+              - generic [ref=e566]: Limited evidence
+            - paragraph [ref=e567]: Linguistics
+            - generic [ref=e568]:
+              - paragraph [ref=e569]: Classes taught
+              - list
+              - paragraph [ref=e570]: Course list expanding from catalog
+            - paragraph [ref=e571]: Mahmoud Abunawas is in the published instructor directory for Texas A&M.
+          - generic [ref=e572]:
+            - generic [ref=e573]: Unavailable (Unavailable)
+            - generic [ref=e574]: GPA Unavailable
+            - generic [ref=e575]: A-rate Unavailable
+            - generic [ref=e576]: RMP 4.2
+            - generic [ref=e577]: Directory only
+            - generic [ref=e578]: RMP signals
+            - generic [ref=e579]: Stats expanding
+          - generic [ref=e580]:
+            - link "Profile" [ref=e581]:
+              - /url: /schools/texas-am/professors/mahmoud-abunawas
+            - link "Compare" [ref=e582]:
+              - /url: /compare?ids=profdir:texas-am:mahmoud-abunawas
+        - generic [ref=e583]:
+          - generic [ref=e584]:
+            - generic [ref=e585]:
+              - heading "F. Aburto Guerrero" [level=2] [ref=e586]
+              - generic [ref=e587]: Official data
+            - paragraph [ref=e588]: SOIL & CROP SCIENCES
+            - generic [ref=e589]:
+              - paragraph [ref=e590]: Classes taught
+              - list [ref=e591]:
+                - listitem [ref=e592]:
+                  - text: SCSC 317
+                  - generic [ref=e593]: — Environmental Field Soil Judging
+            - paragraph [ref=e594]: Teaches SCSC 317.
+          - generic [ref=e595]:
+            - generic [ref=e596]: Above avg (70)
+            - generic [ref=e597]: GPA 4.00
+            - generic [ref=e598]: A-rate 100%
+            - generic [ref=e599]: RMP Unavailable
+            - generic [ref=e600]: Directory only
+            - generic [ref=e601]: Partial stats
+            - generic [ref=e602]: Stats expanding
+          - generic [ref=e603]:
+            - link "Profile" [ref=e604]:
+              - /url: /schools/texas-am/professors/aburto-guerrero-f
+            - link "Compare" [ref=e605]:
+              - /url: /compare?ids=profdir:texas-am:aburto-guerrero-f
+        - generic [ref=e606]:
+          - generic [ref=e607]:
+            - generic [ref=e608]:
+              - heading "M. Aburweis" [level=2] [ref=e609]
+              - generic [ref=e610]: High evidence
+            - paragraph [ref=e611]: STATISTICS
+            - generic [ref=e612]:
+              - paragraph [ref=e613]: Classes taught
+              - list [ref=e614]:
+                - listitem [ref=e615]:
+                  - text: STAT 302
+                  - generic [ref=e616]: — Statistical Methods
+                - listitem [ref=e617]:
+                  - text: STAT 608
+                  - generic [ref=e618]: — Statistics
+            - paragraph [ref=e619]: Teaches STAT 302, STAT 608.
+          - generic [ref=e620]:
+            - generic [ref=e621]: Easy (81)
+            - generic [ref=e622]: GPA 3.80
+            - generic [ref=e623]: A-rate 85%
+            - generic [ref=e624]: RMP 4.1
+            - generic [ref=e625]: Directory only
+            - generic [ref=e626]: Full stats
+            - generic [ref=e627]: Institutional outcomes live
+          - generic [ref=e628]:
+            - link "Profile" [ref=e629]:
+              - /url: /schools/texas-am/professors/aburweis-m
+            - link "Compare" [ref=e630]:
+              - /url: /compare?ids=profdir:texas-am:aburweis-m
+        - generic [ref=e631]:
+          - generic [ref=e632]:
+            - generic [ref=e633]:
+              - heading "Mohamed Aburweis" [level=2] [ref=e634]
+              - generic [ref=e635]: Limited evidence
+            - paragraph [ref=e636]: Statistics
+            - generic [ref=e637]:
+              - paragraph [ref=e638]: Classes taught
+              - list
+              - paragraph [ref=e639]: Course list expanding from catalog
+            - paragraph [ref=e640]: Mohamed Aburweis is in the published instructor directory for Texas A&M.
+          - generic [ref=e641]:
+            - generic [ref=e642]: Unavailable (Unavailable)
+            - generic [ref=e643]: GPA Unavailable
+            - generic [ref=e644]: A-rate Unavailable
+            - generic [ref=e645]: RMP 4.1
+            - generic [ref=e646]: Directory only
+            - generic [ref=e647]: RMP signals
+            - generic [ref=e648]: Stats expanding
+          - generic [ref=e649]:
+            - link "Profile" [ref=e650]:
+              - /url: /schools/texas-am/professors/mohamed-aburweis
+            - link "Compare" [ref=e651]:
+              - /url: /compare?ids=profdir:texas-am:mohamed-aburweis
+        - generic [ref=e652]:
+          - generic [ref=e653]:
+            - generic [ref=e654]:
+              - heading "Wael Abushammala" [level=2] [ref=e655]
+              - generic [ref=e656]: Limited evidence
+            - paragraph [ref=e657]: Mathematics
+            - generic [ref=e658]:
+              - paragraph [ref=e659]: Classes taught
+              - list
+              - paragraph [ref=e660]: Course list expanding from catalog
+            - paragraph [ref=e661]: Wael Abushammala is in the published instructor directory for Texas A&M.
+          - generic [ref=e662]:
+            - generic [ref=e663]: Unavailable (Unavailable)
+            - generic [ref=e664]: GPA Unavailable
+            - generic [ref=e665]: A-rate Unavailable
+            - generic [ref=e666]: RMP 2.9
+            - generic [ref=e667]: Directory only
+            - generic [ref=e668]: RMP signals
+            - generic [ref=e669]: Stats expanding
+          - generic [ref=e670]:
+            - link "Profile" [ref=e671]:
+              - /url: /schools/texas-am/professors/wael-abushammala
+            - link "Compare" [ref=e672]:
+              - /url: /compare?ids=profdir:texas-am:wael-abushammala
+        - generic [ref=e673]:
+          - generic [ref=e674]:
+            - generic [ref=e675]:
+              - heading "Amanda Achberger" [level=2] [ref=e676]
+              - generic [ref=e677]: Limited evidence
+            - paragraph [ref=e678]: Science
+            - generic [ref=e679]:
+              - paragraph [ref=e680]: Classes taught
+              - list
+              - paragraph [ref=e681]: Course list expanding from catalog
+            - paragraph [ref=e682]: Amanda Achberger is in the published instructor directory for Texas A&M.
+          - generic [ref=e683]:
+            - generic [ref=e684]: Unavailable (Unavailable)
+            - generic [ref=e685]: GPA Unavailable
+            - generic [ref=e686]: A-rate Unavailable
+            - generic [ref=e687]: RMP 2.2
+            - generic [ref=e688]: Directory only
+            - generic [ref=e689]: RMP signals
+            - generic [ref=e690]: Stats expanding
+          - generic [ref=e691]:
+            - link "Profile" [ref=e692]:
+              - /url: /schools/texas-am/professors/amanda-achberger
+            - link "Compare" [ref=e693]:
+              - /url: /compare?ids=profdir:texas-am:amanda-achberger
+        - generic [ref=e694]:
+          - generic [ref=e695]:
+            - generic [ref=e696]:
+              - heading "Angela Achorn" [level=2] [ref=e697]
+              - generic [ref=e698]: Limited evidence
+            - paragraph [ref=e699]: Anthropology
+            - generic [ref=e700]:
+              - paragraph [ref=e701]: Classes taught
+              - list
+              - paragraph [ref=e702]: Course list expanding from catalog
+            - paragraph [ref=e703]: Angela Achorn is in the published instructor directory for Texas A&M.
+          - generic [ref=e704]:
+            - generic [ref=e705]: Unavailable (Unavailable)
+            - generic [ref=e706]: GPA Unavailable
+            - generic [ref=e707]: A-rate Unavailable
+            - generic [ref=e708]: RMP 4.8
+            - generic [ref=e709]: Directory only
+            - generic [ref=e710]: RMP signals
+            - generic [ref=e711]: Stats expanding
+          - generic [ref=e712]:
+            - link "Profile" [ref=e713]:
+              - /url: /schools/texas-am/professors/angela-achorn
+            - link "Compare" [ref=e714]:
+              - /url: /compare?ids=profdir:texas-am:angela-achorn
+        - generic [ref=e715]:
+          - generic [ref=e716]:
+            - generic [ref=e717]:
+              - heading "S. Acosta" [level=2] [ref=e718]
+              - generic [ref=e719]: High evidence
+            - paragraph [ref=e720]: EDUCATIONAL PSYCHOLOGY
+            - generic [ref=e721]:
+              - paragraph [ref=e722]: Classes taught
+              - list [ref=e723]:
+                - listitem [ref=e724]:
+                  - text: BEFB 472
+                  - generic [ref=e725]: — Bilingual and Dual Language Methodologies
+                - listitem [ref=e726]:
+                  - text: BEFB 474
+                  - generic [ref=e727]: — Biliteracy for Bilingual and Dual Language Classrooms
+            - paragraph [ref=e728]: Teaches BEFB 472, BEFB 474.
+          - generic [ref=e729]:
+            - generic [ref=e730]: Above avg (77)
+            - generic [ref=e731]: GPA 3.84
+            - generic [ref=e732]: A-rate 90%
+            - generic [ref=e733]: RMP 1.0
+            - generic [ref=e734]: Directory only
+            - generic [ref=e735]: Full stats
+            - generic [ref=e736]: Institutional outcomes live
+          - generic [ref=e737]:
+            - link "Profile" [ref=e738]:
+              - /url: /schools/texas-am/professors/acosta-s
+            - link "Compare" [ref=e739]:
+              - /url: /compare?ids=profdir:texas-am:acosta-s
+        - generic [ref=e740]:
+          - generic [ref=e741]:
+            - generic [ref=e742]:
+              - heading "Sandra Acosta" [level=2] [ref=e743]
+              - generic [ref=e744]: Limited evidence
+            - paragraph [ref=e745]: Education
+            - generic [ref=e746]:
+              - paragraph [ref=e747]: Classes taught
+              - list
+              - paragraph [ref=e748]: Course list expanding from catalog
+            - paragraph [ref=e749]: Sandra Acosta is in the published instructor directory for Texas A&M.
+          - generic [ref=e750]:
+            - generic [ref=e751]: Unavailable (Unavailable)
+            - generic [ref=e752]: GPA Unavailable
+            - generic [ref=e753]: A-rate Unavailable
+            - generic [ref=e754]: RMP 1.0
+            - generic [ref=e755]: Directory only
+            - generic [ref=e756]: RMP signals
+            - generic [ref=e757]: Stats expanding
+          - generic [ref=e758]:
+            - link "Profile" [ref=e759]:
+              - /url: /schools/texas-am/professors/sandra-acosta
+            - link "Compare" [ref=e760]:
+              - /url: /compare?ids=profdir:texas-am:sandra-acosta
+        - generic [ref=e761]:
+          - generic [ref=e762]:
+            - generic [ref=e763]:
+              - heading "H. Adair" [level=2] [ref=e764]
+              - generic [ref=e765]: Official data
+            - paragraph [ref=e766]: COLLEGE OF AG. & LIFE SCIENCES
+            - generic [ref=e767]:
+              - paragraph [ref=e768]: Classes taught
+              - list [ref=e769]:
+                - listitem [ref=e770]:
+                  - text: AGLS 125
+                  - generic [ref=e771]: — Life Sciences Learning Community I
+            - paragraph [ref=e772]: Teaches AGLS 125.
+          - generic [ref=e773]:
+            - generic [ref=e774]: Above avg (68)
+            - generic [ref=e775]: GPA 3.92
+            - generic [ref=e776]: A-rate 96%
+            - generic [ref=e777]: RMP Unavailable
+            - generic [ref=e778]: Directory only
+            - generic [ref=e779]: Partial stats
+            - generic [ref=e780]: Stats expanding
+          - generic [ref=e781]:
+            - link "Profile" [ref=e782]:
+              - /url: /schools/texas-am/professors/adair-h
+            - link "Compare" [ref=e783]:
+              - /url: /compare?ids=profdir:texas-am:adair-h
+        - generic [ref=e784]:
+          - generic [ref=e785]:
+            - generic [ref=e786]:
+              - heading "Tom Adair" [level=2] [ref=e787]
+              - generic [ref=e788]: Limited evidence
+            - paragraph [ref=e789]: Physics
+            - generic [ref=e790]:
+              - paragraph [ref=e791]: Classes taught
+              - list
+              - paragraph [ref=e792]: Course list expanding from catalog
+            - paragraph [ref=e793]: Tom Adair is in the published instructor directory for Texas A&M.
+          - generic [ref=e794]:
+            - generic [ref=e795]: Unavailable (Unavailable)
+            - generic [ref=e796]: GPA Unavailable
+            - generic [ref=e797]: A-rate Unavailable
+            - generic [ref=e798]: RMP 4.8
+            - generic [ref=e799]: Directory only
+            - generic [ref=e800]: RMP signals
+            - generic [ref=e801]: Stats expanding
+          - generic [ref=e802]:
+            - link "Profile" [ref=e803]:
+              - /url: /schools/texas-am/professors/tom-adair
+            - link "Compare" [ref=e804]:
+              - /url: /compare?ids=profdir:texas-am:tom-adair
+        - generic [ref=e805]:
+          - generic [ref=e806]:
+            - generic [ref=e807]:
+              - heading "Amanda Adams" [level=2] [ref=e808]
+              - generic [ref=e809]: Limited evidence
+            - paragraph [ref=e810]: Biology
+            - generic [ref=e811]:
+              - paragraph [ref=e812]: Classes taught
+              - list
+              - paragraph [ref=e813]: Course list expanding from catalog
+            - paragraph [ref=e814]: Amanda Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e815]:
+            - generic [ref=e816]: Unavailable (Unavailable)
+            - generic [ref=e817]: GPA Unavailable
+            - generic [ref=e818]: A-rate Unavailable
+            - generic [ref=e819]: RMP 2.9
+            - generic [ref=e820]: Directory only
+            - generic [ref=e821]: RMP signals
+            - generic [ref=e822]: Stats expanding
+          - generic [ref=e823]:
+            - link "Profile" [ref=e824]:
+              - /url: /schools/texas-am/professors/amanda-adams
+            - link "Compare" [ref=e825]:
+              - /url: /compare?ids=profdir:texas-am:amanda-adams
+        - generic [ref=e826]:
+          - generic [ref=e827]:
+            - generic [ref=e828]:
+              - heading "B. Adams" [level=2] [ref=e829]
+              - generic [ref=e830]: High evidence
+            - paragraph [ref=e831]: FINANCE
+            - generic [ref=e832]:
+              - paragraph [ref=e833]: Classes taught
+              - list [ref=e834]:
+                - listitem [ref=e835]:
+                  - text: FINC 425
+                  - generic [ref=e836]: — Active Portfolio Management
+                - listitem [ref=e837]:
+                  - text: FINC 430
+                  - generic [ref=e838]: — Venture Capital Investing
+                - listitem [ref=e839]:
+                  - text: FINC 448
+                  - generic [ref=e840]: — Advanced Investments
+            - paragraph [ref=e841]: Teaches FINC 425, FINC 430, FINC 448.
+          - generic [ref=e842]:
+            - generic [ref=e843]: Easy (90)
+            - generic [ref=e844]: GPA 4.00
+            - generic [ref=e845]: A-rate 100%
+            - generic [ref=e846]: RMP 0.0
+            - generic [ref=e847]: Directory only
+            - generic [ref=e848]: Full stats
+            - generic [ref=e849]: Institutional outcomes live
+          - generic [ref=e850]:
+            - link "Profile" [ref=e851]:
+              - /url: /schools/texas-am/professors/adams-b
+            - link "Compare" [ref=e852]:
+              - /url: /compare?ids=profdir:texas-am:adams-b
+        - generic [ref=e853]:
+          - generic [ref=e854]:
+            - generic [ref=e855]:
+              - heading "Courtney Adams" [level=2] [ref=e856]
+              - generic [ref=e857]: Limited evidence
+            - paragraph [ref=e858]: Biology
+            - generic [ref=e859]:
+              - paragraph [ref=e860]: Classes taught
+              - list
+              - paragraph [ref=e861]: Course list expanding from catalog
+            - paragraph [ref=e862]: Courtney Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e863]:
+            - generic [ref=e864]: Unavailable (Unavailable)
+            - generic [ref=e865]: GPA Unavailable
+            - generic [ref=e866]: A-rate Unavailable
+            - generic [ref=e867]: RMP 4.0
+            - generic [ref=e868]: Directory only
+            - generic [ref=e869]: RMP signals
+            - generic [ref=e870]: Stats expanding
+          - generic [ref=e871]:
+            - link "Profile" [ref=e872]:
+              - /url: /schools/texas-am/professors/courtney-adams
+            - link "Compare" [ref=e873]:
+              - /url: /compare?ids=profdir:texas-am:courtney-adams
+        - generic [ref=e874]:
+          - generic [ref=e875]:
+            - generic [ref=e876]:
+              - heading "G. Adams" [level=2] [ref=e877]
+              - generic [ref=e878]: Official data
+            - paragraph [ref=e879]: GLOBAL LANGUAGES & CULTURES
+            - generic [ref=e880]:
+              - paragraph [ref=e881]: Classes taught
+              - list [ref=e882]:
+                - listitem [ref=e883]:
+                  - text: JAPN 101
+                  - generic [ref=e884]: — Beginning Japanese I
+                - listitem [ref=e885]:
+                  - text: JAPN 491
+                  - generic [ref=e886]: — Research
+            - paragraph [ref=e887]: Teaches JAPN 101, JAPN 491.
+          - generic [ref=e888]:
+            - generic [ref=e889]: Average (59)
+            - generic [ref=e890]: GPA 3.63
+            - generic [ref=e891]: A-rate 77%
+            - generic [ref=e892]: RMP Unavailable
+            - generic [ref=e893]: Directory only
+            - generic [ref=e894]: Partial stats
+            - generic [ref=e895]: Stats expanding
+          - generic [ref=e896]:
+            - link "Profile" [ref=e897]:
+              - /url: /schools/texas-am/professors/adams-g
+            - link "Compare" [ref=e898]:
+              - /url: /compare?ids=profdir:texas-am:adams-g
+        - generic [ref=e899]:
+          - generic [ref=e900]:
+            - generic [ref=e901]:
+              - heading "George Adams" [level=2] [ref=e902]
+              - generic [ref=e903]: Limited evidence
+            - paragraph [ref=e904]: Languages
+            - generic [ref=e905]:
+              - paragraph [ref=e906]: Classes taught
+              - list
+              - paragraph [ref=e907]: Course list expanding from catalog
+            - paragraph [ref=e908]: George Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e909]:
+            - generic [ref=e910]: Unavailable (Unavailable)
+            - generic [ref=e911]: GPA Unavailable
+            - generic [ref=e912]: A-rate Unavailable
+            - generic [ref=e913]: RMP 5.0
+            - generic [ref=e914]: Directory only
+            - generic [ref=e915]: RMP signals
+            - generic [ref=e916]: Stats expanding
+          - generic [ref=e917]:
+            - link "Profile" [ref=e918]:
+              - /url: /schools/texas-am/professors/george-adams
+            - link "Compare" [ref=e919]:
+              - /url: /compare?ids=profdir:texas-am:george-adams
+        - generic [ref=e920]:
+          - generic [ref=e921]:
+            - generic [ref=e922]:
+              - heading "Marvin Adams" [level=2] [ref=e923]
+              - generic [ref=e924]: Limited evidence
+            - paragraph [ref=e925]: Engineering
+            - generic [ref=e926]:
+              - paragraph [ref=e927]: Classes taught
+              - list
+              - paragraph [ref=e928]: Course list expanding from catalog
+            - paragraph [ref=e929]: Marvin Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e930]:
+            - generic [ref=e931]: Unavailable (Unavailable)
+            - generic [ref=e932]: GPA Unavailable
+            - generic [ref=e933]: A-rate Unavailable
+            - generic [ref=e934]: RMP 4.4
+            - generic [ref=e935]: Directory only
+            - generic [ref=e936]: RMP signals
+            - generic [ref=e937]: Stats expanding
+          - generic [ref=e938]:
+            - link "Profile" [ref=e939]:
+              - /url: /schools/texas-am/professors/marvin-adams
+            - link "Compare" [ref=e940]:
+              - /url: /compare?ids=profdir:texas-am:marvin-adams
+        - generic [ref=e941]:
+          - generic [ref=e942]:
+            - generic [ref=e943]:
+              - heading "R.J.Q. Adams" [level=2] [ref=e944]
+              - generic [ref=e945]: Limited evidence
+            - paragraph [ref=e946]: History
+            - generic [ref=e947]:
+              - paragraph [ref=e948]: Classes taught
+              - list
+              - paragraph [ref=e949]: Course list expanding from catalog
+            - paragraph [ref=e950]: R.J.Q. Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e951]:
+            - generic [ref=e952]: Unavailable (Unavailable)
+            - generic [ref=e953]: GPA Unavailable
+            - generic [ref=e954]: A-rate Unavailable
+            - generic [ref=e955]: RMP 4.2
+            - generic [ref=e956]: Directory only
+            - generic [ref=e957]: RMP signals
+            - generic [ref=e958]: Stats expanding
+          - generic [ref=e959]:
+            - link "Profile" [ref=e960]:
+              - /url: /schools/texas-am/professors/r-j-q-adams
+            - link "Compare" [ref=e961]:
+              - /url: /compare?ids=profdir:texas-am:r-j-q-adams
+        - generic [ref=e962]:
+          - generic [ref=e963]:
+            - generic [ref=e964]:
+              - heading "S. Adams" [level=2] [ref=e965]
+              - generic [ref=e966]: Official data
+            - paragraph [ref=e967]: PLANT PATHOLOGY & MICROBIOLOGY
+            - generic [ref=e968]:
+              - paragraph [ref=e969]: Classes taught
+              - list [ref=e970]:
+                - listitem [ref=e971]:
+                  - text: PLPA 301
+                  - generic [ref=e972]: — Plant Pathology
+            - paragraph [ref=e973]: Teaches PLPA 301.
+          - generic [ref=e974]:
+            - generic [ref=e975]: Hard (22)
+            - generic [ref=e976]: GPA 2.07
+            - generic [ref=e977]: A-rate 12%
+            - generic [ref=e978]: RMP Unavailable
+            - generic [ref=e979]: Directory only
+            - generic [ref=e980]: Partial stats
+            - generic [ref=e981]: Stats expanding
+          - generic [ref=e982]:
+            - link "Profile" [ref=e983]:
+              - /url: /schools/texas-am/professors/adams-s
+            - link "Compare" [ref=e984]:
+              - /url: /compare?ids=profdir:texas-am:adams-s
+        - generic [ref=e985]:
+          - generic [ref=e986]:
+            - generic [ref=e987]:
+              - heading "Thomas Adams" [level=2] [ref=e988]
+              - generic [ref=e989]: Limited evidence
+            - paragraph [ref=e990]: Communication
+            - generic [ref=e991]:
+              - paragraph [ref=e992]: Classes taught
+              - list
+              - paragraph [ref=e993]: Course list expanding from catalog
+            - paragraph [ref=e994]: Thomas Adams is in the published instructor directory for Texas A&M.
+          - generic [ref=e995]:
+            - generic [ref=e996]: Unavailable (Unavailable)
+            - generic [ref=e997]: GPA Unavailable
+            - generic [ref=e998]: A-rate Unavailable
+            - generic [ref=e999]: RMP 4.6
+            - generic [ref=e1000]: Directory only
+            - generic [ref=e1001]: RMP signals
+            - generic [ref=e1002]: Stats expanding
+          - generic [ref=e1003]:
+            - link "Profile" [ref=e1004]:
+              - /url: /schools/texas-am/professors/thomas-adams
+            - link "Compare" [ref=e1005]:
+              - /url: /compare?ids=profdir:texas-am:thomas-adams
+        - generic [ref=e1006]:
+          - generic [ref=e1007]:
+            - generic [ref=e1008]:
+              - heading "L. Adamyan" [level=2] [ref=e1009]
+              - generic [ref=e1010]: High evidence
+            - paragraph [ref=e1011]: GLOBAL LANGUAGES & CULTURES
+            - generic [ref=e1012]:
+              - paragraph [ref=e1013]: Classes taught
+              - list [ref=e1014]:
+                - listitem [ref=e1015]:
+                  - text: SPAN 201
+                  - generic [ref=e1016]: — Intermediate Spanish I
+                - listitem [ref=e1017]:
+                  - text: SPAN 301
+                  - generic [ref=e1018]: — Oral Expression
+            - paragraph [ref=e1019]: Teaches SPAN 201, SPAN 301.
+          - generic [ref=e1020]:
+            - generic [ref=e1021]: Above avg (75)
+            - generic [ref=e1022]: GPA 3.62
+            - generic [ref=e1023]: A-rate 71%
+            - generic [ref=e1024]: RMP 4.2
+            - generic [ref=e1025]: Directory only
+            - generic [ref=e1026]: Full stats
+            - generic [ref=e1027]: Institutional outcomes live
+          - generic [ref=e1028]:
+            - link "Profile" [ref=e1029]:
+              - /url: /schools/texas-am/professors/adamyan-l
+            - link "Compare" [ref=e1030]:
+              - /url: /compare?ids=profdir:texas-am:adamyan-l
+        - generic [ref=e1031]:
+          - generic [ref=e1032]:
+            - generic [ref=e1033]:
+              - heading "Luiza Adamyan" [level=2] [ref=e1034]
+              - generic [ref=e1035]: Limited evidence
+            - paragraph [ref=e1036]: Spanish
+            - generic [ref=e1037]:
+              - paragraph [ref=e1038]: Classes taught
+              - list
+              - paragraph [ref=e1039]: Course list expanding from catalog
+            - paragraph [ref=e1040]: Luiza Adamyan is in the published instructor directory for Texas A&M.
+          - generic [ref=e1041]:
+            - generic [ref=e1042]: Unavailable (Unavailable)
+            - generic [ref=e1043]: GPA Unavailable
+            - generic [ref=e1044]: A-rate Unavailable
+            - generic [ref=e1045]: RMP 4.2
+            - generic [ref=e1046]: Directory only
+            - generic [ref=e1047]: RMP signals
+            - generic [ref=e1048]: Stats expanding
+          - generic [ref=e1049]:
+            - link "Profile" [ref=e1050]:
+              - /url: /schools/texas-am/professors/luiza-adamyan
+            - link "Compare" [ref=e1051]:
+              - /url: /compare?ids=profdir:texas-am:luiza-adamyan
+        - generic [ref=e1052]:
+          - generic [ref=e1053]:
+            - generic [ref=e1054]:
+              - heading "Z. Adelman" [level=2] [ref=e1055]
+              - generic [ref=e1056]: Official data
+            - paragraph [ref=e1057]: BIOCHEMISTRY & BIOPHYSICS • ENTOMOLOGY
+            - generic [ref=e1058]:
+              - paragraph [ref=e1059]: Classes taught
+              - list [ref=e1060]:
+                - listitem [ref=e1061]:
+                  - text: ENTO 441
+                  - generic [ref=e1062]: — Engineering Vector Populations
+                - listitem [ref=e1063]:
+                  - text: GENE 685
+                  - generic [ref=e1064]: — Biochemistry AND Biophysics
+            - paragraph [ref=e1065]: Teaches ENTO 441, GENE 685.
+          - generic [ref=e1066]:
+            - generic [ref=e1067]: Above avg (66)
+            - generic [ref=e1068]: GPA 3.90
+            - generic [ref=e1069]: A-rate 90%
+            - generic [ref=e1070]: RMP Unavailable
+            - generic [ref=e1071]: Directory only
+            - generic [ref=e1072]: Partial stats
+            - generic [ref=e1073]: Stats expanding
+          - generic [ref=e1074]:
+            - link "Profile" [ref=e1075]:
+              - /url: /schools/texas-am/professors/adelman-z
+            - link "Compare" [ref=e1076]:
+              - /url: /compare?ids=profdir:texas-am:adelman-z
+        - generic [ref=e1077]:
+          - generic [ref=e1078]:
+            - generic [ref=e1079]:
+              - heading "Grace Adinku" [level=2] [ref=e1080]
+              - generic [ref=e1081]: Limited evidence
+            - paragraph [ref=e1082]: Theater
+            - generic [ref=e1083]:
+              - paragraph [ref=e1084]: Classes taught
+              - list
+              - paragraph [ref=e1085]: Course list expanding from catalog
+            - paragraph [ref=e1086]: Grace Adinku is in the published instructor directory for Texas A&M.
+          - generic [ref=e1087]:
+            - generic [ref=e1088]: Unavailable (Unavailable)
+            - generic [ref=e1089]: GPA Unavailable
+            - generic [ref=e1090]: A-rate Unavailable
+            - generic [ref=e1091]: RMP 4.2
+            - generic [ref=e1092]: Directory only
+            - generic [ref=e1093]: RMP signals
+            - generic [ref=e1094]: Stats expanding
+          - generic [ref=e1095]:
+            - link "Profile" [ref=e1096]:
+              - /url: /schools/texas-am/professors/grace-adinku
+            - link "Compare" [ref=e1097]:
+              - /url: /compare?ids=profdir:texas-am:grace-adinku
+        - generic [ref=e1098]:
+          - generic [ref=e1099]:
+            - generic [ref=e1100]:
+              - heading "K. Adkison" [level=2] [ref=e1101]
+              - generic [ref=e1102]: Official data
+            - paragraph [ref=e1103]: ENGLISH
+            - generic [ref=e1104]:
+              - paragraph [ref=e1105]: Classes taught
+              - list [ref=e1106]:
+                - listitem [ref=e1107]:
+                  - text: ENGL 412
+                  - generic [ref=e1108]: — Studies in Shakespeare
+            - paragraph [ref=e1109]: Teaches ENGL 412.
+          - generic [ref=e1110]:
+            - generic [ref=e1111]: Tough (40)
+            - generic [ref=e1112]: GPA 3.06
+            - generic [ref=e1113]: A-rate 38%
+            - generic [ref=e1114]: RMP Unavailable
+            - generic [ref=e1115]: Directory only
+            - generic [ref=e1116]: Partial stats
+            - generic [ref=e1117]: Stats expanding
+          - generic [ref=e1118]:
+            - link "Profile" [ref=e1119]:
+              - /url: /schools/texas-am/professors/adkison-k
+            - link "Compare" [ref=e1120]:
+              - /url: /compare?ids=profdir:texas-am:adkison-k
+        - generic [ref=e1121]:
+          - generic [ref=e1122]:
+            - generic [ref=e1123]:
+              - heading "Philip Adsley" [level=2] [ref=e1124]
+              - generic [ref=e1125]: Limited evidence
+            - paragraph [ref=e1126]: Physics
+            - generic [ref=e1127]:
+              - paragraph [ref=e1128]: Classes taught
+              - list
+              - paragraph [ref=e1129]: Course list expanding from catalog
+            - paragraph [ref=e1130]: Philip Adsley is in the published instructor directory for Texas A&M.
+          - generic [ref=e1131]:
+            - generic [ref=e1132]: Unavailable (Unavailable)
+            - generic [ref=e1133]: GPA Unavailable
+            - generic [ref=e1134]: A-rate Unavailable
+            - generic [ref=e1135]: RMP 4.2
+            - generic [ref=e1136]: Directory only
+            - generic [ref=e1137]: RMP signals
+            - generic [ref=e1138]: Stats expanding
+          - generic [ref=e1139]:
+            - link "Profile" [ref=e1140]:
+              - /url: /schools/texas-am/professors/philip-adsley
+            - link "Compare" [ref=e1141]:
+              - /url: /compare?ids=profdir:texas-am:philip-adsley
+        - generic [ref=e1142]:
+          - generic [ref=e1143]:
+            - generic [ref=e1144]:
+              - heading "H. Agbattor" [level=2] [ref=e1145]
+              - generic [ref=e1146]: Official data
+            - paragraph [ref=e1147]: GLOBAL LANGUAGES & CULTURES
+            - generic [ref=e1148]:
+              - paragraph [ref=e1149]: Classes taught
+              - list [ref=e1150]:
+                - listitem [ref=e1151]:
+                  - text: SPAN 102
+                  - generic [ref=e1152]: — Beginning Spanish II
+            - paragraph [ref=e1153]: Teaches SPAN 102.
+          - generic [ref=e1154]:
+            - generic [ref=e1155]: Tough (46)
+            - generic [ref=e1156]: GPA 3.42
+            - generic [ref=e1157]: A-rate 46%
+            - generic [ref=e1158]: RMP Unavailable
+            - generic [ref=e1159]: Directory only
+            - generic [ref=e1160]: Partial stats
+            - generic [ref=e1161]: Stats expanding
+          - generic [ref=e1162]:
+            - link "Profile" [ref=e1163]:
+              - /url: /schools/texas-am/professors/agbattor-h
+            - link "Compare" [ref=e1164]:
+              - /url: /compare?ids=profdir:texas-am:agbattor-h
+      - navigation "Instructor list pagination" [ref=e1165]:
+        - paragraph [ref=e1166]: Page 1 of 133 · 6381 instructors
+        - link "Next" [ref=e1168]:
+          - /url: /schools/texas-am/instructors?sort=name&page=2
+  - navigation [ref=e1169]:
+    - generic [ref=e1170]:
+      - link "Home" [ref=e1171]:
+        - /url: /
+        - generic [ref=e1172]:
+          - img [ref=e1174]
+          - generic [ref=e1177]: Home
+      - link "Search" [ref=e1178]:
+        - /url: /search
+        - generic [ref=e1179]:
+          - img [ref=e1181]
+          - generic [ref=e1184]: Search
+      - link "Compare" [ref=e1185]:
+        - /url: /compare
+        - generic [ref=e1186]:
+          - img [ref=e1188]
+          - generic [ref=e1192]: Compare
+      - link "Saved" [ref=e1193]:
+        - /url: /saved
+        - generic [ref=e1194]:
+          - img [ref=e1196]
+          - generic [ref=e1198]: Saved

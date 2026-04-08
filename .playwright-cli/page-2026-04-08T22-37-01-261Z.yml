@@ -1,0 +1,76 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Search command
+        - heading "Search schools, courses, and professors in one place." [level=1] [ref=e9]
+        - paragraph [ref=e10]: Start with a school, jump into a course, or open a professor directly.
+        - generic [ref=e13]:
+          - img [ref=e15]
+          - combobox "Search schools, courses, or professors" [ref=e18]
+          - button "Explore" [ref=e19] [cursor=pointer]:
+            - generic [ref=e20]: Explore
+        - generic [ref=e22]:
+          - link "All types" [ref=e23]:
+            - /url: /search
+          - link "Schools" [ref=e24]:
+            - /url: /search?type=school
+          - link "Courses" [ref=e25]:
+            - /url: /search?type=course
+          - link "Professors" [ref=e26]:
+            - /url: /search?type=professor
+      - generic [ref=e27]:
+        - paragraph [ref=e28]: Recent checks
+        - paragraph [ref=e29]: Reopen a school, course, or professor without typing again.
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - paragraph [ref=e33]: Start here
+            - paragraph [ref=e34]: Choose the kind of question you have.
+          - link "Compare" [ref=e35]:
+            - /url: /compare
+            - text: Compare
+            - img [ref=e36]
+        - generic [ref=e39]:
+          - link "Search a school Open the full school hub, instructors, and planner entry point." [ref=e40]:
+            - /url: /search?type=school
+            - img [ref=e42]
+            - generic [ref=e47]:
+              - generic [ref=e48]: Search a school
+              - generic [ref=e49]: Open the full school hub, instructors, and planner entry point.
+          - link "Jump into a course See who teaches it and which option looks strongest." [ref=e50]:
+            - /url: /search?type=course
+            - img [ref=e52]
+            - generic [ref=e55]:
+              - generic [ref=e56]: Jump into a course
+              - generic [ref=e57]: See who teaches it and which option looks strongest.
+          - link "Open a professor Go straight to trends, evidence, and compare-ready details." [ref=e58]:
+            - /url: /search?type=professor
+            - img [ref=e60]
+            - generic [ref=e63]:
+              - generic [ref=e64]: Open a professor
+              - generic [ref=e65]: Go straight to trends, evidence, and compare-ready details.
+  - navigation [ref=e66]:
+    - generic [ref=e67]:
+      - link "Home" [ref=e68]:
+        - /url: /
+        - generic [ref=e69]:
+          - img [ref=e71]
+          - generic [ref=e74]: Home
+      - link "Search" [ref=e75]:
+        - /url: /search
+        - generic [ref=e77]:
+          - img [ref=e79]
+          - generic [ref=e82]: Search
+      - link "Compare" [ref=e83]:
+        - /url: /compare
+        - generic [ref=e84]:
+          - img [ref=e86]
+          - generic [ref=e90]: Compare
+      - link "Saved" [ref=e91]:
+        - /url: /saved
+        - generic [ref=e92]:
+          - img [ref=e94]
+          - generic [ref=e96]: Saved

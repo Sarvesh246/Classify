@@ -1,0 +1,2 @@
+[      59ms] HierarchyRequestError: Failed to execute 'insertBefore' on 'Node': The new child element contains the parent.
+    at $RV (http://127.0.0.1:3200/schools/texas-am/professors/altemose-a:1:25385)

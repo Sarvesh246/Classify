@@ -1,0 +1,46 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - button "Go back to previous page" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+        - generic [ref=e12]:
+          - paragraph [ref=e13]: Sign in
+          - paragraph [ref=e14]: Google or email link.
+      - generic [ref=e15]:
+        - button "Toggle color theme" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+        - status [ref=e23]: Loading...
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - heading "Welcome" [level=1] [ref=e27]
+        - paragraph [ref=e28]:
+          - text: Sign in with Google for quick local access, or use email-link sign-in for cloud saves and planner sync.
+          - link "Browse without an account" [ref=e29]:
+            - /url: /search
+          - text: anytime.
+      - status "Loading" [ref=e32]
+  - navigation [ref=e39]:
+    - generic [ref=e40]:
+      - link "Home" [ref=e41]:
+        - /url: /
+        - generic [ref=e42]:
+          - img [ref=e44]
+          - generic [ref=e47]: Home
+      - link "Search" [ref=e48]:
+        - /url: /search
+        - generic [ref=e49]:
+          - img [ref=e51]
+          - generic [ref=e54]: Search
+      - link "Compare" [ref=e55]:
+        - /url: /compare
+        - generic [ref=e56]:
+          - img [ref=e58]
+          - generic [ref=e62]: Compare
+      - link "Saved" [ref=e63]:
+        - /url: /saved
+        - generic [ref=e64]:
+          - img [ref=e66]
+          - generic [ref=e68]: Saved

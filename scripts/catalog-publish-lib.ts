@@ -1086,11 +1086,26 @@ async function getExistingIdsForSchools(
   if (!schoolIds.length) return [] as string[];
   const ids: string[] = [];
   for (const batch of chunk(schoolIds)) {
-    const { data, error } = await client.from(table).select(`${idColumn}, school_id`).in("school_id", batch);
-    if (error) throw new Error(`Failed reading existing ids for ${table}: ${error.message}`);
-    for (const row of ((data ?? []) as unknown as Array<Record<string, string>>)) {
-      const id = row[idColumn];
-      if (id) ids.push(id);
+    let offset = 0;
+
+    while (true) {
+      const { data, error } = await client
+        .from(table)
+        .select(`${idColumn}, school_id`)
+        .in("school_id", batch)
+        .range(offset, offset + BATCH_SIZE - 1);
+      if (error) throw new Error(`Failed reading existing ids for ${table}: ${error.message}`);
+
+      const rows = (data ?? []) as unknown as Array<Record<string, string>>;
+      for (const row of rows) {
+        const id = row[idColumn];
+        if (id) ids.push(id);
+      }
+
+      if (rows.length < BATCH_SIZE) {
+        break;
+      }
+      offset += BATCH_SIZE;
     }
   }
   return ids;
@@ -1258,8 +1273,12 @@ async function getCurrentCounts(client: SupabaseClient) {
 export async function validateAgainstDb(
   client: SupabaseClient,
   payload: PublishPayload,
-  allowRegression = false,
+  options: {
+    allowRegression?: boolean;
+    requireExactCounts?: boolean;
+  } = {},
 ) {
+  const { allowRegression = false, requireExactCounts = false } = options;
   const counts = await getCurrentCounts(client);
   const failures: string[] = [];
   const checks: Array<[keyof typeof counts, number]> = [
@@ -1274,10 +1293,61 @@ export async function validateAgainstDb(
     if (!allowRegression && currentCount > 0 && nextCount < Math.floor(currentCount * 0.5)) {
       failures.push(`${table} regressed too far: current=${currentCount}, next=${nextCount}`);
     }
+    if (requireExactCounts && currentCount !== nextCount) {
+      failures.push(`${table} count mismatch: current=${currentCount}, snapshot=${nextCount}`);
+    }
   }
 
   return { ok: failures.length === 0, failures, currentCounts: counts };
 }
+
+function shouldRetrySupabaseWrite(error: unknown) {
+  const message = String(error).toLowerCase();
+  return (
+    message.includes("521") ||
+    message.includes("522") ||
+    message.includes("523") ||
+    message.includes("524") ||
+    message.includes("502") ||
+    message.includes("503") ||
+    message.includes("504") ||
+    message.includes("cloudflare") ||
+    message.includes("web server is down") ||
+    message.includes("fetch failed") ||
+    message.includes("network")
+  );
+}
+
+async function retrySupabaseWrite<T>(
+  label: string,
+  action: () => Promise<T>,
+  attempts = 3,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await action();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !shouldRetrySupabaseWrite(error)) {
+        break;
+      }
+
+      const waitMs = attempt * 1_500;
+      console.warn(`${label} failed on attempt ${attempt}; retrying in ${waitMs}ms.`);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
+type SupabaseMutationResult = {
+  error: {
+    message: string;
+  } | null;
+};
 
 async function requireTableAccessible(
   client: SupabaseClient,
@@ -1343,58 +1413,75 @@ export async function publishSnapshotToSupabase(
   };
 
   let snapshotArtifactMode: "full" | "compact" = "full";
-  let { error: snapshotError } = await client.from("raw_source_snapshots").upsert({
-    id: runId,
-    school_id: null,
-    source_key: "published_catalog_run",
-    source_type: "json",
-    fetched_at: materializedSnapshot.updatedAt,
-    payload: materializedSnapshot,
-  }, { onConflict: "id", ignoreDuplicates: false });
+  const saveSnapshotArtifact = async (
+    artifact: PublishedCatalogSnapshot | ReturnType<typeof buildCompactPublishedSnapshotArtifact>,
+  ) => {
+    const snapshotResponse = await retrySupabaseWrite<SupabaseMutationResult>(
+      "Saving published snapshot artifact",
+      async () =>
+        await client.from("raw_source_snapshots").upsert(
+          {
+            id: runId,
+            school_id: null,
+            source_key: "published_catalog_run",
+            source_type: "json",
+            fetched_at: materializedSnapshot.updatedAt,
+            payload: artifact,
+          },
+          { onConflict: "id", ignoreDuplicates: false },
+        ),
+    );
+    return snapshotResponse.error;
+  };
+
+  let snapshotError = await saveSnapshotArtifact(materializedSnapshot);
   if (snapshotError) {
     snapshotArtifactMode = "compact";
-    const compactArtifact = buildCompactPublishedSnapshotArtifact(
-      materializedSnapshot,
-      payload,
-    );
-    ({ error: snapshotError } = await client.from("raw_source_snapshots").upsert({
-      id: runId,
-      school_id: null,
-      source_key: "published_catalog_run",
-      source_type: "json",
-      fetched_at: materializedSnapshot.updatedAt,
-      payload: compactArtifact,
-    }, { onConflict: "id", ignoreDuplicates: false }));
+    const compactArtifact = buildCompactPublishedSnapshotArtifact(materializedSnapshot, payload);
+    snapshotError = await saveSnapshotArtifact(compactArtifact);
   }
   if (snapshotError) throw new Error(`Failed saving published snapshot artifact: ${snapshotError.message}`);
 
-  const { error: controlError } = await client.from("published_catalog_control").upsert({
-    slot: "primary",
-    active_snapshot_id: runId,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "slot", ignoreDuplicates: false });
+  const controlResponse = await retrySupabaseWrite<SupabaseMutationResult>(
+    "Updating published catalog control",
+    async () =>
+      await client.from("published_catalog_control").upsert(
+        {
+          slot: "primary",
+          active_snapshot_id: runId,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "slot", ignoreDuplicates: false },
+      ),
+  );
+  const controlError = controlResponse.error;
   if (controlError) throw new Error(`Failed updating published catalog control: ${controlError.message}`);
 
-  const { error: runLogError } = await client.from("etl_job_runs").insert({
-    id: `etl:${runId}`,
-    source_key: "published_catalog_publish",
-    school_id: null,
-    status: "success",
-    started_at: new Date().toISOString(),
-    finished_at: new Date().toISOString(),
-      detail: {
-        snapshot_id: runId,
-        snapshot_artifact_mode: snapshotArtifactMode,
-        published_at: materializedSnapshot.updatedAt,
-        counts: {
-        schools: payload.schools.length,
-        professors: payload.professors.length,
-        courses: payload.courses.length,
-        summaries: payload.summaries.length,
-      },
-      deleted,
-    },
-  });
+  const runLogResponse = await retrySupabaseWrite<SupabaseMutationResult>(
+    "Logging publish run",
+    async () =>
+      await client.from("etl_job_runs").insert({
+        id: `etl:${runId}`,
+        source_key: "published_catalog_publish",
+        school_id: null,
+        status: "success",
+        started_at: new Date().toISOString(),
+        finished_at: new Date().toISOString(),
+        detail: {
+          snapshot_id: runId,
+          snapshot_artifact_mode: snapshotArtifactMode,
+          published_at: materializedSnapshot.updatedAt,
+          counts: {
+            schools: payload.schools.length,
+            professors: payload.professors.length,
+            courses: payload.courses.length,
+            summaries: payload.summaries.length,
+          },
+          deleted,
+        },
+      }),
+  );
+  const runLogError = runLogResponse.error;
   if (runLogError) throw new Error(`Failed logging publish run: ${runLogError.message}`);
 
   return {

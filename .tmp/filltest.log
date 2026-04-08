@@ -1,0 +1,5 @@
+▲ Next.js 16.2.2
+- Local:         http://localhost:3200
+- Network:       http://192.168.4.216:3200
+✓ Ready in 112ms
+{"level":"info","event":"search_query_completed","ts":"2026-04-08T23:34:50.649Z","query":"Texas A&M","type":"all","schoolSlug":null,"surface":"combobox","resultCount":6,"empty":false}

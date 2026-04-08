@@ -29,4 +29,10 @@ describe("formatProfessorDisplayName", () => {
       resolveProfessorProfileName("S. Lupoli", ["Sam Patel", "R. Elms", "S. Lupoli"]),
     ).toBe("S. Lupoli");
   });
+
+  it("keeps the abbreviated form when multiple full-name candidates remain ambiguous", () => {
+    expect(
+      resolveProfessorProfileName("A. Smith", ["Alice Smith", "Andrew Smith", "A. Smith"]),
+    ).toBe("A. Smith");
+  });
 });

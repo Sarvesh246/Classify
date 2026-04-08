@@ -1213,6 +1213,28 @@ export async function getProfessorProfile(
     return undefined;
   }
 
+  const professorInitial = professor.professorName.trim().charAt(0).toLowerCase();
+  const professorLastName = professorLastNameSortKey(professor.professorName);
+  const professorDepartments = new Set(
+    professor.departments.map((department) => department.toLowerCase()),
+  );
+  const professorCoursePrefixes = new Set(
+    professor.coursePrefixes.map((prefix) => prefix.toLowerCase()),
+  );
+  const relatedDirectoryAliases = directoryRows
+    .filter((row) => row.professorSlug !== professorSlug)
+    .filter((row) => row.professorName.trim().charAt(0).toLowerCase() === professorInitial)
+    .filter((row) => professorLastNameSortKey(row.professorName) === professorLastName)
+    .filter(
+      (row) =>
+        row.departments.some((department) =>
+          professorDepartments.has(department.toLowerCase()),
+        ) ||
+        row.coursePrefixes.some((prefix) =>
+          professorCoursePrefixes.has(prefix.toLowerCase()),
+        ),
+    )
+    .map((row) => row.professorName);
   const relatedSections = (snapshot.sections ?? []).filter(
     (section) =>
       section.schoolSlug === schoolSlug && section.professorSlug === professorSlug,
@@ -1224,6 +1246,7 @@ export async function getProfessorProfile(
     .map((meeting) => meeting.instructorName);
   const displayProfessorName = resolveProfessorProfileName(professor.professorName, [
     professor.professorName,
+    ...relatedDirectoryAliases,
     ...matches.map((item) => item.professorName),
     ...relatedSections.map((section) => section.professorName),
     ...relatedMeetingNames,

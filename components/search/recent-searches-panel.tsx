@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { GraduationCap, RotateCcw, School, UserRound } from "lucide-react";
 import { motion } from "framer-motion";
-import { clearRecentSearches, readRecentSearches, type RecentSearchEntry } from "@/lib/recent-searches";
+import {
+  clearRecentSearches,
+  readRecentSearches,
+  subscribeRecentSearches,
+  type RecentSearchEntry,
+} from "@/lib/recent-searches";
 import { cn } from "@/lib/utils";
 
 const iconMap = {
@@ -12,6 +17,7 @@ const iconMap = {
   course: GraduationCap,
   professor: UserRound,
 } as const;
+const EMPTY_RECENT_SEARCHES: RecentSearchEntry[] = [];
 
 export function RecentSearchesPanel({
   title = "Recent",
@@ -26,7 +32,11 @@ export function RecentSearchesPanel({
   tone?: "light" | "dark";
   className?: string;
 }) {
-  const [items, setItems] = useState<RecentSearchEntry[]>(() => readRecentSearches());
+  const items = useSyncExternalStore<RecentSearchEntry[]>(
+    subscribeRecentSearches,
+    readRecentSearches,
+    () => EMPTY_RECENT_SEARCHES,
+  );
 
   if (!items.length) {
     return (
@@ -66,10 +76,7 @@ export function RecentSearchesPanel({
         </div>
         <button
           type="button"
-          onClick={() => {
-            clearRecentSearches();
-            setItems([]);
-          }}
+          onClick={() => clearRecentSearches()}
           className={cn(
             "inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-xs font-medium",
             tone === "dark"

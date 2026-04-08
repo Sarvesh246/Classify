@@ -1,0 +1,160 @@
+Persisting failed: Unable to write SST file 00014869.sst
+
+Caused by:
+    The system cannot find the path specified. (os error 3)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (43396) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:196:17:
+Failed to restore task data (corrupted database or bug): Meta for TaskId 177022)
+
+Caused by:
+    0: Looking up task storage for TaskId 177022 from database failed
+    1: Unable to open static sorted file referenced from 00014831.meta
+    2: Unable to open static sorted file 00014830.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00014830.sst
+    4: The system cannot find the path specified. (os error 3)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'tokio-runtime-worker' (42264) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:618:14:
+Failed to lookup task ids: Looking up task id for CachedTaskType { native_fn: NativeFunction { name: "<DiskFileSystem as FileSystem>::read", global_name: "<turbo_tasks_fs::DiskFileSystem as dyn turbo_tasks_fs::FileSystem>::read", .. }, this: Some(RawVc::TaskCell(9, "turbo_tasks_fs::DiskFileSystem#0")), arg: (FileSystemPath { fs: ResolvedVc(RawVc::TaskCell(9, "turbo_tasks_fs::DiskFileSystem#0")), path: ".playwright-cli/page-2026-04-08T22-52-32-934Z.yml" },) } from database failed
+
+Caused by:
+    0: Unable to open static sorted file referenced from 00008422.meta
+    1: Unable to open static sorted file 00008419.sst
+    2: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00008419.sst
+    3: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (26024) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:618:14:
+Failed to lookup task ids: Looking up task id for CachedTaskType { native_fn: NativeFunction { name: "<DiskFileSystem as FileSystem>::read", global_name: "<turbo_tasks_fs::DiskFileSystem as dyn turbo_tasks_fs::FileSystem>::read", .. }, this: Some(RawVc::TaskCell(9, "turbo_tasks_fs::DiskFileSystem#0")), arg: (FileSystemPath { fs: ResolvedVc(RawVc::TaskCell(9, "turbo_tasks_fs::DiskFileSystem#0")), path: ".playwright-cli/page-2026-04-08T22-52-32-934Z.yml" },) } from database failed
+
+Caused by:
+    0: Unable to open static sorted file referenced from 00008422.meta
+    1: Unable to open static sorted file 00008419.sst
+    2: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00008419.sst
+    3: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (26024) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:196:17:
+Failed to restore task data (corrupted database or bug): Meta for TaskId 440362)
+
+Caused by:
+    0: Looking up task storage for TaskId 440362 from database failed
+    1: Unable to open static sorted file referenced from 00014831.meta
+    2: Unable to open static sorted file 00014828.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00014828.sst
+    4: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (25916) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:224:17:
+Failed to restore task data (corrupted database or bug): Data for batch of 4 tasks
+
+Caused by:
+    0: Looking up typed data for 4 tasks from database failed
+    1: Unable to open static sorted file referenced from 00007922.meta
+    2: Unable to open static sorted file 00007921.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00007921.sst
+    4: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (25916) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:224:17:
+Failed to restore task data (corrupted database or bug): Data for batch of 4 tasks
+
+Caused by:
+    0: Looking up typed data for 4 tasks from database failed
+    1: Unable to open static sorted file referenced from 00007922.meta
+    2: Unable to open static sorted file 00007921.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00007921.sst
+    4: The system cannot find the path specified. (os error 3)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (24480) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:618:14:
+Failed to lookup task ids: Looking up task id for CachedTaskType { native_fn: NativeFunction { name: "AnalyzeIssue::new", global_name: "turbopack_core::issue::analyze::AnalyzeIssue::new", .. }, this: None, arg: (Error, Vc(RawVc::TaskCell(176414, "turbopack_core::ident::AssetIdent#0")), Vc(RawVc::TaskCell(2052581, "turbo_rcstr::RcStr#0")), Vc(RawVc::TaskCell(2052581, "turbopack_core::issue::StyledString#0")), None, Some(IssueSource { source: ResolvedVc(RawVc::TaskCell(176410, "turbopack_core::file_source::FileSource#0")), range: Some(ByteOffset(784, 975)) })) } from database failed
+
+Caused by:
+    0: Unable to open static sorted file referenced from 00012266.meta
+    1: Unable to open static sorted file 00012264.sst
+    2: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00012264.sst
+    3: The system cannot find the path specified. (os error 3)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (42776) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:224:17:
+Failed to restore task data (corrupted database or bug): Data for batch of 17 tasks
+
+Caused by:
+    0: Looking up typed data for 17 tasks from database failed
+    1: Unable to open static sorted file referenced from 00010769.meta
+    2: Unable to open static sorted file 00010768.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00010768.sst
+    4: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (42776) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:224:17:
+Failed to restore task data (corrupted database or bug): Data for batch of 17 tasks
+
+Caused by:
+    0: Looking up typed data for 17 tasks from database failed
+    1: Unable to open static sorted file referenced from 00010769.meta
+    2: Unable to open static sorted file 00010768.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00010768.sst
+    4: The system cannot find the path specified. (os error 3)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+
+thread 'tokio-runtime-worker' (41220) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:224:17:
+Failed to restore task data (corrupted database or bug): Data for batch of 2 tasks
+
+Caused by:
+    0: Looking up typed data for 2 tasks from database failed
+    1: Unable to open static sorted file referenced from 00014750.meta
+    2: Unable to open static sorted file 00014749.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00014749.sst
+    4: The system cannot find the path specified. (os error 3)
+
+thread 'tokio-runtime-worker' (41220) panicked at turbopack\crates\turbo-tasks-backend\src\backend\operation\mod.rs:196:17:
+Failed to restore task data (corrupted database or bug): Data for TaskId 392843)
+
+Caused by:
+    0: Looking up task storage for TaskId 392843 from database failed
+    1: Unable to open static sorted file referenced from 00014750.meta
+    2: Unable to open static sorted file 00014749.sst
+    3: Failed to open SST file C:\Projects\Cursor\College Professor Analyzer\.next\dev\cache/turbopack\52faae3d\00014749.sst
+    4: The system cannot find the path specified. (os error 3)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)

@@ -1,0 +1,188 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - link "Classify home" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - generic [ref=e16]:
+            - generic [ref=e17]: Classify
+            - generic [ref=e18]: Course Intelligence
+      - navigation [ref=e19]:
+        - link "Search" [ref=e20] [cursor=pointer]:
+          - /url: /search
+        - link "Compare" [ref=e21] [cursor=pointer]:
+          - /url: /compare
+        - link "Saved" [ref=e22] [cursor=pointer]:
+          - /url: /saved
+        - link "Methodology" [ref=e23] [cursor=pointer]:
+          - /url: /methodology
+        - link "Schools" [ref=e24] [cursor=pointer]:
+          - /url: /search?type=school
+      - generic [ref=e25]:
+        - button "Toggle color theme" [ref=e26] [cursor=pointer]:
+          - img [ref=e27]
+        - link "Search" [ref=e33] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e34]
+          - text: Search
+        - status [ref=e37]: Loading...
+    - generic [ref=e46]:
+      - generic [ref=e48]:
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - combobox "Search a school, course code, or professor" [ref=e56]
+          - button "Explore" [ref=e57] [cursor=pointer]:
+            - generic [ref=e58]: Explore
+        - generic [ref=e59]:
+          - heading "Find the professor who actually gives A's." [level=1] [ref=e60]
+          - paragraph [ref=e61]: Grade distributions, not just opinions, for 5760 searchable schools across the US.
+        - generic [ref=e62]:
+          - generic [ref=e63]: 5760 Searchable schools
+          - generic [ref=e64]: 8 Planner-ready schools
+          - generic [ref=e65]: 8 Evidence-ready schools
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - paragraph [ref=e69]: Why it beats RMP
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - heading "Outcome-driven" [level=2] [ref=e72]
+              - paragraph [ref=e73]: Classify anchors every ranking in expected GPA and A-rate first, then layers outside review signals as enrichment instead of pretending opinion is evidence.
+            - generic [ref=e74]:
+              - heading "Course-specific" [level=2] [ref=e75]
+              - paragraph [ref=e76]: You can search the exact class you need and immediately see which instructor is most likely to protect your semester.
+            - generic [ref=e77]:
+              - heading "Planner-ready" [level=2] [ref=e78]
+              - paragraph [ref=e79]: Every searchable school lands in the same planning surface first. Catalog, schedule, and evidence depth expand without changing the workflow.
+        - generic [ref=e80]:
+          - paragraph [ref=e81]: Featured picks
+          - generic [ref=e82]:
+            - link "J. Lopez COMM 410 - Radio, Records, and Popular Music High evidence Easy (score 96) GPA 4.00 A-rate 100%" [ref=e83] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/lopez-j
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - paragraph [ref=e86]: J. Lopez
+                  - paragraph [ref=e87]: COMM 410 - Radio, Records, and Popular Music
+                - generic [ref=e88]: High evidence
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - text: Easy
+                  - generic [ref=e91]: (score 96)
+                - generic [ref=e92]: GPA 4.00
+                - generic [ref=e93]: A-rate 100%
+            - link "K. Anders ENGL 210 - Technical and Professional Writing High evidence Easy (score 96) GPA 4.00 A-rate 100%" [ref=e94] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/anders-k
+              - generic [ref=e95]:
+                - generic [ref=e96]:
+                  - paragraph [ref=e97]: K. Anders
+                  - paragraph [ref=e98]: ENGL 210 - Technical and Professional Writing
+                - generic [ref=e99]: High evidence
+              - generic [ref=e100]:
+                - generic [ref=e101]:
+                  - text: Easy
+                  - generic [ref=e102]: (score 96)
+                - generic [ref=e103]: GPA 4.00
+                - generic [ref=e104]: A-rate 100%
+            - link "H. Salman STAT 683 - Statistics High evidence Easy (score 96) GPA 4.00 A-rate 100%" [ref=e105] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/salman-h
+              - generic [ref=e106]:
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: H. Salman
+                  - paragraph [ref=e109]: STAT 683 - Statistics
+                - generic [ref=e110]: High evidence
+              - generic [ref=e111]:
+                - generic [ref=e112]:
+                  - text: Easy
+                  - generic [ref=e113]: (score 96)
+                - generic [ref=e114]: GPA 4.00
+                - generic [ref=e115]: A-rate 100%
+            - link "H. Benzina INST 363 - English as a Second Language Methods II High evidence Easy (score 96) GPA 4.00 A-rate 100%" [ref=e116] [cursor=pointer]:
+              - /url: /schools/texas-am/professors/benzina-h
+              - generic [ref=e117]:
+                - generic [ref=e118]:
+                  - paragraph [ref=e119]: H. Benzina
+                  - paragraph [ref=e120]: INST 363 - English as a Second Language Methods II
+                - generic [ref=e121]: High evidence
+              - generic [ref=e122]:
+                - generic [ref=e123]:
+                  - text: Easy
+                  - generic [ref=e124]: (score 96)
+                - generic [ref=e125]: GPA 4.00
+                - generic [ref=e126]: A-rate 100%
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - paragraph [ref=e130]: National school graph
+          - heading "One school graph, one planning workflow" [level=2] [ref=e131]
+          - paragraph [ref=e132]: "Every searchable institution lands in the same Classify surface: school hub, instructor discovery, and planner entry point first. As course catalogs, schedules, and outcome evidence arrive, the same workflow simply gets deeper."
+          - generic [ref=e133]:
+            - button "Texas A&M" [ref=e134] [cursor=pointer]
+            - button "Georgia Tech" [ref=e135] [cursor=pointer]
+            - button "Ohio State" [ref=e136] [cursor=pointer]
+            - button "UC Berkeley" [ref=e137] [cursor=pointer]
+            - button "UIUC" [ref=e138] [cursor=pointer]
+            - button "UNC" [ref=e139] [cursor=pointer]
+            - button "UT Austin" [ref=e140] [cursor=pointer]
+            - button "UW-Madison" [ref=e141] [cursor=pointer]
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - paragraph [ref=e145]: Selected school
+              - heading "Texas A&M" [level=3] [ref=e146]
+              - paragraph [ref=e147]: College Station, TX - Public
+            - generic [ref=e148]: High evidence
+          - paragraph [ref=e149]: This school is ready for evidence-backed planning with published section timing and ranking signals.
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - paragraph [ref=e152]: ENGL 210 - Technical and Professional Writing
+              - paragraph [ref=e153]: Compare published instructor outcomes for ENGL 210 Technical and Professional Writing.
+              - paragraph [ref=e154]: "Top pick: K. Anders"
+            - generic [ref=e155]:
+              - paragraph [ref=e156]: BIMS 101 - Introduction to Biomedical Sciences
+              - paragraph [ref=e157]: Compare published instructor outcomes for BIMS 101 Introduction to Biomedical Sciences.
+              - paragraph [ref=e158]: "Top pick: J. Rodriguez"
+            - generic [ref=e159]: Trend callouts appear automatically once the school has enough historical evidence.
+      - generic [ref=e161]:
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - img [ref=e164]
+            - text: Comparison mode
+          - heading "Compare instructor options before you build your schedule" [level=2] [ref=e165]
+          - paragraph [ref=e166]: Evaluate expected GPA, A-rate, rating, difficulty, and trend in a single, clean workspace. It is the missing step between "I heard they are good" and "I know which section protects my semester."
+          - generic [ref=e167]:
+            - generic [ref=e169]:
+              - generic [ref=e170]:
+                - paragraph [ref=e171]: J. Lopez
+                - paragraph [ref=e172]: COMM 410 - Radio, Records, and Popular Music
+              - generic [ref=e173]:
+                - paragraph [ref=e174]: Easy
+                - paragraph [ref=e175]: score 96
+            - generic [ref=e177]:
+              - generic [ref=e178]:
+                - paragraph [ref=e179]: K. Anders
+                - paragraph [ref=e180]: ENGL 210 - Technical and Professional Writing
+              - generic [ref=e181]:
+                - paragraph [ref=e182]: Easy
+                - paragraph [ref=e183]: score 96
+            - generic [ref=e185]:
+              - generic [ref=e186]:
+                - paragraph [ref=e187]: H. Salman
+                - paragraph [ref=e188]: STAT 683 - Statistics
+              - generic [ref=e189]:
+                - paragraph [ref=e190]: Easy
+                - paragraph [ref=e191]: score 96
+        - generic [ref=e192]:
+          - paragraph [ref=e193]: What follows next
+          - heading "The product is built around a national planning graph" [level=2] [ref=e194]
+          - paragraph [ref=e195]: Directory records, course catalogs, section schedules, official grade outcomes, and confidence-aware enrichment all feed the same app model. That is what lets Classify support every school with one consistent planning surface before optimizer mode arrives later.
+          - generic [ref=e196]:
+            - link "Open the search app" [ref=e197] [cursor=pointer]:
+              - /url: /search
+              - img [ref=e198]
+              - text: Open the search app
+            - link "Compare live records" [ref=e201] [cursor=pointer]:
+              - /url: /compare
+              - text: Compare live records
+              - img [ref=e202]
+  - alert [ref=e204]

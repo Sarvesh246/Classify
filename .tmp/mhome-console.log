@@ -1,0 +1,10 @@
+### Result
+Total messages: 1 (Errors: 0, Warnings: 1)
+Returning 0 messages for level "error"
+
+### Page
+- Page URL: http://127.0.0.1:3200/
+- Page Title: Classify
+- Console: 0 errors, 1 warnings
+### Events
+- New console entries: .playwright-cli\console-2026-04-08T23-00-09-806Z.log#L1

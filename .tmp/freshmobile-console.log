@@ -1,0 +1,20 @@
+### Result
+Total messages: 2 (Errors: 1, Warnings: 1)
+Returning 1 messages for level "error"
+
+Error: Minified React error #419; visit https://react.dev/errors/419 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at reportError (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:89143)
+    at f (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:4206)
+    at sk (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:155586)
+    at unknown (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153302)
+    at sv (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:153306)
+    at st (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:136459)
+    at se (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:134695)
+    at s$ (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:159895)
+    at O (http://127.0.0.1:3200/_next/static/chunks/0-b-3i9dc09_i.js:1:8059)
+### Page
+- Page URL: http://127.0.0.1:3200/search
+- Page Title: Classify
+- Console: 1 errors, 1 warnings
+### Events
+- New console entries: .playwright-cli\console-2026-04-08T23-02-05-870Z.log#L1-L11
