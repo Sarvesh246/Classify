@@ -36,6 +36,10 @@ const metricMeta: Record<
   },
 };
 
+export function metricHasTrend(trend: TrendPoint[], metric: TrendMetric): boolean {
+  return trend.filter((point) => point[metric] != null).length >= 2;
+}
+
 export function MetricTrendChart({
   trend,
   metric,
@@ -50,17 +54,8 @@ export function MetricTrendChart({
     (point) => point[metric] != null,
   ) as Array<TrendPoint & Record<TrendMetric, number>>;
 
-  if (filtered.length < 2) {
-    return (
-      <div
-        className={cn(
-          "flex h-48 items-center justify-center rounded-[24px] border border-border/70 bg-white/70 px-4 text-sm text-muted",
-          className,
-        )}
-      >
-        {meta.label} trend unavailable
-      </div>
-    );
+  if (!metricHasTrend(trend, metric)) {
+    return null;
   }
 
   return (

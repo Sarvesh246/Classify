@@ -21,3 +21,15 @@ export function professorLastNameSortKey(displayName: string): string {
 
   return (parts[parts.length - 1] ?? body).toLowerCase();
 }
+
+/**
+ * Sort key for grouping instructors by department (first department alphabetically).
+ * Rows with no department sort last.
+ */
+export function professorDepartmentSortKey(departments: string[]): string {
+  const sorted = [...departments]
+    .map((d) => d.trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  return (sorted[0] ?? "\uFFFF").toLowerCase();
+}

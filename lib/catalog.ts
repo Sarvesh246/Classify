@@ -1449,6 +1449,18 @@ function buildProfessorDirectoryFromOfferings(
     const courseCodes = [
       ...new Set(professorOfferings.map((item) => item.courseCode).filter(Boolean)),
     ].sort();
+    const courseBySlug = new Map<string, { courseCode: string; courseName: string }>();
+    for (const o of professorOfferings) {
+      if (!courseBySlug.has(o.courseSlug)) {
+        courseBySlug.set(o.courseSlug, {
+          courseCode: o.courseCode,
+          courseName: o.courseName?.trim() || "",
+        });
+      }
+    }
+    const coursesTaught = [...courseBySlug.values()].sort((a, b) =>
+      a.courseCode.localeCompare(b.courseCode, undefined, { numeric: true }),
+    );
     const courseCount = new Set(professorOfferings.map((item) => item.courseSlug)).size;
     const relevantMeetings = sectionMeetings.filter(
       (meeting) =>
@@ -1489,6 +1501,7 @@ function buildProfessorDirectoryFromOfferings(
       departments,
       coursePrefixes,
       courseCodes,
+      coursesTaught,
       courseCount,
       sectionCount: Math.max(current?.sectionCount ?? 0, relevantMeetings.length),
       coverageTier: current ? mergeCoverageTier(current.coverageTier, top.coverageTier) : top.coverageTier,

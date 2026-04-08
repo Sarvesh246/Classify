@@ -767,6 +767,20 @@ export function getProfessorProfile(
       ...new Set(matches.map((item) => item.courseCode.split(/\s+/)[0]?.trim().toUpperCase()).filter(Boolean)),
     ],
     courseCodes: [...new Set(matches.map((item) => item.courseCode))],
+    coursesTaught: (() => {
+      const bySlug = new Map<string, { courseCode: string; courseName: string }>();
+      for (const item of matches) {
+        if (!bySlug.has(item.courseSlug)) {
+          bySlug.set(item.courseSlug, {
+            courseCode: item.courseCode,
+            courseName: item.courseName.trim(),
+          });
+        }
+      }
+      return [...bySlug.values()].sort((a, b) =>
+        a.courseCode.localeCompare(b.courseCode, undefined, { numeric: true }),
+      );
+    })(),
     courseCount: new Set(matches.map((item) => item.courseSlug)).size,
     sectionCount: 0,
     coverageTier: first.coverageTier,

@@ -4,7 +4,7 @@ import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
 import { getProfessorDirectoryRowsForSchool } from "@/lib/catalog";
 import { getDirectorySchoolBySlug } from "@/lib/server-directory";
-import { professorLastNameSortKey } from "@/lib/professor-sort";
+import { professorDepartmentSortKey, professorLastNameSortKey } from "@/lib/professor-sort";
 import { slugify } from "@/lib/utils";
 import type { ProfessorDirectoryRow } from "@/lib/types";
 import {
@@ -24,6 +24,7 @@ type InstructorsPageProps = {
   searchParams: Promise<{
     sort?: string;
     dept?: string;
+    course?: string;
     q?: string;
     page?: string;
     evidence?: string;
@@ -42,10 +43,11 @@ const instructorNumericSorters = {
   rating: (item: CatalogOffering) => item.rmpRating ?? -1,
 };
 
-type InstructorSortKey = "name" | keyof typeof instructorNumericSorters;
+type InstructorSortKey = "name" | "dept" | keyof typeof instructorNumericSorters;
 
 const instructorSortKeys: InstructorSortKey[] = [
   "name",
+  "dept",
   "classify",
   "gpa",
   "arate",
@@ -59,6 +61,23 @@ function compareInstructorRows(
   sortKey: InstructorSortKey,
 ): number {
   if (sortKey === "name") {
+    const c = professorLastNameSortKey(left.professorName).localeCompare(
+      professorLastNameSortKey(right.professorName),
+      undefined,
+      { sensitivity: "base" },
+    );
+    if (c !== 0) return c;
+    return left.professorName.localeCompare(right.professorName, undefined, {
+      sensitivity: "base",
+    });
+  }
+  if (sortKey === "dept") {
+    const d = professorDepartmentSortKey(left.departments).localeCompare(
+      professorDepartmentSortKey(right.departments),
+      undefined,
+      { sensitivity: "base" },
+    );
+    if (d !== 0) return d;
     const c = professorLastNameSortKey(left.professorName).localeCompare(
       professorLastNameSortKey(right.professorName),
       undefined,
@@ -86,6 +105,8 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
       ? (sp.sort as InstructorSortKey)
       : "name";
   const deptFilter = sp.dept?.trim() ?? "";
+  const courseRaw = sp.course?.trim() ?? "";
+  const courseFilter = courseRaw.toLowerCase();
   const q = sp.q?.trim().toLowerCase() ?? "";
   const evidenceFilter = sp.evidence?.trim() ?? "";
   const planningFilter = sp.planning?.trim() ?? "";
@@ -99,9 +120,20 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
       item.departments.some((department) => slugify(department) === deptFilter),
     );
   }
+  if (courseFilter) {
+    rows = rows.filter((item) => {
+      const taught = item.coursesTaught ?? [];
+      const fromTaught = taught.flatMap((c) => [c.courseCode, c.courseName]);
+      const hay = [...item.courseCodes, ...fromTaught].join(" ").toLowerCase();
+      return hay.includes(courseFilter);
+    });
+  }
   if (q) {
     rows = rows.filter((item) => {
-      const hay = `${item.professorName} ${item.departments.join(" ")} ${item.coursePrefixes.join(" ")}`.toLowerCase();
+      const taught = item.coursesTaught ?? [];
+      const courseLabels = taught.map((c) => `${c.courseCode} ${c.courseName}`).join(" ");
+      const hay =
+        `${item.professorName} ${item.departments.join(" ")} ${item.coursePrefixes.join(" ")} ${item.courseCodes.join(" ")} ${courseLabels}`.toLowerCase();
       return hay.includes(q);
     });
   }
@@ -144,20 +176,49 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
     ...new Set(allRows.flatMap((o) => o.departments)),
   ].sort((a, b) => a.localeCompare(b));
 
-  const sortLinks = [
-    ["name", "A-Z (last name)"],
-    ["classify", "Classify score"],
-    ["gpa", "Expected GPA"],
-    ["arate", "A-rate"],
-    ["trend", "Trend"],
-    ["rating", "RMP rating"],
-  ] as const satisfies readonly (readonly [InstructorSortKey, string])[];
+  const sortGroups = [
+    {
+      id: "browse",
+      title: "Alphabetical",
+      hint: "Sort by name or department",
+      items: [
+        ["name", "Last name"],
+        ["dept", "Department"],
+      ] as const satisfies readonly (readonly [InstructorSortKey, string])[],
+    },
+    {
+      id: "metrics",
+      title: "Outcomes & reviews",
+      hint: "Higher values first when data exists",
+      items: [
+        ["classify", "Classify score"],
+        ["gpa", "Expected GPA"],
+        ["arate", "A-rate"],
+        ["trend", "Trend"],
+        ["rating", "RMP rating"],
+      ] as const satisfies readonly (readonly [InstructorSortKey, string])[],
+    },
+  ] as const;
+
+  const activeSortDescription: Record<InstructorSortKey, string> = {
+    name: "Last name (A–Z)",
+    dept: "Department, then last name",
+    classify: "Classify score (highest first)",
+    gpa: "Expected GPA (highest first)",
+    arate: "A-rate (highest first)",
+    trend: "Latest trend score (highest first)",
+    rating: "RMP rating (highest first)",
+  };
 
   function href(extra: Record<string, string | undefined>) {
     const p = new URLSearchParams();
     p.set("sort", extra.sort ?? sortKey);
     if (extra.dept !== undefined ? extra.dept : deptFilter) {
       p.set("dept", (extra.dept !== undefined ? extra.dept : deptFilter) || "");
+    }
+    const courseVal = extra.course !== undefined ? extra.course : courseRaw;
+    if (courseVal) {
+      p.set("course", courseVal);
     }
     if (extra.q !== undefined ? extra.q : q) {
       p.set("q", (extra.q !== undefined ? extra.q : q) || "");
@@ -181,48 +242,60 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
     <main className="min-h-screen bg-background">
       <SiteHeader />
       <div className="page-shell pt-10">
-        <section className="soft-panel rounded-[34px] p-6 sm:p-8">
+        <section className="soft-panel rounded-[28px] p-4 sm:rounded-[34px] sm:p-8">
           <p className="eyebrow">{school.shortName}</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">All instructors</h1>
           <p className="app-lead mt-4">
-            Browse every professor identity we publish for this school ({total} total). Default
-            order is A-Z by professor last name; you can also sort by outcomes, evidence, and
-            schedule support.
+            Browse every professor identity we publish for this school ({total} total). Filter by
+            department or class, sort by department or name, and scan the courses each instructor
+            teaches next to their name.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href={`/schools/${slug}`}
-              className="rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+              className="min-h-11 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-sm font-medium text-ink sm:min-h-0 sm:py-2"
             >
               School hub
             </Link>
             <Link
               href={`/schools/${slug}/my-courses`}
-              className="rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory"
+              className="min-h-11 touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-center text-sm font-medium text-ivory sm:min-h-0 sm:py-2"
             >
               My courses
             </Link>
           </div>
         </section>
 
-        <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
-          <form className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end" action="" method="get">
+        <section className="mt-6 soft-panel rounded-[26px] p-4 sm:mt-8 sm:rounded-[30px] sm:p-6">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Filters</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Narrow who appears in the list. Your sort choice below applies to the filtered results.
+            </p>
+          </div>
+          <form
+            className="mt-5 flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end"
+            action=""
+            method="get"
+          >
             <input type="hidden" name="sort" value={sortKey} />
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[12rem]">
               <span className="text-muted">Search</span>
               <input
                 name="q"
                 defaultValue={sp.q ?? ""}
                 placeholder="Name, course prefix, department..."
-                className="h-11 min-w-[14rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
+                autoComplete="off"
+                enterKeyHint="search"
               />
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[12rem]">
               <span className="text-muted">Department</span>
               <select
                 name="dept"
                 defaultValue={deptFilter}
-                className="h-11 min-w-[12rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[12rem] sm:text-sm"
               >
                 <option value="">All departments</option>
                 {departments.map((d) => (
@@ -232,12 +305,22 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 ))}
               </select>
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[12rem]">
+              <span className="text-muted">Class / course</span>
+              <input
+                name="course"
+                defaultValue={sp.course ?? ""}
+                placeholder="Code or title, e.g. CSCE 121"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[14rem] sm:text-sm"
+                autoComplete="off"
+              />
+            </label>
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[11rem]">
               <span className="text-muted">Evidence</span>
               <select
                 name="evidence"
                 defaultValue={evidenceFilter}
-                className="h-11 min-w-[11rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All evidence</option>
                 <option value="official">Institutional stats</option>
@@ -245,24 +328,24 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                 <option value="limited">Identity only / thin stats</option>
               </select>
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[11rem]">
               <span className="text-muted">Planning</span>
               <select
                 name="planning"
                 defaultValue={planningFilter}
-                className="h-11 min-w-[11rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All planning states</option>
                 <option value="schedule">Section timing ready</option>
                 <option value="catalog">Catalog only</option>
               </select>
             </label>
-            <label className="flex flex-col gap-2 text-sm">
+            <label className="flex w-full min-w-0 flex-col gap-2 text-sm lg:w-auto lg:min-w-[11rem]">
               <span className="text-muted">Source</span>
               <select
                 name="source"
                 defaultValue={sourceFilter}
-                className="h-11 min-w-[11rem] rounded-2xl border border-border bg-white/80 px-4 outline-none"
+                className="h-11 w-full min-w-0 rounded-2xl border border-border bg-white/80 px-4 text-base outline-none sm:min-w-[11rem] sm:text-sm"
               >
                 <option value="">All sources</option>
                 <option value="official">Official outcomes</option>
@@ -273,35 +356,79 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
             </label>
             <button
               type="submit"
-              className="h-11 rounded-full bg-deep-ink px-6 text-sm font-medium text-ivory"
+              className="min-h-11 w-full touch-manipulation rounded-full bg-deep-ink px-6 py-2.5 text-base font-medium text-ivory sm:w-auto sm:text-sm"
             >
               Apply filters
             </button>
           </form>
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {sortLinks.map(([key, label]) => (
-              <Link
-                key={key}
-                href={`/schools/${slug}/instructors${href({ sort: key, page: "1" })}`}
-                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                  sortKey === key
-                    ? "border-deep-ink bg-deep-ink text-ivory"
-                    : "border-border bg-white/72 text-ink hover:bg-white"
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
+          <div
+            className="mt-8 border-t border-border/70 pt-7"
+            aria-labelledby="instructors-sort-heading"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+              <div className="min-w-0 flex-1">
+                <h2 id="instructors-sort-heading" className="eyebrow">
+                  Sort order
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+                  Pick one option. Browse keeps lists alphabetical; outcomes rank instructors by the
+                  metric shown.
+                </p>
+              </div>
+              <p className="w-full shrink-0 rounded-2xl border border-border/80 bg-white/60 px-4 py-3 text-sm text-muted sm:max-w-[min(100%,20rem)] sm:py-2.5">
+                <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-muted">
+                  Active
+                </span>
+                <span className="mt-0.5 block break-words font-medium text-ink">
+                  {activeSortDescription[sortKey]}
+                </span>
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-5 sm:space-y-6">
+              {sortGroups.map((group) => (
+                <div
+                  key={group.id}
+                  role="group"
+                  aria-label={group.title}
+                  className="rounded-[20px] border border-border/60 bg-white/45 p-3.5 sm:rounded-[22px] sm:p-5"
+                >
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                    <h3 className="text-sm font-semibold text-ink">{group.title}</h3>
+                    <span className="text-sm leading-snug text-muted">{group.hint}</span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {group.items.map(([key, label]) => {
+                      const active = sortKey === key;
+                      return (
+                        <Link
+                          key={key}
+                          href={`/schools/${slug}/instructors${href({ sort: key, page: "1" })}`}
+                          className={`inline-flex min-h-11 touch-manipulation items-center justify-center rounded-full border px-4 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-deep-ink active:opacity-90 ${
+                            active
+                              ? "border-deep-ink bg-deep-ink text-ivory shadow-sm"
+                              : "border-border/90 bg-white/80 text-ink hover:border-border hover:bg-white"
+                          }`}
+                          aria-current={active ? "true" : undefined}
+                        >
+                          {label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="mt-8 space-y-3">
+        <section className="mt-6 space-y-3 sm:mt-8">
           {pageRows.length ? (
             pageRows.map((item) => (
               <div
                 key={item.id}
-                className="soft-panel flex flex-col gap-4 rounded-[24px] p-4 md:flex-row md:items-center md:justify-between"
+                className="soft-panel flex flex-col gap-4 rounded-[22px] p-4 sm:rounded-[24px] md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -309,11 +436,38 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                     <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
                   </div>
                   <p className="mt-1 text-sm text-muted">
-                    {item.departments.join(" • ") || "Department pending"} | {item.coursePrefixes.join(", ") || "Course mix expanding"}
+                    {item.departments.join(" • ") || "Department pending"}
                   </p>
+                  <div className="mt-2">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-wide text-muted">
+                      Classes taught
+                    </p>
+                    <ul className="mt-1.5 flex list-none flex-wrap gap-2">
+                      {(item.coursesTaught?.length
+                        ? item.coursesTaught
+                        : item.courseCodes.map((code) => ({
+                            courseCode: code,
+                            courseName: "",
+                          }))
+                      ).map((c) => (
+                        <li
+                          key={`${item.id}-${c.courseCode}`}
+                          className="max-w-full break-words rounded-2xl border border-border/80 bg-white/70 px-2.5 py-1.5 text-xs leading-snug text-ink"
+                        >
+                          <span className="font-semibold">{c.courseCode}</span>
+                          {c.courseName ? (
+                            <span className="text-muted"> — {c.courseName}</span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                    {!item.coursesTaught?.length && item.courseCodes.length === 0 ? (
+                      <p className="mt-1 text-xs text-muted">Course list expanding from catalog</p>
+                    ) : null}
+                  </div>
                   <p className="mt-2 line-clamp-2 text-sm text-ink/78">{item.summary}</p>
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2 md:justify-end">
+                <div className="flex min-w-0 shrink-0 flex-wrap gap-2 md:justify-end">
                   <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted">
                     {scoreToLabel(item.classifyScore)} ({formatScore(item.classifyScore)})
                   </span>
@@ -336,16 +490,16 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                     {formatProfessorCoverageLevel(item.coverageLevel)}
                   </span>
                 </div>
-                <div className="flex flex-col gap-2 md:items-end">
+                <div className="flex w-full flex-col gap-2 sm:w-auto md:items-end">
                   <Link
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="rounded-full bg-deep-ink px-4 py-2 text-center text-sm font-medium text-ivory"
+                    className="min-h-11 touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-center text-base font-medium text-ivory sm:min-h-0 sm:py-2 sm:text-sm"
                   >
                     Profile
                   </Link>
                   <Link
                     href={`/compare?ids=${item.id}`}
-                    className="rounded-full border border-border px-4 py-2 text-center text-sm font-medium text-ink"
+                    className="min-h-11 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium text-ink sm:min-h-0 sm:py-2 sm:text-sm"
                   >
                     Open profile
                   </Link>
@@ -362,26 +516,31 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
         </section>
 
         {totalPages > 1 ? (
-          <nav className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            {safePage > 1 ? (
-              <Link
-                href={`/schools/${slug}/instructors${href({ page: String(safePage - 1) })}`}
-                className="rounded-full border border-border px-4 py-2 text-sm font-medium"
-              >
-                Previous
-              </Link>
-            ) : null}
-            <span className="text-sm text-muted">
-              Page {safePage} of {totalPages} | {total} instructors
-            </span>
-            {safePage < totalPages ? (
-              <Link
-                href={`/schools/${slug}/instructors${href({ page: String(safePage + 1) })}`}
-                className="rounded-full border border-border px-4 py-2 text-sm font-medium"
-              >
-                Next
-              </Link>
-            ) : null}
+          <nav
+            className="mt-8 flex flex-col items-center gap-4"
+            aria-label="Instructor list pagination"
+          >
+            <p className="text-center text-sm text-muted">
+              Page {safePage} of {totalPages} · {total} instructors
+            </p>
+            <div className="flex w-full max-w-sm justify-center gap-3 sm:max-w-none">
+              {safePage > 1 ? (
+                <Link
+                  href={`/schools/${slug}/instructors${href({ page: String(safePage - 1) })}`}
+                  className="min-h-11 min-w-[7rem] flex-1 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
+                >
+                  Previous
+                </Link>
+              ) : null}
+              {safePage < totalPages ? (
+                <Link
+                  href={`/schools/${slug}/instructors${href({ page: String(safePage + 1) })}`}
+                  className="min-h-11 min-w-[7rem] flex-1 touch-manipulation rounded-full border border-border px-4 py-2.5 text-center text-base font-medium sm:min-h-0 sm:flex-initial sm:px-5 sm:py-2 sm:text-sm"
+                >
+                  Next
+                </Link>
+              ) : null}
+            </div>
           </nav>
         ) : null}
       </div>

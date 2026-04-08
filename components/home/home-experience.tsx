@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { Component, type ReactNode, Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   motion,
   useMotionValueEvent,
@@ -18,13 +23,27 @@ import { useAppRuntime } from "@/hooks/use-app-runtime";
 import type { CourseGroup, ProfessorCourseSummary, School } from "@/lib/types";
 import { formatGpa, formatPercent, formatScore, scoreToLabel } from "@/lib/utils";
 
-const HomeScene = dynamic(
-  () => import("@/components/home/home-scene").then((mod) => mod.HomeScene),
-  { ssr: false },
-);
+/** Sync probe — `http://` LAN hosts are not a secure context (unlike localhost); WebGL may be unavailable. */
+function canCreateWebGLContext(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const c = document.createElement("canvas");
+    return !!(
+      c.getContext("webgl2") ||
+      c.getContext("webgl") ||
+      c.getContext("experimental-webgl")
+    );
+  } catch {
+    return false;
+  }
+}
 
 function supportsPremiumScene() {
   if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (!canCreateWebGLContext()) {
     return false;
   }
 
@@ -43,12 +62,45 @@ function supportsPremiumScene() {
     return false;
   }
 
-  if (effectiveType.includes("2g") || effectiveType.includes("3g")) {
+  // Only skip the slowest links; "3g" labels are unreliable on Wi‑Fi/LAN test devices.
+  if (effectiveType === "slow-2g" || effectiveType === "2g") {
     return false;
   }
 
-  return cpuCount >= 6 && deviceMemory >= 4;
+  return cpuCount >= 4 && deviceMemory >= 4;
 }
+
+function AmbientBackdrop() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="mobile-ambient-backdrop absolute inset-0" />
+      <div className="mobile-ambient-orb mobile-ambient-orb-a" />
+      <div className="mobile-ambient-orb mobile-ambient-orb-b" />
+      <div className="mobile-ambient-grid absolute inset-0 opacity-40" />
+    </div>
+  );
+}
+
+class HomeWebglErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+const HomeScene = dynamic(
+  () => import("@/components/home/home-scene").then((mod) => mod.HomeScene),
+  { ssr: false, loading: () => <AmbientBackdrop /> },
+);
 
 type HomeExperienceProps = {
   coverage: {
@@ -147,14 +199,13 @@ export function HomeExperience({
     <div className="relative overflow-x-hidden">
       <div className="fixed inset-0">
         {useCanvas ? (
-          <HomeScene key={canvasMountKey} progress={progress} />
+          <HomeWebglErrorBoundary fallback={<AmbientBackdrop />}>
+            <Suspense fallback={<AmbientBackdrop />}>
+              <HomeScene key={canvasMountKey} progress={progress} />
+            </Suspense>
+          </HomeWebglErrorBoundary>
         ) : (
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="mobile-ambient-backdrop absolute inset-0" />
-            <div className="mobile-ambient-orb mobile-ambient-orb-a" />
-            <div className="mobile-ambient-orb mobile-ambient-orb-b" />
-            <div className="mobile-ambient-grid absolute inset-0 opacity-40" />
-          </div>
+          <AmbientBackdrop />
         )}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.42),rgba(7,17,31,0.82)_36%,rgba(7,17,31,0.95)_100%)]" />
       </div>

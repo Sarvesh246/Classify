@@ -96,7 +96,12 @@ function DataNodes({ progress }: { progress: number }) {
 export function HomeScene({ progress }: { progress: number }) {
   return (
     <div className="absolute inset-0">
-      <Canvas camera={{ position: [0, 0, 11], fov: 42 }} className="relative h-full w-full">
+      <Canvas
+        camera={{ position: [0, 0, 11], fov: 42 }}
+        className="relative h-full w-full"
+        dpr={[1, 2]}
+        gl={{ antialias: true, alpha: false }}
+      >
         <color attach="background" args={["#06172A"]} />
         <fog attach="fog" args={["#06172A", 8, 22]} />
         <ambientLight intensity={1.2} />

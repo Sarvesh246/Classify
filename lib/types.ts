@@ -163,6 +163,8 @@ export interface ProfessorDirectoryRow {
   departments: string[];
   coursePrefixes: string[];
   courseCodes: string[];
+  /** Deduped from offerings; used to show classes next to each name in the directory */
+  coursesTaught?: { courseCode: string; courseName: string }[];
   courseCount: number;
   sectionCount: number;
   coverageTier: CoverageTier;

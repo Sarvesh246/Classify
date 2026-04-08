@@ -22,7 +22,7 @@ export function PwaClient() {
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "test") {
+    if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
       return;
     }
 

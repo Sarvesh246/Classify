@@ -325,6 +325,9 @@ a:focus:not(:focus-visible) {
 
   .page-shell {
     padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 2rem);
+    /* Respect notch / home indicator so content is not clipped at edges */
+    padding-left: max(0.625rem, var(--safe-left));
+    padding-right: max(0.625rem, var(--safe-right));
   }
 
   .mobile-sheet-shell {

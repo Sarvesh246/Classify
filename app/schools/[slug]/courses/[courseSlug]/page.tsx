@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { CourseProfessorList } from "@/components/course/course-professor-list";
 import { GradeDistributionPanel } from "@/components/charts/grade-distribution-panel";
-import { MetricTrendChart } from "@/components/charts/metric-trend-chart";
+import {
+  MetricTrendChart,
+  metricHasTrend,
+} from "@/components/charts/metric-trend-chart";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SaveItemButton } from "@/components/saved/save-item-button";
 import { SiteHeader } from "@/components/site-header";
@@ -11,6 +14,7 @@ import {
   getCourseTrend,
   getGradeDistributionSeriesForCourse,
 } from "@/lib/catalog";
+import { cn } from "@/lib/utils";
 
 type CoursePageProps = {
   params: Promise<{ slug: string; courseSlug: string }>;
@@ -29,6 +33,9 @@ export default async function CoursePage({ params }: CoursePageProps) {
     getCourseTrend(slug, courseSlug),
     getGradeDistributionSeriesForCourse(slug, courseSlug),
   ]);
+
+  const showTrendCharts =
+    metricHasTrend(courseTrend, "aPct") || metricHasTrend(courseTrend, "avgGpa");
 
   return (
     <main className="min-h-screen bg-background">
@@ -58,11 +65,18 @@ export default async function CoursePage({ params }: CoursePageProps) {
           </div>
         </section>
 
-        <section className="mt-8 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-          <div className="space-y-6">
-            <MetricTrendChart trend={courseTrend} metric="aPct" />
-            <MetricTrendChart trend={courseTrend} metric="avgGpa" />
-          </div>
+        <section
+          className={cn(
+            "mt-8 grid gap-6",
+            showTrendCharts && "xl:grid-cols-[1.08fr_0.92fr]",
+          )}
+        >
+          {showTrendCharts ? (
+            <div className="space-y-6">
+              <MetricTrendChart trend={courseTrend} metric="aPct" />
+              <MetricTrendChart trend={courseTrend} metric="avgGpa" />
+            </div>
+          ) : null}
           <div className="space-y-3">
             <p className="text-sm leading-relaxed text-muted">
               Stacked grade bars are modeled from each term&apos;s reported GPA and A-rate when

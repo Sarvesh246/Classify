@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { professorLastNameSortKey } from "@/lib/professor-sort";
+import { professorDepartmentSortKey, professorLastNameSortKey } from "@/lib/professor-sort";
 
 describe("professorLastNameSortKey", () => {
   it("sorts by final token for First Last", () => {
@@ -17,5 +17,15 @@ describe("professorLastNameSortKey", () => {
 
   it("empty after trim yields empty key", () => {
     expect(professorLastNameSortKey("   ")).toBe("");
+  });
+});
+
+describe("professorDepartmentSortKey", () => {
+  it("uses first department alphabetically", () => {
+    expect(professorDepartmentSortKey(["Zoology", "Anthropology"])).toBe("anthropology");
+  });
+
+  it("empty departments sort last", () => {
+    expect(professorDepartmentSortKey([])).toBe("\uffff");
   });
 });
