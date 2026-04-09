@@ -3,7 +3,6 @@ import "server-only";
 import {
   getCatalogOfferingsForSearch,
   getCatalogOfferingsForSchool,
-  getDistinctSchoolSlugsWithOfferings,
   getProfessorDirectoryRows,
   getCatalogSchoolBySlug,
   getCatalogSchools,
@@ -22,13 +21,18 @@ import type {
 } from "@/lib/types";
 import {
   computeCatalogSearchScoreParts,
+  fuzzyTokenBonus,
   scoreMatch,
   type CatalogHitSearchContext,
 } from "@/lib/search-scoring";
 import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
-import { prefilterSchoolsByTextQuery } from "@/lib/school-search-prefilter";
+import {
+  buildSchoolSearchText,
+  normalizeSchoolSearchText,
+  prefilterSchoolsByTextQuery,
+} from "@/lib/school-search-prefilter";
 import { applyCacheLifeSearch } from "@/lib/cache-utils";
 
 function patchSchoolForPublishedOfferings(
@@ -429,33 +433,71 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
     return 0;
   }
 
-  const normalizedQuery = query.toLowerCase().trim();
+  const normalizedQuery = normalizeSchoolSearchText(query);
   if (!normalizedQuery) {
     return 0;
   }
 
-  const canonicalLabel = hit.label.toLowerCase().trim();
+  const canonicalLabel = normalizeSchoolSearchText(hit.label);
   const aliases = (school?.aliases ?? [])
-    .map((value) => value.toLowerCase().trim())
+    .map((value) => normalizeSchoolSearchText(value))
     .filter((value) => value !== canonicalLabel);
 
   if (canonicalLabel === normalizedQuery) {
     return 72;
   }
 
+  if (aliases.some((value) => value === normalizedQuery)) {
+    return 64;
+  }
+
   if (canonicalLabel.startsWith(normalizedQuery)) {
     return 42;
   }
 
-  if (aliases.some((value) => value === normalizedQuery)) {
-    return 28;
-  }
-
   if (aliases.some((value) => value.startsWith(normalizedQuery))) {
-    return 12;
+    return 24;
   }
 
   return 0;
+}
+
+function scoreSchoolHitMatch(query: string, hit: SearchHit, school: School | undefined) {
+  const normalizedQuery = normalizeSchoolSearchText(query);
+  if (!normalizedQuery) {
+    return 1;
+  }
+
+  const schoolSearchText = school
+    ? buildSchoolSearchText(school)
+    : normalizeSchoolSearchText(`${hit.label} ${hit.school} ${hit.highlight}`);
+  const aliasList = [
+    ...(school?.aliases ?? []),
+    hit.school,
+    hit.highlight,
+    hit.context.contextLabel,
+  ].map((value) => normalizeSchoolSearchText(value));
+  const fuzzy = fuzzyTokenBonus(normalizedQuery, schoolSearchText);
+
+  return (
+    scoreMatch(normalizedQuery, schoolSearchText, aliasList) +
+    schoolMatchBoost(normalizedQuery, hit, school) +
+    fuzzy.bonus
+  );
+}
+
+function estimateSchoolsWithCatalogRows(catalogSchools: School[]) {
+  return new Set(
+    catalogSchools
+      .filter(
+        (school) =>
+          school.supportProfile?.hasCatalog ||
+          school.supportProfile?.plannerReadiness === "catalog_ready" ||
+          school.supportProfile?.plannerReadiness === "schedule_ready" ||
+          school.supportProfile?.plannerReadiness === "evidence_ready",
+      )
+      .map((school) => school.slug),
+  );
 }
 
 function buildSchoolSearchHits(allSchools: School[], catalogSchools: School[]): SearchHit[] {
@@ -693,11 +735,11 @@ async function collectSchoolOnlySortedSearchRows(
 ): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
   const { schoolSlug } = options;
   const surface = options.surface ?? "page";
-  const [allSchoolsMerged, catalogSchools, schoolsWithCatalogRows] = await Promise.all([
+  const [allSchoolsMerged, catalogSchools] = await Promise.all([
     getDirectorySchools(),
     getCatalogSchools(),
-    getDistinctSchoolSlugsWithOfferings(),
   ]);
+  const schoolsWithCatalogRows = estimateSchoolsWithCatalogRows(catalogSchools);
   const allSchools = prefilterSchoolsByTextQuery(allSchoolsMerged, query);
   const directorySchoolLookup = new Map(allSchoolsMerged.map((school) => [school.slug, school]));
   const emptyOfferingLookup = new Map<string, ProfessorCourseSummary>();
@@ -715,17 +757,7 @@ async function collectSchoolOnlySortedSearchRows(
   const rows = hits
     .map((hit): ScoredSearchRow => {
       const school = directorySchoolLookup.get(hit.slug);
-
-      const aliasList = [
-        ...(school?.aliases ?? []),
-        hit.school,
-        hit.highlight,
-        hit.context.contextLabel,
-      ];
-
-      const textScore =
-        scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
-        schoolMatchBoost(query, hit, school);
+      const textScore = scoreSchoolHitMatch(query, hit, school);
 
       if (query.trim() && textScore < minimumSchoolTextScore(query, surface)) {
         return { hit, score: 0 };
@@ -785,6 +817,73 @@ async function collectSchoolOnlySortedSearchRows(
   return { rows: dedupedRows, schoolsWithCatalogRows };
 }
 
+function looksLikeSchoolIntentQuery(query: string) {
+  const normalizedQuery = normalizeSchoolSearchText(query);
+  if (!normalizedQuery || /\d/.test(normalizedQuery)) {
+    return false;
+  }
+
+  return (
+    /&/.test(query) ||
+    /\ba and m\b/.test(normalizedQuery) ||
+    /\b(?:university|college|school|institute|academy|community|district|system|polytechnic|state|campus)\b/.test(
+      normalizedQuery,
+    )
+  );
+}
+
+function shouldUseFastSchoolRows(rows: ScoredSearchRow[], query: string) {
+  const normalizedQuery = normalizeSchoolSearchText(query);
+  if (!normalizedQuery || !rows.length || /\d/.test(normalizedQuery)) {
+    return false;
+  }
+
+  const topScore = rows[0]?.score ?? 0;
+  const acronymQuery = !/\s/.test(normalizedQuery) && normalizedQuery.length <= 4;
+  const exactishSchoolHit = topScore >= 156;
+
+  return (
+    exactishSchoolHit ||
+    (looksLikeSchoolIntentQuery(query) && topScore >= 48) ||
+    (acronymQuery && topScore >= 100)
+  );
+}
+
+function collectFastSchoolSearchRows(
+  query: string,
+  options: SearchDirectoryOptions,
+): { rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> } {
+  const { schoolSlug } = options;
+  const surface = options.surface ?? "page";
+  const allSchools = prefilterSchoolsByTextQuery(loadScorecardDirectorySchools(), query);
+  const directorySchoolLookup = new Map(allSchools.map((school) => [school.slug, school]));
+  const schoolHits = buildSchoolSearchHits(allSchools, []).filter(
+    (hit) => !schoolSlug || hit.slug === schoolSlug,
+  );
+
+  const rows = dedupeSchoolRows(
+    schoolHits
+      .map((hit): ScoredSearchRow => {
+        const school = directorySchoolLookup.get(hit.slug);
+        const textScore = scoreSchoolHitMatch(query, hit, school);
+
+        if (query.trim() && textScore < minimumSchoolTextScore(query, surface)) {
+          return { hit, score: 0 };
+        }
+
+        return { hit, score: textScore };
+      })
+      .filter((item) => item.score > 0),
+  ).sort((left, right) => {
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+    return left.hit.label.localeCompare(right.hit.label, undefined, { sensitivity: "base" });
+  });
+
+  return { rows, schoolsWithCatalogRows: new Set<string>() };
+}
+
 async function collectSortedSearchRows(
   query: string,
   options: SearchDirectoryOptions,
@@ -795,6 +894,13 @@ async function collectSortedSearchRows(
 
   if (type === "school") {
     return collectSchoolOnlySortedSearchRows(query, options);
+  }
+
+  if (surface === "combobox" && type === "all" && !schoolSlug && trimmedQuery) {
+    const fastSchoolRows = collectFastSchoolSearchRows(query, options);
+    if (shouldUseFastSchoolRows(fastSchoolRows.rows, query)) {
+      return fastSchoolRows;
+    }
   }
 
   const maxBroadChars = surface === "combobox" ? 3 : 2;
@@ -864,9 +970,7 @@ async function collectSortedSearchRows(
       ];
 
       if (hit.type === "school") {
-        const textScore =
-          scoreMatch(query, `${hit.label} ${hit.school} ${hit.highlight}`, aliasList) +
-          schoolMatchBoost(query, hit, school);
+        const textScore = scoreSchoolHitMatch(query, hit, school);
 
         if (query.trim() && textScore < minimumSchoolTextScore(query, surface)) {
           return { hit, score: 0 };
@@ -1002,6 +1106,22 @@ export async function searchDirectory(
 }
 
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
+  if (
+    (options.surface ?? "page") === "combobox" &&
+    !options.schoolSlug &&
+    (options.type == null || options.type === "all")
+  ) {
+    const limit = options.limit ?? 8;
+    const { rows, schoolsWithCatalogRows } = collectFastSchoolSearchRows("", {
+      ...options,
+      limit,
+      type: "all",
+    });
+    return rows
+      .slice(0, limit)
+      .map((row) => finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, ""));
+  }
+
   return searchDirectory("", { limit: 8, ...options });
 }
 

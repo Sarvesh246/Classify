@@ -3,16 +3,87 @@ import {
   getSuggestedHits,
   searchDirectory,
 } from "@/lib/server-directory";
+import type { SearchHit, SearchHitType } from "@/lib/types";
 import { rateLimitRequest } from "@/lib/rate-limit";
 import { serverLog } from "@/lib/server-logger";
 
 const MAX_SEARCH_LIMIT = 50;
 const DEFAULT_LIMIT = 12;
+const SEARCH_RESPONSE_CACHE_TTL_MS = 120_000;
+
+type CachedSearchPayload = {
+  expiresAt: number;
+  results: SearchHit[];
+};
+
+const searchResponseCache = new Map<string, CachedSearchPayload>();
+const inflightSearches = new Map<string, Promise<SearchHit[]>>();
 
 function clampLimit(raw: string | null): number {
   const n = Number(raw ?? DEFAULT_LIMIT);
   if (!Number.isFinite(n) || n < 1) return DEFAULT_LIMIT;
   return Math.min(Math.floor(n), MAX_SEARCH_LIMIT);
+}
+
+function buildSearchCacheKey(args: {
+  query: string;
+  type: SearchHitType | "all";
+  schoolSlug?: string;
+  surface: "combobox" | "page";
+  limit: number;
+}) {
+  return JSON.stringify([
+    args.query,
+    args.type,
+    args.schoolSlug ?? "",
+    args.surface,
+    args.limit,
+  ]);
+}
+
+async function resolveSearchResultsWithCache(args: {
+  query: string;
+  type: SearchHitType | "all";
+  schoolSlug?: string;
+  surface: "combobox" | "page";
+  limit: number;
+}) {
+  const cacheKey = buildSearchCacheKey(args);
+  const now = Date.now();
+  const cached = searchResponseCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.results;
+  }
+
+  const inflight = inflightSearches.get(cacheKey);
+  if (inflight) {
+    return inflight;
+  }
+
+  const options = {
+    limit: args.limit,
+    type: args.type,
+    schoolSlug: args.schoolSlug,
+    surface: args.surface,
+  } as const;
+
+  const work = (args.query
+    ? searchDirectory(args.query, options)
+    : getSuggestedHits(options)
+  ).then((results) => {
+    searchResponseCache.set(cacheKey, {
+      expiresAt: Date.now() + SEARCH_RESPONSE_CACHE_TTL_MS,
+      results,
+    });
+    inflightSearches.delete(cacheKey);
+    return results;
+  }).catch((error) => {
+    inflightSearches.delete(cacheKey);
+    throw error;
+  });
+
+  inflightSearches.set(cacheKey, work);
+  return work;
 }
 
 export async function GET(request: NextRequest) {
@@ -52,9 +123,13 @@ export async function GET(request: NextRequest) {
       surface,
     } as const;
 
-    const results = query
-      ? await searchDirectory(query, options)
-      : await getSuggestedHits(options);
+    const results = await resolveSearchResultsWithCache({
+      query,
+      type: options.type,
+      schoolSlug,
+      surface,
+      limit,
+    });
 
     if (query || schoolSlug || options.type !== "all") {
       serverLog.info("search_query_completed", {

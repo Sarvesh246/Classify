@@ -67,8 +67,8 @@ const iconMap = {
 } as const;
 
 const SEARCH_CACHE_TTL_MS = 120_000;
-const SEARCH_DEBOUNCE_MS = 88;
-const MOBILE_SEARCH_DEBOUNCE_MS = 64;
+const SEARCH_DEBOUNCE_MS = 48;
+const MOBILE_SEARCH_DEBOUNCE_MS = 32;
 const COMBOBOX_RESULT_LIMIT = 8;
 const searchResponseCache = new Map<
   string,
@@ -79,6 +79,82 @@ const searchResponseCache = new Map<
 >();
 
 let searchApiRouteWarmIssued = false;
+
+function normalizeSearchCacheText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getInstantCachedResults(
+  endpoint: string,
+  query: string,
+  searchType: SearchHitType | "all",
+  schoolSlug?: string,
+) {
+  const target = new URL(endpoint, "http://localhost");
+  const targetQuery = normalizeSearchCacheText(query);
+  if (!targetQuery) {
+    return null;
+  }
+
+  let best:
+    | {
+        query: string;
+        results: SearchHit[];
+      }
+    | null = null;
+
+  for (const [key, value] of searchResponseCache.entries()) {
+    if (value.expiresAt <= Date.now()) {
+      continue;
+    }
+    const url = new URL(key, "http://localhost");
+    if (url.pathname !== target.pathname) {
+      continue;
+    }
+    if ((url.searchParams.get("surface") ?? "combobox") !== "combobox") {
+      continue;
+    }
+    if ((url.searchParams.get("type") ?? "all") !== searchType) {
+      continue;
+    }
+    if ((url.searchParams.get("schoolSlug") ?? "") !== (schoolSlug ?? "")) {
+      continue;
+    }
+
+    const candidateQuery = normalizeSearchCacheText(url.searchParams.get("query") ?? "");
+    if (!candidateQuery || candidateQuery === targetQuery) {
+      continue;
+    }
+    if (
+      !targetQuery.startsWith(candidateQuery) &&
+      !candidateQuery.startsWith(targetQuery)
+    ) {
+      continue;
+    }
+    if (!best || candidateQuery.length > best.query.length) {
+      best = { query: candidateQuery, results: value.results };
+    }
+  }
+
+  if (!best) {
+    return null;
+  }
+
+  const tokens = targetQuery.split(" ").filter(Boolean);
+  const narrowed = best.results.filter((item) => {
+    const haystack = normalizeSearchCacheText(
+      `${item.label} ${item.school} ${item.highlight} ${item.context.contextLabel}`,
+    );
+    return tokens.every((token) => haystack.includes(token));
+  });
+
+  return narrowed.length ? narrowed : best.results;
+}
 
 export function SearchCombobox({
   initialQuery = "",
@@ -297,6 +373,17 @@ export function SearchCombobox({
       setFetchError(false);
       setIsLoading(false);
       return;
+    }
+
+    const instantResults =
+      resultSurface === "combobox"
+        ? getInstantCachedResults(endpoint, trimmedQuery, searchType, schoolSlug)
+        : null;
+    if (instantResults) {
+      fetchResultCountRef.current = instantResults.length;
+      setResults(instantResults);
+      setActiveIndex(instantResults.length ? 0 : null);
+      setFetchError(false);
     }
 
     const controller = new AbortController();

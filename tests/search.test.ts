@@ -59,6 +59,26 @@ describe("searchDirectory", () => {
     expect(results.some((item) => item.label.includes("Texas A&M"))).toBe(true);
   });
 
+  it("keeps Texas A and M school-first in combobox search", async () => {
+    const results = await searchDirectory("texas a and m", {
+      limit: 8,
+      surface: "combobox",
+    });
+
+    expect(results[0]?.type).toBe("school");
+    expect(results[0]?.slug).toBe("texas-am");
+  });
+
+  it("recovers likely school matches from misspellings", async () => {
+    const results = await searchDirectory("university of tenneesee", {
+      limit: 8,
+      surface: "combobox",
+    });
+
+    expect(results[0]?.type).toBe("school");
+    expect(results.some((item) => item.slug === "the-university-of-tennessee-knoxville")).toBe(true);
+  });
+
   it("matches school ranking between type=all and type=school for the same query", async () => {
     const query = "Texas A&M";
     const cap = 24;

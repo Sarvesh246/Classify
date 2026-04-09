@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import type { School } from "@/lib/types";
 import {
@@ -8,8 +7,6 @@ import {
   deriveSchoolShortName,
   normalizeSchoolText,
 } from "@/lib/school-display";
-
-const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Primary path used by local ETL (`import_school_directory`).
@@ -22,10 +19,12 @@ export const SCORECARD_DIRECTORY_JSON_PATH = path.join(
   "college_scorecard_schools.json",
 );
 
-/** Committed fallback bundled with the app (e.g. Vercel) when `etl/output` is absent. */
+/**
+ * Committed fallback when `etl/output` is absent (e.g. Vercel). Resolved from the process cwd so
+ * serverless bundles still find `data/` after compilation moves `import.meta.url` under `.next/`.
+ */
 export const SCORECARD_DIRECTORY_DATA_BUNDLE_PATH = path.join(
-  MODULE_DIR,
-  "..",
+  /* turbopackIgnore: true */ process.cwd(),
   "data",
   "college_scorecard_schools.json",
 );

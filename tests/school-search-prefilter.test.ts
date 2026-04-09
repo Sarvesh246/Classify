@@ -84,4 +84,14 @@ describe("prefilterSchoolsByTextQuery", () => {
     const out = prefilterSchoolsByTextQuery(sample, "a b");
     expect(out).toHaveLength(3);
   });
+
+  it("normalizes ampersands so Texas A and M still narrows correctly", () => {
+    const out = prefilterSchoolsByTextQuery(sample, "texas a and m");
+    expect(out.map((s) => s.slug)).toContain("texas-am");
+  });
+
+  it("matches acronym-style school queries via initialism text", () => {
+    const out = prefilterSchoolsByTextQuery(sample, "tamu");
+    expect(out.map((s) => s.slug)).toContain("texas-am");
+  });
 });
