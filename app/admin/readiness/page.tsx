@@ -2,25 +2,32 @@ import { connection } from "next/server";
 import { SiteHeader } from "@/components/site-header";
 import {
   getCatalogDataOriginTrace,
+  getCatalogOfferingsForSearch,
   getCatalogPublishMetadata,
   getCatalogReadinessSummary,
   getCatalogSchools,
   getCatalogUpdatedAt,
 } from "@/lib/catalog";
+import { buildExpansionReportRows, loadExpansionPriorityManifest } from "@/lib/expansion-priority";
 import { getPublishedCatalogDbHealth } from "@/lib/published-catalog-db-source";
 import { formatFreshnessLabel, formatPlannerReadiness } from "@/lib/utils";
 
 export default async function AdminReadinessPage() {
   await connection();
 
-  const [dbHealth, trace, publishMetadata, readiness, schools, updatedAt] = await Promise.all([
-    getPublishedCatalogDbHealth(),
-    Promise.resolve(getCatalogDataOriginTrace()),
-    getCatalogPublishMetadata(),
-    getCatalogReadinessSummary(),
-    getCatalogSchools(),
-    getCatalogUpdatedAt(),
-  ]);
+  const [dbHealth, trace, publishMetadata, readiness, schools, offerings, updatedAt] =
+    await Promise.all([
+      getPublishedCatalogDbHealth(),
+      Promise.resolve(getCatalogDataOriginTrace()),
+      getCatalogPublishMetadata(),
+      getCatalogReadinessSummary(),
+      getCatalogSchools(),
+      getCatalogOfferingsForSearch(),
+      getCatalogUpdatedAt(),
+    ]);
+
+  const expansionManifest = loadExpansionPriorityManifest();
+  const expansionRows = buildExpansionReportRows(schools, offerings, expansionManifest);
 
   const weakestSchools = [...schools]
     .sort((left, right) => {
@@ -125,6 +132,74 @@ export default async function AdminReadinessPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="soft-panel rounded-[28px] p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="eyebrow">Phase 3 manifest</p>
+              <h2 className="mt-2 text-2xl font-semibold text-ink">
+                School-by-school expansion monitor
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm text-muted">
+                Order and targets from{" "}
+                <code className="rounded bg-background px-1.5 py-0.5 text-xs">data/expansion-priority.json</code>.
+                Blockers are derived from published support profiles and optional per-school targets.
+              </p>
+            </div>
+            <span className="rounded-full classify-chip-surface px-3 py-1.5 text-xs text-muted">
+              Manifest v{expansionManifest.version}
+            </span>
+          </div>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-[0.08em] text-muted">
+                  <th className="py-3 pr-3 font-medium">Priority</th>
+                  <th className="py-3 pr-3 font-medium">School</th>
+                  <th className="py-3 pr-3 font-medium">Tier</th>
+                  <th className="py-3 pr-3 font-medium">Cat / Sec / Mtg / Evid</th>
+                  <th className="py-3 pr-3 font-medium">Offerings</th>
+                  <th className="py-3 font-medium">Blockers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expansionRows.map((row) => (
+                  <tr key={row.slug} className="border-b border-border/80 align-top">
+                    <td className="py-3 pr-3 text-muted">
+                      {row.priorityRank ?? "—"}
+                    </td>
+                    <td className="py-3 pr-3 font-medium text-ink">
+                      {row.shortName}
+                      <span className="mt-0.5 block text-xs font-normal text-muted">{row.slug}</span>
+                    </td>
+                    <td className="whitespace-nowrap py-3 pr-3 text-muted">
+                      {formatPlannerReadiness(row.plannerReadiness)}
+                    </td>
+                    <td className="py-3 pr-3 text-xs text-muted">
+                      {row.catalogCompletenessPct}/{row.sectionCompletenessPct}/
+                      {row.meetingTimeCompletenessPct}/{row.evidenceCompletenessPct}%
+                    </td>
+                    <td className="whitespace-nowrap py-3 pr-3 text-muted">
+                      {row.offeringCount}
+                      <span className="text-muted/80"> · {row.distinctCourseSlugs} courses</span>
+                    </td>
+                    <td className="py-3 text-xs text-muted">
+                      {row.blockers.length ? (
+                        <ul className="list-disc space-y-1 pl-4">
+                          {row.blockers.map((b) => (
+                            <li key={b}>{b}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-[#376100]">None flagged</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       </div>

@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Plus, School, X } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
+import { metricHasTrend } from "@/components/charts/metric-trend-chart";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
 import { MobileSheet } from "@/components/mobile/mobile-sheet";
 import { SearchCombobox } from "@/components/search/search-combobox";
@@ -31,6 +32,7 @@ import {
   scoreToLabel,
 } from "@/lib/utils";
 import { endClientMeasure, startClientMeasure } from "@/lib/client-performance";
+import { offeringHasInstitutionalGradeEvidence } from "@/lib/data-trust";
 
 interface CompareBuilderProps {
   catalog: ProfessorCourseSummary[];
@@ -496,7 +498,12 @@ export function CompareBuilder({
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-        {selected.map((item) => (
+        {selected.map((item) => {
+          const hasInstitutionalRow = offeringHasInstitutionalGradeEvidence(item);
+          const showInstitutionalTrend =
+            hasInstitutionalRow &&
+            (metricHasTrend(item.trend, "aPct") || metricHasTrend(item.trend, "avgGpa"));
+          return (
           <article key={item.id} className="soft-panel rounded-[28px] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -523,8 +530,18 @@ export function CompareBuilder({
                 value={scoreToLabel(item.classifyScore)}
                 meta={`score ${formatScore(item.classifyScore)}`}
               />
-              <MetricRow label="Expected GPA" value={formatGpa(item.expectedGpa)} />
-              <MetricRow label="A-rate" value={formatPercent(item.aRate)} />
+              {hasInstitutionalRow ? (
+                <>
+                  <MetricRow label="Expected GPA" value={formatGpa(item.expectedGpa)} />
+                  <MetricRow label="A-rate" value={formatPercent(item.aRate)} />
+                </>
+              ) : (
+                <MetricRow
+                  label="Institutional GPA / A-rate"
+                  value="Not published"
+                  meta="Official local aggregates are absent on this row"
+                />
+              )}
               <MetricRow
                 label="RMP"
                 value={formatRating(item.rmpRating)}
@@ -538,8 +555,17 @@ export function CompareBuilder({
             </div>
 
             <div className="mt-4 rounded-[24px] classify-inner p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted">Trend</p>
-              <TrendSparkline trend={item.trend} className="mt-3" />
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                Institutional grade trend
+              </p>
+              {showInstitutionalTrend ? (
+                <TrendSparkline trend={item.trend} className="mt-3" />
+              ) : (
+                <p className="mt-3 text-xs leading-relaxed text-muted">
+                  Term-by-term GPA/A-rate trends display when this row includes official grade
+                  evidence.
+                </p>
+              )}
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
@@ -566,7 +592,8 @@ export function CompareBuilder({
               </PendingLink>
             </div>
           </article>
-        ))}
+          );
+        })}
 
         {Array.from({ length: emptySlots }).map((_, index) => (
           <button
@@ -693,9 +720,15 @@ export function CompareBuilder({
                             {scoreToLabel(item.classifyScore)}{" "}
                             <span className="text-muted">({formatScore(item.classifyScore)})</span>
                           </span>
-                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                            GPA {formatGpa(item.expectedGpa)}
-                          </span>
+                          {offeringHasInstitutionalGradeEvidence(item) ? (
+                            <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                              GPA {formatGpa(item.expectedGpa)}
+                            </span>
+                          ) : item.rmpRating != null || item.rmpDifficulty != null ? (
+                            <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                              RMP {formatRating(item.rmpRating)}
+                            </span>
+                          ) : null}
                           <span className="rounded-full border border-border bg-background px-3 py-1.5">
                             {item.hasSectionPlanning ? "Section timing" : "No meeting time"}
                           </span>
@@ -938,9 +971,15 @@ export function CompareBuilder({
                             {scoreToLabel(item.classifyScore)}{" "}
                             <span className="text-muted">({formatScore(item.classifyScore)})</span>
                           </span>
-                          <span className="rounded-full border border-border bg-background px-3 py-1.5">
-                            GPA {formatGpa(item.expectedGpa)}
-                          </span>
+                          {offeringHasInstitutionalGradeEvidence(item) ? (
+                            <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                              GPA {formatGpa(item.expectedGpa)}
+                            </span>
+                          ) : item.rmpRating != null || item.rmpDifficulty != null ? (
+                            <span className="rounded-full border border-border bg-background px-3 py-1.5">
+                              RMP {formatRating(item.rmpRating)}
+                            </span>
+                          ) : null}
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                           <button

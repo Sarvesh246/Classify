@@ -40,6 +40,7 @@ import { resolveProfessorProfileName } from "@/lib/professor-display";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { serverLog } from "@/lib/server-logger";
 import { applyCacheLife } from "@/lib/cache-utils";
+import { offeringHasInstitutionalGradeEvidence } from "@/lib/data-trust";
 import {
   buildSchoolAliases,
   deriveSchoolShortName,
@@ -47,6 +48,10 @@ import {
 } from "@/lib/school-display";
 import { slugify } from "@/lib/utils";
 import { enrichSummary } from "@/lib/scoring";
+import {
+  compareSchoolsByExpansionPriority,
+  loadExpansionPriorityManifest,
+} from "@/lib/expansion-priority";
 import {
   invalidateScorecardDirectoryCache,
   loadScorecardDirectorySchools,
@@ -201,12 +206,7 @@ function toConfidenceLabel(confidence: number): EvidenceProfile["confidenceLabel
 }
 
 function hasOfficialGradeEvidence(offering: ProfessorCourseSummary) {
-  return (
-    offering.dataCompleteness === "institutional_full" ||
-    offering.dataCompleteness === "institutional_partial" ||
-    offering.coverageTier === "institutional_only" ||
-    offering.coverageTier === "institutional_plus_rmp"
-  );
+  return offeringHasInstitutionalGradeEvidence(offering);
 }
 
 function hasRmpEvidence(offering: ProfessorCourseSummary) {
@@ -817,6 +817,78 @@ export function buildSeedCatalogSnapshot(): PublishedCatalogSnapshot {
   return buildFallbackSnapshot();
 }
 
+/**
+ * Recompute enriched offerings and per-school support profiles for a raw merged snapshot
+ * (for example right after `merge-published-catalog.ts` writes `published_catalog.json`).
+ */
+export function enrichSnapshotSchoolsWithSupport(
+  snapshot: PublishedCatalogSnapshot,
+): PublishedCatalogSnapshot {
+  const schools = snapshot.schools.map(normalizeSchoolDisplay);
+  const sections = snapshot.sections ?? [];
+  const sectionMeetings = snapshot.sectionMeetings ?? [];
+  const { offerings, departmentAggregates, professorDirectory } = finalizeOfferingsPipeline(
+    schools,
+    snapshot.offerings,
+    sectionMeetings,
+    snapshot.professorDirectory ?? [],
+  );
+  const schoolsWithSupport = schools.map((school) => {
+    const supportProfile = buildSchoolSupportProfile(
+      school,
+      offerings.filter((item) => item.schoolSlug === school.slug),
+      sections.filter((item) => item.schoolSlug === school.slug),
+      sectionMeetings.filter((item) => item.schoolSlug === school.slug),
+      professorDirectory.filter((item) => item.schoolSlug === school.slug),
+    );
+
+    return normalizeSchoolPresentation(
+      {
+        ...school,
+        supportProfile,
+      },
+      supportProfile,
+    );
+  });
+
+  const evidenceReadySchoolCount = schoolsWithSupport.filter(
+    (item) => item.supportProfile?.plannerReadiness === "evidence_ready",
+  ).length;
+
+  return {
+    ...snapshot,
+    schools: schoolsWithSupport,
+    offerings,
+    professorDirectory,
+    departmentAggregates,
+    gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
+    sections,
+    sectionMeetings,
+    publishMetadata: snapshot.publishMetadata
+      ? {
+          ...snapshot.publishMetadata,
+          summary: {
+            schoolCount: schoolsWithSupport.length,
+            offeringCount: offerings.length,
+            sectionCount:
+              snapshot.publishMetadata.summary?.sectionCount ?? sectionMeetings.length,
+            evidenceReadySchoolCount,
+          },
+        }
+      : {
+          runId: "enriched-offline",
+          activatedAt: snapshot.updatedAt,
+          source: "file",
+          summary: {
+            schoolCount: schoolsWithSupport.length,
+            offeringCount: offerings.length,
+            sectionCount: sectionMeetings.length,
+            evidenceReadySchoolCount,
+          },
+        },
+  };
+}
+
 function stripForEnrichment(
   item: ProfessorCourseSummary,
 ): Parameters<typeof enrichSummary>[0] {
@@ -982,9 +1054,11 @@ export async function getSchoolsForHomeNationalGraphSpotlights() {
   const schools = await getCatalogSchools();
   const plannerTier = schools.filter(isPlannerTierSchool);
   const primary = plannerTier.find((s) => s.slug === HOME_NATIONAL_GRAPH_PRIMARY_SLUG);
+  const manifest = loadExpansionPriorityManifest();
+  const priorityIndex = new Map(manifest.schools.map((row, idx) => [row.slug, idx]));
   const rest = plannerTier
     .filter((s) => s.slug !== HOME_NATIONAL_GRAPH_PRIMARY_SLUG)
-    .sort((a, b) => a.shortName.localeCompare(b.shortName));
+    .sort((a, b) => compareSchoolsByExpansionPriority(a, b, priorityIndex));
   const ordered = primary ? [primary, ...rest] : rest;
   return ordered.slice(0, 8);
 }

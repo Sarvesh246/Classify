@@ -19,8 +19,35 @@ from etl.classly_etl.models import (
 AUTO_LINK_THRESHOLD = 90.0
 AUTO_LINK_WITH_HINT_THRESHOLD = 80.0
 REVIEW_THRESHOLD = 65.0
-AUTO_LINK_MARGIN = 10.0
+AUTO_LINK_MARGIN = 12.0
 UNMATCHED_IDENTITY_CONFIDENCE = 100.0
+
+HIGH_COLLISION_SURNAMES = frozenset(
+    {
+        "smith",
+        "lee",
+        "wang",
+        "zhang",
+        "kim",
+        "nguyen",
+        "patel",
+        "jones",
+        "garcia",
+        "martinez",
+        "johnson",
+        "brown",
+        "davis",
+        "miller",
+        "lopez",
+        "gonzalez",
+        "hernandez",
+        "rodriguez",
+        "wilson",
+        "anderson",
+        "taylor",
+        "thomas",
+    },
+)
 
 _HONORIFICS = {
     "dr",
@@ -194,6 +221,12 @@ def build_professor_identities(
     ]
 
 
+def _department_token_hit(left: str, right: str) -> bool:
+    left_tokens = {t for t in normalize_professor_name(left).split() if len(t) >= 4}
+    right_tokens = {t for t in normalize_professor_name(right).split() if len(t) >= 4}
+    return bool(left_tokens & right_tokens)
+
+
 def _department_overlap(
     identity: ProfessorIdentityRecord,
     rmp_department: str | None,
@@ -201,7 +234,13 @@ def _department_overlap(
     if not rmp_department:
         return False
     normalized_rmp = normalize_professor_name(rmp_department)
-    return any(normalized_rmp == normalize_professor_name(dept) for dept in identity.departments)
+    for dept in identity.departments:
+        normalized_dept = normalize_professor_name(dept)
+        if normalized_dept == normalized_rmp:
+            return True
+        if _department_token_hit(dept, rmp_department):
+            return True
+    return False
 
 
 def score_professor_candidate(
@@ -277,6 +316,20 @@ def score_professor_candidate(
     if department_overlap:
         score += 8
         reasons.append("department overlap")
+
+    if identity.course_prefixes and rmp_record.department:
+        dept_norm = normalize_professor_name(rmp_record.department)
+        if any(prefix and prefix in dept_norm for prefix in identity.course_prefixes):
+            score += 4
+            reasons.append("course prefix in RMP department")
+
+    if (
+        identity.surname.lower() in HIGH_COLLISION_SURNAMES
+        and not identity.unique_surname
+        and not identity.unique_initial_surname
+    ):
+        score = max(0.0, score - 5.0)
+        reasons.append("common surname caution")
 
     confidence = round(min(score, 100.0), 1)
     structural_hint = identity.unique_surname or identity.unique_initial_surname or department_overlap

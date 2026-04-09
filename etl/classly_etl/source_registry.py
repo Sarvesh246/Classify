@@ -5,6 +5,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from etl.classly_etl.expansion_priority import (
+    expansion_priority_index,
+    expansion_targets_for_slug,
+    load_expansion_priority_manifest,
+)
+from etl.classly_etl.rmp_legacy_ids import load_rmp_school_legacy_by_directory_slug
+from etl.classly_etl.scorecard_canonical_slug import canonical_app_school_slug
+
 
 EXCLUDED_UNIVERSITY_TOKENS = (
     "community college",
@@ -171,6 +179,9 @@ def build_school_source_registry(
         normalized_by_slug, raw_by_slug, matches_by_slug = _collect_rmp_paths(output_root)
 
     registry: list[dict[str, Any]] = []
+    expansion_manifest = load_expansion_priority_manifest()
+    priority_map = expansion_priority_index(expansion_manifest)
+    rmp_legacy_by_directory_slug = load_rmp_school_legacy_by_directory_slug()
 
     for row in directory_rows:
         slug = str(row.get("slug") or "").strip()
@@ -187,6 +198,10 @@ def build_school_source_registry(
         school_legacy_id = (
             str(override.get("rmp_school_legacy_id") or "").strip() or None
         )
+        if school_legacy_id is None:
+            lf = rmp_legacy_by_directory_slug.get(slug)
+            if lf:
+                school_legacy_id = lf
         if school_legacy_id is None and raw_path is not None:
             raw_payload = load_json(raw_path)
             school_legacy_id = _extract_rmp_school_legacy_id(raw_payload)
@@ -260,7 +275,38 @@ def build_school_source_registry(
                 },
             ),
         }
+        pub = entry["published"]
+        rmp_block = entry["sources"]["rmp"]
+        canonical_slug = canonical_app_school_slug(slug)
+        prank = priority_map.get(canonical_slug)
+        entry["canonical_school_slug"] = canonical_slug
+        entry["expansion_priority_rank"] = prank
+        entry["expansion_targets"] = expansion_targets_for_slug(
+            expansion_manifest, canonical_slug
+        )
+        hints: list[str] = []
+        if str(pub.get("planner_readiness") or "") == "directory_ready":
+            hints.append("merge_catalog_offerings")
+        if not pub.get("has_catalog"):
+            hints.append("ingest_catalog")
+        if not pub.get("has_sections"):
+            hints.append("ingest_sections")
+        if not pub.get("has_official_grades"):
+            hints.append("ingest_official_grades")
+        if rmp_block.get("enabled") and rmp_block.get("status") == "pending_school_id":
+            hints.append("configure_rmp_school_legacy_id")
+        if rmp_block.get("enabled") and rmp_block.get("status") == "ready":
+            hints.append("run_rmp_sync")
+        entry["expansion_next_actions"] = hints
         registry.append(entry)
 
-    registry.sort(key=lambda item: (item["school_name"].lower(), item["school_slug"]))
+    def _registry_sort_key(item: dict[str, Any]) -> tuple:
+        slug = str(item["school_slug"])
+        pr = item.get("expansion_priority_rank")
+        name = str(item["school_name"]).lower()
+        if pr is not None:
+            return (0, pr, name, slug)
+        return (1, name, slug)
+
+    registry.sort(key=_registry_sort_key)
     return registry

@@ -176,6 +176,7 @@ function slugifyProfessor(name: string) {
 function buildRmpOnlyProfessorDirectory(
   schools: SchoolRecord[],
   seedDirectory: ProfessorDirectoryRow[],
+  canonicalizeRmpSchoolSlug: (raw: string) => string,
 ): ProfessorDirectoryRow[] {
   const byKey = new Map(
     seedDirectory.map((row) => [`${row.schoolSlug}:${row.professorSlug}`, row]),
@@ -190,7 +191,7 @@ function buildRmpOnlyProfessorDirectory(
     if (!Array.isArray(rows)) continue;
 
     for (const row of rows) {
-      const school = schoolBySlug.get(row.school_slug);
+      const school = schoolBySlug.get(canonicalizeRmpSchoolSlug(row.school_slug));
       if (!school) continue;
       if ((row.review_count ?? 0) < 3) continue;
       if (row.rating == null && row.difficulty == null) continue;
@@ -237,9 +238,34 @@ function buildRmpOnlyProfessorDirectory(
   return [...byKey.values()];
 }
 
+async function writeExpansionReportAfterMerge(outPath: string) {
+  try {
+    const { enrichSnapshotSchoolsWithSupport } = await import("../lib/catalog");
+    const { buildExpansionReportRows, loadExpansionPriorityManifest } = await import(
+      "../lib/expansion-priority",
+    );
+    type PublishedCatalogSnapshot = import("../lib/types").PublishedCatalogSnapshot;
+    const mergedRaw = readJson<PublishedCatalogSnapshot>(outPath);
+    const enriched = enrichSnapshotSchoolsWithSupport(mergedRaw);
+    const manifest = loadExpansionPriorityManifest();
+    const report = {
+      generatedAt: new Date().toISOString(),
+      manifestVersion: manifest.version,
+      rows: buildExpansionReportRows(enriched.schools, enriched.offerings),
+    };
+    const reportPath = path.join(OUTPUT_ROOT, "expansion_report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    console.warn(`Wrote expansion report: ${reportPath}`);
+  } catch (reportErr) {
+    console.warn(`Expansion report skipped: ${reportErr}`);
+  }
+}
+
 async function main() {
   const { buildSeedCatalogSnapshot } = await import("../lib/catalog");
-  const { loadScorecardDirectorySchools } = await import("../lib/scorecard-directory");
+  const { canonicalScorecardSchoolSlug, loadScorecardDirectorySchools } = await import(
+    "../lib/scorecard-directory",
+  );
   const seed = buildSeedCatalogSnapshot();
   const replacements = buildReplacementMap();
 
@@ -257,6 +283,7 @@ async function main() {
     const professorDirectory = buildRmpOnlyProfessorDirectory(
       schools,
       seed.professorDirectory ?? [],
+      canonicalScorecardSchoolSlug,
     );
     const out = {
       updatedAt: new Date().toISOString(),
@@ -270,6 +297,7 @@ async function main() {
     console.warn(
       `Wrote ${OUT_PATH} with ${directoryExtras.length} directory-only schools (${out.schools.length} total schools, ${out.offerings.length} offerings).`,
     );
+    await writeExpansionReportAfterMerge(OUT_PATH);
     return;
   }
 
@@ -305,6 +333,7 @@ async function main() {
   const professorDirectory = buildRmpOnlyProfessorDirectory(
     schoolsWithDirectory,
     seed.professorDirectory ?? [],
+    canonicalScorecardSchoolSlug,
   );
   const out = {
     updatedAt: new Date().toISOString(),
@@ -318,6 +347,7 @@ async function main() {
   console.warn(
     `Wrote ${OUT_PATH} with ${incomingOfferings.length} reconciled rows across ${replacements.size} school slices (${offerings.length} offerings, ${schools.length} seed schools + ${directoryExtras.length} directory-only).`,
   );
+  await writeExpansionReportAfterMerge(OUT_PATH);
 }
 
 main().catch((err) => {

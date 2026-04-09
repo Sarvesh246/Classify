@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from etl.classly_etl.adapters.rmp import LiveRMPGraphQLAdapter
+from etl.classly_etl.expansion_priority import expansion_priority_index, load_expansion_priority_manifest
 from etl.classly_etl.source_registry import load_json
 
 
@@ -115,6 +116,9 @@ def main() -> None:
         candidates = [entry for entry in candidates if _school_slug(entry) == args.school_slug]
 
     candidates = [entry for entry in candidates if _can_sync(entry, only_missing=args.only_missing)]
+    manifest = load_expansion_priority_manifest()
+    pidx = expansion_priority_index(manifest)
+    candidates.sort(key=lambda e: (pidx.get(_school_slug(e), 10_000), _school_slug(e)))
     if args.limit is not None:
         candidates = candidates[: max(args.limit, 0)]
 

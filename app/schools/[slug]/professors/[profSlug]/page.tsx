@@ -18,6 +18,7 @@ import {
   formatScore,
   scoreToLabel,
 } from "@/lib/utils";
+import { metricHasTrend } from "@/components/charts/metric-trend-chart";
 
 type ProfessorPageProps = {
   params: Promise<{ slug: string; profSlug: string }>;
@@ -32,7 +33,10 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
   const primaryDepartment = primary.departments[0] ?? "General";
   const deptGpaAvg = getPlaceholderDepartmentGpa(primaryDepartment);
   const deptARateAvg = 38;
-  const hasTrend = primary.trend.length > 0;
+  const hasInstitutionalStats = primary.hasInstitutionalStats;
+  const showInstitutionalTrend =
+    hasInstitutionalStats &&
+    (metricHasTrend(primary.trend, "aPct") || metricHasTrend(primary.trend, "avgGpa"));
 
   return (
     <main className="min-h-screen bg-background">
@@ -71,27 +75,75 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             </div>
           )}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              label="Classify score"
-              value={scoreToLabel(primary.classifyScore)}
-              meta={`(score: ${formatScore(primary.classifyScore)})`}
-            />
-            <StatCard
-              label="Expected GPA"
-              value={formatGpa(primary.expectedGpa)}
-              meta={`${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs illustrative baseline (not your school's real average)`}
-            />
-            <StatCard
-              label="A-rate"
-              value={formatPercent(primary.aRate)}
-              meta={`~${deptARateAvg}% illustrative baseline (context only)`}
-            />
-            <StatCard
-              label="Profile status"
-              value={formatProfessorStatsAvailability(primary.statsAvailability)}
-              meta={formatProfessorCoverageLevel(primary.coverageLevel)}
-            />
+          <div className="mt-8 space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="Classify score"
+                value={scoreToLabel(primary.classifyScore)}
+                meta={`(score: ${formatScore(primary.classifyScore)})`}
+              />
+              <StatCard
+                label="Profile status"
+                value={formatProfessorStatsAvailability(primary.statsAvailability)}
+                meta={formatProfessorCoverageLevel(primary.coverageLevel)}
+              />
+            </div>
+
+            {hasInstitutionalStats ? (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                  Institutional grade evidence
+                </p>
+                <div className="mt-3 grid gap-4 md:grid-cols-2">
+                  <StatCard
+                    label="Expected GPA"
+                    value={formatGpa(primary.expectedGpa)}
+                    meta={`${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs illustrative baseline (not your school's real average)`}
+                  />
+                  <StatCard
+                    label="A-rate"
+                    value={formatPercent(primary.aRate)}
+                    meta={`~${deptARateAvg}% illustrative baseline (context only)`}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[22px] border border-dashed border-border/80 bg-background/60 px-4 py-4 text-sm text-muted">
+                <p className="font-medium text-ink">Institutional GPA and A-rate</p>
+                <p className="mt-1.5 leading-relaxed">
+                  Not published for this instructor in the current snapshot. RMP and directory
+                  signals below still apply where available.
+                </p>
+              </div>
+            )}
+
+            {primary.hasRmp ? (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+                  Rate My Professors (student-reported)
+                </p>
+                <div className="mt-3 grid gap-4 md:grid-cols-2">
+                  <StatCard
+                    label="RMP rating"
+                    value={formatRating(primary.rmpRating)}
+                    meta={`Difficulty ${formatRating(primary.rmpDifficulty)}`}
+                  />
+                  {primary.statsAvailability === "rmp_only" ? (
+                    <StatCard
+                      label="RMP reviews"
+                      value={primary.sampleSize ? String(primary.sampleSize) : "Unavailable"}
+                      meta="Student-reported count (not institutional grades)"
+                    />
+                  ) : (
+                    <StatCard
+                      label="RMP context"
+                      value="Matched reviews"
+                      meta="Combined profiles may blend institutional and student-reported signals"
+                    />
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -134,7 +186,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
             <h2 className="mt-2 text-2xl font-semibold text-ink">
               How the A-rate has moved over time
             </h2>
-            {hasTrend ? (
+            {showInstitutionalTrend ? (
               <>
                 <TrendSparkline trend={primary.trend} className="mt-6" />
                 <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
@@ -147,15 +199,19 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                   <span className="rounded-full classify-chip-surface px-3 py-1.5">
                     Sample size {primary.sampleSize || "Unavailable"}
                   </span>
-                  <span className="rounded-full classify-chip-surface px-3 py-1.5">
-                    RMP {formatRating(primary.rmpRating)} / diff {formatRating(primary.rmpDifficulty)}
-                  </span>
+                  {primary.hasRmp ? (
+                    <span className="rounded-full classify-chip-surface px-3 py-1.5">
+                      RMP {formatRating(primary.rmpRating)} / diff{" "}
+                      {formatRating(primary.rmpDifficulty)}
+                    </span>
+                  ) : null}
                 </div>
               </>
             ) : (
               <p className="mt-6 text-sm leading-6 text-muted">
-                Term-by-term grade trend data has not been published for this instructor yet. The
-                profile stays live with identity, course coverage, and any matched external signals.
+                Institutional term-by-term grade trends appear here when local official evidence is
+                published for this instructor. Directory and RMP context may still be available
+                above.
               </p>
             )}
           </div>
@@ -163,7 +219,7 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
           <div className="soft-panel rounded-[30px] p-5 sm:p-6">
             <p className="eyebrow">Year-by-year A%</p>
             <div className="mt-5 space-y-3">
-              {hasTrend ? primary.trend.map((point) => {
+              {showInstitutionalTrend ? primary.trend.map((point) => {
                 const value = point.aPct ?? 0;
                 const color =
                   value > 50 ? "#639922" : value >= 30 ? "#EF9F27" : "#F0997B";
@@ -187,8 +243,8 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                 );
               }) : (
                 <p className="text-sm leading-6 text-muted">
-                  A-rate history appears here when official grade or sufficiently rich evidence is
-                  available for this instructor.
+                  A-rate history from official local sources appears when institutional evidence is
+                  published for this instructor.
                 </p>
               )}
             </div>

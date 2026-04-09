@@ -1,5 +1,15 @@
 import type { DataCompleteness, ProfessorCourseSummary } from "@/lib/types";
 
+/** True when the row carries real institutional grade aggregates (not RMP-only). */
+export function offeringHasInstitutionalGradeEvidence(offering: ProfessorCourseSummary): boolean {
+  return (
+    offering.dataCompleteness === "institutional_full" ||
+    offering.dataCompleteness === "institutional_partial" ||
+    offering.coverageTier === "institutional_only" ||
+    offering.coverageTier === "institutional_plus_rmp"
+  );
+}
+
 export const SMALL_SAMPLE_THRESHOLD = 40;
 
 export function isSmallSample(sampleSize: number): boolean {
