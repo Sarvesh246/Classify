@@ -741,8 +741,12 @@ function buildFallbackSnapshot(): PublishedCatalogSnapshot {
   };
 }
 
-/** Dev-only: seed schools plus College Scorecard directory rows (seed wins on slug). Matches production browse breadth when the JSON exists. */
-function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
+/**
+ * Seed schools plus College Scorecard directory rows (seed wins on slug).
+ * Used when the published snapshot is missing and as the merge base when it exists.
+ * On serverless hosts without `etl/output`, `data/college_scorecard_schools.json` supplies directory rows.
+ */
+function buildSeedPlusDirectoryFallbackSnapshot(): PublishedCatalogSnapshot {
   const seedSnap = buildFallbackSnapshot();
   const directorySchools = loadScorecardDirectorySchools();
   if (!directorySchools.length) {
@@ -808,31 +812,6 @@ function buildDevFallbackWithDirectory(): PublishedCatalogSnapshot {
   };
 }
 
-function buildDirectoryOnlySnapshot(): PublishedCatalogSnapshot {
-  const schools = loadScorecardDirectorySchools();
-  return {
-    updatedAt: new Date().toISOString(),
-    schools,
-    offerings: [],
-    professorDirectory: [],
-      departmentAggregates: [],
-      gradeDistributionSeries: [],
-      sections: [],
-      sectionMeetings: [],
-    publishMetadata: {
-      runId: "directory-fallback",
-      activatedAt: new Date().toISOString(),
-      source: "file",
-      summary: {
-        schoolCount: schools.length,
-        offeringCount: 0,
-        sectionCount: 0,
-        evidenceReadySchoolCount: 0,
-      },
-    },
-  };
-}
-
 /** Seed snapshot for merge scripts and tests (no published_catalog.json). */
 export function buildSeedCatalogSnapshot(): PublishedCatalogSnapshot {
   return buildFallbackSnapshot();
@@ -892,10 +871,7 @@ export function invalidateCatalogSnapshotCache() {
 
 async function loadSnapshotUncached(): Promise<PublishedCatalogSnapshot> {
   try {
-    const fallback =
-      process.env.NODE_ENV === "production"
-        ? buildDirectoryOnlySnapshot()
-        : buildDevFallbackWithDirectory();
+    const fallback = buildSeedPlusDirectoryFallbackSnapshot();
     const snapshot = await readPublishedSnapshot();
     if (!snapshot) {
       return fallback;
@@ -961,9 +937,7 @@ async function loadSnapshotUncached(): Promise<PublishedCatalogSnapshot> {
     };
   } catch (err) {
     serverLog.error("catalog_snapshot_failed", { error: String(err) });
-    return process.env.NODE_ENV === "production"
-      ? buildDirectoryOnlySnapshot()
-      : buildDevFallbackWithDirectory();
+    return buildSeedPlusDirectoryFallbackSnapshot();
   }
 }
 
@@ -1029,6 +1003,19 @@ export async function getCatalogOfferings() {
     ...item,
     courseName: normalizeCourseNameDisplay(item.courseCode, item.courseName, item.courseSlug),
   }));
+}
+
+/**
+ * Raw published offerings (no per-row title polish). Use for search scoring and hit assembly;
+ * titles match published snapshot / DB and avoid heavy normalize passes on every keystroke.
+ */
+export async function getCatalogOfferingsForSearch(): Promise<ProfessorCourseSummary[]> {
+  return (await getSnapshot()).offerings;
+}
+
+/** For search rank hints; avoids mapping every offering when only school slugs are needed. */
+export async function getDistinctSchoolSlugsWithOfferings(): Promise<Set<string>> {
+  return new Set((await getSnapshot()).offerings.map((item) => item.schoolSlug));
 }
 
 export async function getProfessorDirectoryRows() {

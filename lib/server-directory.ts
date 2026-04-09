@@ -1,8 +1,9 @@
 import "server-only";
 
 import {
-  getCatalogOfferings,
+  getCatalogOfferingsForSearch,
   getCatalogOfferingsForSchool,
+  getDistinctSchoolSlugsWithOfferings,
   getProfessorDirectoryRows,
   getCatalogSchoolBySlug,
   getCatalogSchools,
@@ -27,7 +28,8 @@ import {
 import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
-import { applyCacheLife } from "@/lib/cache-utils";
+import { prefilterSchoolsByTextQuery } from "@/lib/school-search-prefilter";
+import { applyCacheLife, applyCacheLifeSearch } from "@/lib/cache-utils";
 
 type ScoredSearchRow = {
   hit: SearchHit;
@@ -354,7 +356,7 @@ function buildSchoolSearchHits(allSchools: School[], catalogSchools: School[]): 
 async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]> {
   const catalogSchools = await getCatalogSchools();
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
-  const offerings = (await getCatalogOfferings()).filter(
+  const offerings = (await getCatalogOfferingsForSearch()).filter(
     (item) => !schoolSlug || item.schoolSlug === schoolSlug,
   );
   const courseByKey = new Map<string, ProfessorCourseSummary>();
@@ -475,13 +477,13 @@ async function collectSchoolOnlySortedSearchRows(
 ): Promise<{ rows: ScoredSearchRow[]; schoolsWithCatalogRows: Set<string> }> {
   const { schoolSlug } = options;
   const surface = options.surface ?? "page";
-  const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
+  const [allSchoolsMerged, catalogSchools, schoolsWithCatalogRows] = await Promise.all([
     getDirectorySchools(),
     getCatalogSchools(),
-    getCatalogOfferings(),
+    getDistinctSchoolSlugsWithOfferings(),
   ]);
-  const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
-  const directorySchoolLookup = new Map(allSchools.map((school) => [school.slug, school]));
+  const allSchools = prefilterSchoolsByTextQuery(allSchoolsMerged, query);
+  const directorySchoolLookup = new Map(allSchoolsMerged.map((school) => [school.slug, school]));
   const emptyOfferingLookup = new Map<string, ProfessorCourseSummary>();
   const emptyCourseLookup = new Map<string, ProfessorCourseSummary>();
   const emptyProfessorLookup = new Map<string, ProfessorDirectoryRow>();
@@ -579,21 +581,24 @@ async function collectSortedSearchRows(
     return collectSchoolOnlySortedSearchRows(query, options);
   }
 
+  const maxBroadChars = surface === "combobox" ? 3 : 2;
   const broadSchoolOnlyQuery =
     !schoolSlug &&
     type === "all" &&
     trimmedQuery.length > 0 &&
-    trimmedQuery.length <= 2 &&
+    trimmedQuery.length <= maxBroadChars &&
     !/\d/.test(trimmedQuery) &&
     !/\s/.test(trimmedQuery);
-  const [allSchools, catalogSchools, catalogOfferings] = await Promise.all([
-    getDirectorySchools(),
-    getCatalogSchools(),
-    getCatalogOfferings(),
-  ]);
-  const professorDirectory = await getProfessorDirectoryRows();
+  const [allSchoolsMerged, catalogSchools, catalogOfferings, professorDirectory] =
+    await Promise.all([
+      getDirectorySchools(),
+      getCatalogSchools(),
+      getCatalogOfferingsForSearch(),
+      getProfessorDirectoryRows(),
+    ]);
+  const allSchools = prefilterSchoolsByTextQuery(allSchoolsMerged, query);
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
-  const directorySchoolLookup = new Map(allSchools.map((school) => [school.slug, school]));
+  const directorySchoolLookup = new Map(allSchoolsMerged.map((school) => [school.slug, school]));
   const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
   const courseLookup = new Map(
     catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
@@ -753,7 +758,7 @@ export async function searchDirectoryWithTotal(
 ): Promise<{ results: SearchHit[]; total: number }> {
   "use cache";
 
-  applyCacheLife("minutes");
+  applyCacheLifeSearch();
   const limit = options.limit ?? 12;
   const offset = options.offset ?? 0;
   const { rows, schoolsWithCatalogRows } = await collectSortedSearchRows(query, options);
@@ -776,7 +781,7 @@ export async function searchDirectory(
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
   "use cache";
 
-  applyCacheLife("minutes");
+  applyCacheLifeSearch();
   return searchDirectory("", { limit: 8, ...options });
 }
 

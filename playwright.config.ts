@@ -8,6 +8,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
  */
 export default defineConfig({
   testDir: "./tests/e2e",
+  /* Default Playwright only matches *.{spec,test}.* — we use *.e2e.ts for route specs. */
+  testMatch: ["**/*.e2e.ts", "**/*.{spec,test}.{ts,tsx,js,mjs}"],
   timeout: 90_000,
   expect: {
     timeout: 20_000,

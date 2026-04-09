@@ -1,10 +1,24 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-test.describe("search combobox (desktop)", () => {
-  test("typing a school query surfaces a canonical first result", async ({
+async function attachPageErrorGuards(page: Page) {
+  const uncaught: string[] = [];
+  page.on("pageerror", (err) => {
+    uncaught.push(err.message);
+  });
+  return () => {
+    expect(
+      uncaught,
+      uncaught.length ? uncaught.join("\n") : undefined,
+    ).toHaveLength(0);
+  };
+}
+
+test.describe("search combobox", () => {
+  test("typing a school query surfaces a canonical first result (no page errors)", async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name === "Mobile Safari", "desktop combobox only");
+  }) => {
+    const assertNoPageErrors = await attachPageErrorGuards(page);
+
     await page.goto("/search", { waitUntil: "networkidle" });
 
     const input = page.getByTestId("search-combobox-input");
@@ -15,5 +29,7 @@ test.describe("search combobox (desktop)", () => {
     });
     const first = page.getByTestId("search-result-row").first();
     await expect(first).toContainText(/Texas A&M/i);
+
+    assertNoPageErrors();
   });
 });

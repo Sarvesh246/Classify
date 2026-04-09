@@ -224,7 +224,7 @@ export function SavedHub() {
                 key={s.id}
                 className="flex flex-col gap-3 rounded-[24px] classify-inner px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium text-ink">{s.name}</p>
                   <p className="mt-1 text-sm text-muted">
                     {s.offering_ids.length} instructor{s.offering_ids.length === 1 ? "" : "s"}
@@ -268,7 +268,7 @@ export function SavedHub() {
                 key={item.id}
                 className="flex flex-col gap-3 rounded-[24px] classify-inner px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted">
                     {item.item_type}
                   </p>

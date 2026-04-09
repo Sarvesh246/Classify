@@ -40,6 +40,7 @@ The final result should feel like a distinct, original product built specificall
 - Home should look the same after client-side navigation back to `/` as on first load (dark hero shell, hero scroll position, WebGL background when the device supports it).
 - Default site experience is dark mode; users can set their preferred default theme in profile (including light if they want).
 - For UI/UX-scoped product work, do not change ETL, catalog merge pipelines, scrape/source engines, or data quality.
+- Keep GitHub/Vercel publishes to app source and shared config; ignore (and `git rm --cached` if already tracked) local build caches, Playwright/e2e output, scratch logs, temp screenshots, and IDE hook state under `.cursor/hooks/state/`.
 
 ## Learned Workspace Facts
 
@@ -48,3 +49,5 @@ The final result should feel like a distinct, original product built specificall
 - Home “National school graph” spotlights use `getSchoolsForHomeNationalGraphSpotlights()` in `lib/catalog.ts` with `HOME_NATIONAL_GRAPH_PRIMARY_SLUG` (`texas-am`), up to eight schools whose `plannerReadiness` is `catalog_ready`, `schedule_ready`, or `evidence_ready`.
 - School depth is `supportProfile.plannerReadiness` from `buildSchoolSupportProfile` in `lib/catalog.ts`; `directory_ready` is directory/search-only until merged catalog rows exist.
 - Published data path: merge the catalog (`npm run catalog:merge`, artifact under `etl/output/`), then publish to Supabase with the repo publish flow when using remote storage.
+- When the published DB snapshot is missing or empty on the server, school directory fallback reads the committed College Scorecard bundle `data/college_scorecard_schools.json` (`SCORECARD_DIRECTORY_DATA_BUNDLE_PATH` in `lib/scorecard-directory.ts`); relying only on `etl/output/college_scorecard_schools.json` fails on Vercel because that ETL output path is not in the deployment bundle.
+- School search performance: narrow directory candidates with `prefilterSchoolsByTextQuery` (`lib/school-search-prefilter.ts`) before heavy scoring, and for school-only flows avoid mapping the full offerings list (e.g. distinct school slugs / lighter paths instead of `getCatalogOfferings()` for every row).

@@ -13,3 +13,12 @@ export function applyCacheLife(profile: "minutes" | "hours") {
     // `cacheLife` is unavailable in unit tests and non-Next runtimes.
   }
 }
+
+/** Tighter cache for search APIs — fresher reads, still CDN-friendly on Vercel. */
+export function applyCacheLifeSearch() {
+  try {
+    cacheLife({ stale: 20, revalidate: 120, expire: 3_600 });
+  } catch {
+    // `cacheLife` is unavailable in unit tests and non-Next runtimes.
+  }
+}

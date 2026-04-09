@@ -19,7 +19,8 @@ test.describe("core routes", () => {
       const response = await page.goto(path, { waitUntil: "domcontentloaded" });
       expect(response?.ok() ?? false, `HTTP for ${path}`).toBeTruthy();
 
-      await expect(page.locator("main")).toBeVisible({ timeout: 30_000 });
+      /* Home uses layered hero + app chrome; multiple <main> can exist during transition. */
+      await expect(page.locator("main").first()).toBeVisible({ timeout: 30_000 });
     });
   }
 });
@@ -33,6 +34,6 @@ test.describe("professor route (when published)", () => {
     });
     const status = response?.status() ?? 0;
     expect([200, 404]).toContain(status);
-    await expect(page.locator("main")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("main").first()).toBeVisible({ timeout: 30_000 });
   });
 });

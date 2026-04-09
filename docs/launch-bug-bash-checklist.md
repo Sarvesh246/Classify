@@ -4,18 +4,19 @@ Run after `npm run build` + `npm run test` + `npm run test:e2e` on a candidate b
 
 ## Matrix
 
-| Route | Desktop | Mobile WebKit | Signed out | Signed in (email) |
-|-------|---------|---------------|------------|-------------------|
-| `/` | | | | |
-| `/search` | | | | |
-| `/compare` | | | | |
-| `/saved` | | | | |
-| `/login` | | | | |
-| `/schools/texas-am` | | | | |
-| `/schools/texas-am/instructors` | | | | |
-| `/schools/texas-am/professors/<slug>` | | | | |
-| `/schools/texas-am/my-courses` | | | | |
-| `/methodology` | | | | |
+| Route | Desktop | Mobile WebKit | Signed out | Signed in (email) | Slow 3G (optional) |
+|-------|---------|---------------|------------|---------------------|----------------------|
+| `/` | | | | | |
+| `/search` | | | | | |
+| `/compare` | | | | | |
+| `/saved` | | | | | |
+| `/login` | | | | | |
+| `/schools/texas-am` | | | | | |
+| `/schools/texas-am/instructors` | | | | | |
+| `/schools/texas-am/professors/<slug>` | | | | | |
+| `/schools/texas-am/my-courses` | | | | | |
+| `/methodology` | | | | | |
+| `/offline` | | | | | |
 
 ## Search (must)
 

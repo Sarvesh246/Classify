@@ -66,9 +66,9 @@ const iconMap = {
   professor: UserRound,
 } as const;
 
-const SEARCH_CACHE_TTL_MS = 45_000;
-const SEARCH_DEBOUNCE_MS = 140;
-const MOBILE_SEARCH_DEBOUNCE_MS = 85;
+const SEARCH_CACHE_TTL_MS = 120_000;
+const SEARCH_DEBOUNCE_MS = 88;
+const MOBILE_SEARCH_DEBOUNCE_MS = 64;
 const COMBOBOX_RESULT_LIMIT = 8;
 const searchResponseCache = new Map<
   string,
@@ -77,6 +77,8 @@ const searchResponseCache = new Map<
     results: SearchHit[];
   }
 >();
+
+let searchApiRouteWarmIssued = false;
 
 export function SearchCombobox({
   initialQuery = "",
@@ -129,6 +131,18 @@ export function SearchCombobox({
 
     return () => window.clearTimeout(timeout);
   }, [deferredQuery, isMobileSheet]);
+
+  /** Once per session: warm search + catalog snapshot so the first typed query avoids cold work. */
+  useEffect(() => {
+    if (resultSurface !== "combobox" || searchApiRouteWarmIssued) {
+      return;
+    }
+    searchApiRouteWarmIssued = true;
+    const q = new URLSearchParams();
+    q.set("limit", String(Math.min(effectiveLimit, 8)));
+    q.set("surface", "combobox");
+    void fetch(`/api/search?${q.toString()}`).catch(() => {});
+  }, [effectiveLimit, resultSurface]);
 
   useEffect(() => {
     const params = new URLSearchParams();

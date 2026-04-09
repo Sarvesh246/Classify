@@ -1,0 +1,35 @@
+[
+  {
+    "school_id": 228723,
+    "slug": "texas-a-m-university-college-station",
+    "name": "Texas A & M University-College Station",
+    "alias": "Texas A&M",
+    "city": "College Station",
+    "state": "TX",
+    "website": "www.tamu.edu",
+    "control": "Public",
+    "student_size": 72026
+  },
+  {
+    "school_id": 228778,
+    "slug": "the-university-of-texas-at-austin",
+    "name": "The University of Texas at Austin",
+    "alias": "UT Austin",
+    "city": "Austin",
+    "state": "TX",
+    "website": "www.utexas.edu",
+    "control": "Public",
+    "student_size": 52213
+  },
+  {
+    "school_id": 170976,
+    "slug": "university-of-michigan-ann-arbor",
+    "name": "University of Michigan-Ann Arbor",
+    "alias": "Michigan",
+    "city": "Ann Arbor",
+    "state": "MI",
+    "website": "umich.edu",
+    "control": "Public",
+    "student_size": 32000
+  }
+]

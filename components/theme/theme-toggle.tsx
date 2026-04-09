@@ -34,7 +34,7 @@ export function ThemeToggle({
       type="button"
       onClick={toggle}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full border transition-colors",
+        "classify-pressable inline-flex shrink-0 items-center justify-center rounded-full border transition-colors",
         compact ? "h-11 w-11" : "h-11 min-w-[2.75rem] px-3",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40",
         "motion-reduce:transition-none",

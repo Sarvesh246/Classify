@@ -8,12 +8,34 @@ import {
   normalizeSchoolText,
 } from "@/lib/school-display";
 
+/** Primary path used by local ETL (`import_school_directory`). */
 export const SCORECARD_DIRECTORY_JSON_PATH = path.join(
   process.cwd(),
   "etl",
   "output",
   "college_scorecard_schools.json",
 );
+
+/** Committed fallback bundled with the app (e.g. Vercel) when `etl/output` is absent. */
+export const SCORECARD_DIRECTORY_DATA_BUNDLE_PATH = path.join(
+  process.cwd(),
+  "data",
+  "college_scorecard_schools.json",
+);
+
+function resolveScorecardDirectoryJsonFile(): string | null {
+  const fromEnv = process.env.SCORECARD_DIRECTORY_JSON_PATH?.trim();
+  if (fromEnv && fs.existsSync(fromEnv)) {
+    return fromEnv;
+  }
+  if (fs.existsSync(SCORECARD_DIRECTORY_JSON_PATH)) {
+    return SCORECARD_DIRECTORY_JSON_PATH;
+  }
+  if (fs.existsSync(SCORECARD_DIRECTORY_DATA_BUNDLE_PATH)) {
+    return SCORECARD_DIRECTORY_DATA_BUNDLE_PATH;
+  }
+  return null;
+}
 
 /** Raw row shape written by `etl.scripts.import_school_directory`. */
 export type ScorecardDirectoryRecord = {
@@ -117,7 +139,8 @@ export function invalidateScorecardDirectoryCache() {
 }
 
 /**
- * Reads `etl/output/college_scorecard_schools.json` when present (same source as nationwide search).
+ * Reads College Scorecard directory JSON: `etl/output/` (local ETL), then `data/` bundle (deployed),
+ * or `SCORECARD_DIRECTORY_JSON_PATH` env override.
  * Returns [] if missing; logs once per process at warn level.
  */
 export function loadScorecardDirectorySchools(): School[] {
@@ -125,14 +148,19 @@ export function loadScorecardDirectorySchools(): School[] {
     return scorecardSchoolsCache;
   }
 
-  if (!fs.existsSync(SCORECARD_DIRECTORY_JSON_PATH)) {
+  const resolved = resolveScorecardDirectoryJsonFile();
+  if (!resolved) {
     if (!scorecardSchoolsMissingLogged) {
       scorecardSchoolsMissingLogged = true;
       console.warn(
         JSON.stringify({
           level: "warn",
           event: "directory_schools_missing",
-          path: SCORECARD_DIRECTORY_JSON_PATH,
+          tried: [
+            process.env.SCORECARD_DIRECTORY_JSON_PATH,
+            SCORECARD_DIRECTORY_JSON_PATH,
+            SCORECARD_DIRECTORY_DATA_BUNDLE_PATH,
+          ].filter(Boolean),
         }),
       );
     }
@@ -142,7 +170,7 @@ export function loadScorecardDirectorySchools(): School[] {
 
   try {
     const payload = JSON.parse(
-      fs.readFileSync(SCORECARD_DIRECTORY_JSON_PATH, "utf8"),
+      fs.readFileSync(resolved, "utf8"),
     ) as ScorecardDirectoryRecord[];
 
     scorecardSchoolsCache = payload.map(scorecardRecordToSchool);
@@ -152,7 +180,7 @@ export function loadScorecardDirectorySchools(): School[] {
       JSON.stringify({
         level: "warn",
         event: "directory_schools_read_failed",
-        path: SCORECARD_DIRECTORY_JSON_PATH,
+        path: resolved,
         error: String(err),
       }),
     );
