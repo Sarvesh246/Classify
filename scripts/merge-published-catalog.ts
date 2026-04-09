@@ -112,6 +112,10 @@ function getSchoolSlugFromEnrichedFile(fileName: string) {
   return fileName.replace(/_enriched\.json$/i, "");
 }
 
+function dedupeSchoolsBySlug(schools: SchoolRecord[]) {
+  return [...new Map(schools.map((school) => [school.slug, school])).values()];
+}
+
 function buildAuditNote(slug: string, existingNote: string) {
   const matchesPath = path.join(MATCH_ROOT, `${slug}.json`);
   if (!fs.existsSync(matchesPath)) {
@@ -137,7 +141,12 @@ function buildAuditNote(slug: string, existingNote: string) {
   return `${existingNote} Live RMP reconciliation: ${autoLinkedCount} auto-linked, ${reviewCount} queued for review, ${unmatchedCount} unmatched.`;
 }
 
-function buildReplacementMap(): Map<string, OfferingRecord[]> {
+/**
+ * Reconcile shards are named with College Scorecard directory slugs; seed/catalog schools use
+ * canonical slugs (e.g. `university-of-michigan-ann-arbor` → `umich`). Map filenames through
+ * the same canonicalizer as RMP rows so replacements attach to the correct school.
+ */
+function buildReplacementMap(canonicalDirectorySlug: (raw: string) => string): Map<string, OfferingRecord[]> {
   const replacements = new Map<string, OfferingRecord[]>();
 
   if (fs.existsSync(TAMU_PATH)) {
@@ -159,7 +168,10 @@ function buildReplacementMap(): Map<string, OfferingRecord[]> {
         continue;
       }
 
-      replacements.set(getSchoolSlugFromEnrichedFile(fileName), offerings);
+      const rawSlug = getSchoolSlugFromEnrichedFile(fileName);
+      const schoolSlug = canonicalDirectorySlug(rawSlug);
+      const prior = replacements.get(schoolSlug);
+      replacements.set(schoolSlug, prior ? [...prior, ...offerings] : offerings);
     }
   }
 
@@ -264,7 +276,7 @@ async function main() {
     "../lib/scorecard-directory",
   );
   const seed = buildSeedCatalogSnapshot();
-  const replacements = buildReplacementMap();
+  const replacements = buildReplacementMap(canonicalScorecardSchoolSlug);
 
   if (replacements.size === 0) {
     const seedSlugs = new Set(seed.schools.map((s) => s.slug));
@@ -276,7 +288,7 @@ async function main() {
       process.exit(0);
     }
 
-    const schools = [...seed.schools, ...directoryExtras];
+    const schools = dedupeSchoolsBySlug([...seed.schools, ...directoryExtras]);
     const professorDirectory = buildRmpOnlyProfessorDirectory(
       schools,
       seed.professorDirectory ?? [],
@@ -324,7 +336,7 @@ async function main() {
 
   const mergedSlugs = new Set(schools.map((s) => s.slug));
   const directoryExtras = loadScorecardDirectorySchools().filter((s) => !mergedSlugs.has(s.slug));
-  const schoolsWithDirectory = [...schools, ...directoryExtras];
+  const schoolsWithDirectory = dedupeSchoolsBySlug([...schools, ...directoryExtras]);
 
   const professorDirectory = buildRmpOnlyProfessorDirectory(
     schoolsWithDirectory,

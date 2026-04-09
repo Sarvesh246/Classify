@@ -53,10 +53,27 @@ Use this to “support” many schools with **school-scoped RMP** without invent
 
 Treat a school as **`dataTier: "institutional"`** in `data/expansion-priority.json` only when that depth is actually shipped (seed or merged reconcile), not merely when RMP sync ran.
 
+### When is “Phase 3” done for the manifest?
+
+The repo distinguishes two notions:
+
+| Bar | Meaning |
+| --- | ------- |
+| **Release gate (automated)** | Every row in `data/expansion-priority.json` appears in the **merged** `etl/output/published_catalog.json` (after `npm run catalog:merge`) with offerings, is **not** `directory_ready`, meets **`dataTier` rules** (below), then is **published** to the environment the app reads. |
+| **Runbook §3 (absolute)** | True registrar-grade depth school-by-school; there is always room to add sections, grades, and freshness. |
+
+**`dataTier` rules enforced by `npm run catalog:audit:phase3`:**
+
+- **`rmp_national`:** `plannerReadiness` above `directory_ready`, at least one offering (or manifest `minOfferings`), and **`hasRmp`** in the enriched snapshot (materialize + merge must have landed RMP-backed rows).
+- **`institutional`:** same breadth checks at catalog tier (`catalog_ready` or better is OK). Add **`--strict-institutional`** to require **`schedule_ready` or `evidence_ready`** for every institutional manifest row (runbook §3 proxy).
+
+**Workflow:** `npm run catalog:merge` → `npm run catalog:audit:phase3` → fix any FAIL rows (RMP pipeline, reconcile, seed, or institutional ingest) → `npm run catalog:publish:supabase` (or deploy file fallback) → re-audit if needed. Optional: `npm run catalog:audit:phase3 -- --strict-institutional` before claiming full registrar depth for the institutional cohort.
+
 ## 4. Useful diagnostics
 
 - `npm run catalog:expansion-reconcile-status` — reconcile / expansion snapshot status
 - `npm run catalog:expansion-report` — expansion report artifact (when wired to your merge output)
+- `npm run catalog:audit:phase3` — pass/fail gate: manifest vs merged `published_catalog.json` (`--strict-institutional` optional)
 - `npm run catalog:doctor:supabase` — published catalog health against Supabase
 
 ## 5. Env quick reference

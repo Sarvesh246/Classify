@@ -3,8 +3,12 @@ import path from "node:path";
 
 import type { PlannerReadiness, School, SchoolSupportProfile } from "@/lib/types";
 
+/** Manifest cohort: institutional = seeded / registrar-grade path; rmp_national = RMP breadth until feeds land. */
+export type ExpansionDataTier = "institutional" | "rmp_national";
+
 export type ExpansionSchoolTarget = {
   slug: string;
+  dataTier?: ExpansionDataTier;
   minOfferings?: number;
   minSectionCourses?: number;
   minMeetingTimePct?: number;
@@ -44,13 +48,19 @@ export function loadExpansionPriorityManifest(
       version: raw.version ?? 1,
       description: raw.description,
       schools: raw.schools
-        .map((row) => ({
-          slug: String((row as ExpansionSchoolTarget).slug ?? "").trim(),
-          minOfferings: (row as ExpansionSchoolTarget).minOfferings,
-          minSectionCourses: (row as ExpansionSchoolTarget).minSectionCourses,
-          minMeetingTimePct: (row as ExpansionSchoolTarget).minMeetingTimePct,
-          notes: (row as ExpansionSchoolTarget).notes,
-        }))
+        .map((row) => {
+          const rawTier = (row as { dataTier?: unknown }).dataTier;
+          const dataTier: ExpansionDataTier | undefined =
+            rawTier === "institutional" || rawTier === "rmp_national" ? rawTier : undefined;
+          return {
+            slug: String((row as ExpansionSchoolTarget).slug ?? "").trim(),
+            dataTier,
+            minOfferings: (row as ExpansionSchoolTarget).minOfferings,
+            minSectionCourses: (row as ExpansionSchoolTarget).minSectionCourses,
+            minMeetingTimePct: (row as ExpansionSchoolTarget).minMeetingTimePct,
+            notes: (row as ExpansionSchoolTarget).notes,
+          };
+        })
         .filter((row) => row.slug.length > 0),
     };
   }
@@ -187,4 +197,93 @@ export function buildExpansionReportRows(
     .map((school) => buildRow(school, null));
 
   return [...manifestRows, ...extra];
+}
+
+export type ExpansionPhase3AuditOptions = {
+  /**
+   * When true, manifest rows with `dataTier: institutional` must be at least
+   * `schedule_ready` or `evidence_ready` (runbook §3 depth proxy — not RMP-only catalog breadth).
+   * Default false so merging catalog + offerings passes; opt in when registrar sections/evidence are required.
+   */
+  institutionalRequiresScheduleOrEvidence?: boolean;
+};
+
+export type ExpansionPhase3AuditEntry = {
+  priorityRank: number;
+  slug: string;
+  dataTier: ExpansionDataTier;
+  ok: boolean;
+  failures: string[];
+  plannerReadiness: PlannerReadiness;
+  offeringCount: number;
+};
+
+/**
+ * Release gate: every school in `data/expansion-priority.json` must be present in the merged
+ * published catalog with planner-tier depth appropriate to its `dataTier`.
+ */
+export function auditExpansionPhase3(
+  schools: School[],
+  offerings: { schoolSlug: string; courseSlug: string }[],
+  manifest: ExpansionPriorityManifest = loadExpansionPriorityManifest(),
+  options: ExpansionPhase3AuditOptions = {},
+): ExpansionPhase3AuditEntry[] {
+  const institutionalRequiresScheduleOrEvidence = options.institutionalRequiresScheduleOrEvidence ?? false;
+  const bySlug = new Map(schools.map((s) => [s.slug, s]));
+  const reportRows = buildExpansionReportRows(schools, offerings, manifest);
+  const reportBySlug = new Map(reportRows.map((r) => [r.slug, r]));
+
+  return manifest.schools.map((target, idx) => {
+    const tier: ExpansionDataTier = target.dataTier ?? "rmp_national";
+    const rank = idx + 1;
+    const school = bySlug.get(target.slug);
+    const row = reportBySlug.get(target.slug);
+    const failures: string[] = [];
+
+    if (!school || !row) {
+      return {
+        priorityRank: rank,
+        slug: target.slug,
+        dataTier: tier,
+        ok: false,
+        failures: ["Not in published catalog schools list (merge + publish may be incomplete)"],
+        plannerReadiness: "directory_ready",
+        offeringCount: 0,
+      };
+    }
+
+    const sp = school.supportProfile;
+    const minOff = target.minOfferings ?? 1;
+
+    if (row.plannerReadiness === "directory_ready") {
+      failures.push("Still directory_ready — no merged catalog offerings for this school");
+    }
+    if (row.offeringCount < minOff) {
+      failures.push(`offeringCount ${row.offeringCount} < manifest minimum ${minOff}`);
+    }
+
+    if (tier === "rmp_national") {
+      if (!sp?.hasRmp) {
+        failures.push("hasRmp is false — RMP breadth not present in snapshot (sync/materialize/merge?)");
+      }
+    }
+
+    if (tier === "institutional" && institutionalRequiresScheduleOrEvidence) {
+      if (row.plannerReadiness !== "schedule_ready" && row.plannerReadiness !== "evidence_ready") {
+        failures.push(
+          `Institutional tier expects schedule_ready or evidence_ready (got ${row.plannerReadiness}); registrar/section depth not shipped`,
+        );
+      }
+    }
+
+    return {
+      priorityRank: rank,
+      slug: target.slug,
+      dataTier: tier,
+      ok: failures.length === 0,
+      failures,
+      plannerReadiness: row.plannerReadiness,
+      offeringCount: row.offeringCount,
+    };
+  });
 }

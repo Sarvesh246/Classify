@@ -917,6 +917,35 @@ export function enrichSnapshotSchoolsWithSupport(
   };
 }
 
+/**
+ * Same enrichment as {@link enrichSnapshotSchoolsWithSupport}, but only rows for `manifestSlugs`.
+ * Use for Phase 3 audit so nationwide `published_catalog.json` does not process millions of offerings.
+ */
+export function enrichSnapshotForExpansionPhase3Audit(
+  snapshot: PublishedCatalogSnapshot,
+  manifestSlugs: readonly string[],
+): PublishedCatalogSnapshot {
+  const slugSet = new Set(manifestSlugs);
+  const schools = snapshot.schools.filter((school) => slugSet.has(school.slug));
+  const offerings = snapshot.offerings.filter((row) => slugSet.has(row.schoolSlug));
+  const sections = (snapshot.sections ?? []).filter((row) => slugSet.has(row.schoolSlug));
+  const sectionMeetings = (snapshot.sectionMeetings ?? []).filter((row) =>
+    slugSet.has(row.schoolSlug),
+  );
+  const professorDirectory = (snapshot.professorDirectory ?? []).filter((row) =>
+    slugSet.has(row.schoolSlug),
+  );
+
+  return enrichSnapshotSchoolsWithSupport({
+    ...snapshot,
+    schools,
+    offerings,
+    sections,
+    sectionMeetings,
+    professorDirectory,
+  });
+}
+
 function stripForEnrichment(
   item: ProfessorCourseSummary,
 ): Parameters<typeof enrichSummary>[0] {

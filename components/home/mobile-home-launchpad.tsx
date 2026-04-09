@@ -11,12 +11,8 @@ import { SearchCombobox } from "@/components/search/search-combobox";
  */
 export function MobileHomeLaunchpad({
   searchableSchools,
-  plannerReadySchools,
-  evidenceReadySchools,
 }: {
   searchableSchools: number;
-  plannerReadySchools: number;
-  evidenceReadySchools: number;
 }) {
   return (
     <div className="space-y-4 md:hidden">
@@ -40,10 +36,8 @@ export function MobileHomeLaunchpad({
 
       <div className="home-dark-tile rounded-[24px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.66),rgba(8,25,44,0.52))] p-3 text-white shadow-[0_14px_30px_rgba(4,12,24,0.2)] backdrop-blur-xl">
         <p className="eyebrow">Coverage</p>
-        <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+        <div className="mt-2 grid grid-cols-1 gap-2 text-center">
           <MobileProof value={searchableSchools} label="schools" />
-          <MobileProof value={plannerReadySchools} label="planner-ready" />
-          <MobileProof value={evidenceReadySchools} label="evidence-ready" />
         </div>
       </div>
     </div>

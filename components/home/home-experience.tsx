@@ -223,8 +223,6 @@ export function HomeExperience({
           <div className="mx-auto w-full">
             <MobileHomeLaunchpad
               searchableSchools={coverage.searchableSchools}
-              plannerReadySchools={coverage.plannerReadySchools}
-              evidenceReadySchools={coverage.evidenceReadySchools ?? 0}
             />
 
             <div className="mx-auto hidden max-w-4xl md:block xl:max-w-5xl 2xl:max-w-6xl">
@@ -242,8 +240,6 @@ export function HomeExperience({
 
             <div className="mx-auto mt-6 hidden max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-ivory/82 md:flex xl:max-w-5xl">
               <InlineStat label="Searchable schools" value={coverage.searchableSchools} />
-              <InlineStat label="Planner-ready schools" value={coverage.plannerReadySchools} />
-              <InlineStat label="Evidence-ready schools" value={coverage.evidenceReadySchools ?? 0} />
             </div>
           </div>
         </section>
