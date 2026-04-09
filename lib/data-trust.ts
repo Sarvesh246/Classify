@@ -1,5 +1,29 @@
 import type { DataCompleteness, ProfessorCourseSummary } from "@/lib/types";
 
+/** Human-readable note for RMP–institutional link quality (0–1 stored confidence). */
+export function formatMatchConfidenceLine(matchConfidence: number): string | null {
+  if (matchConfidence == null || Number.isNaN(matchConfidence) || matchConfidence <= 0) {
+    return null;
+  }
+  const pct = Math.round(Math.max(0, Math.min(1, matchConfidence)) * 100);
+  return `RMP match confidence about ${pct}%`;
+}
+
+/** Short ranking / planner context for offering cards. */
+export function formatRankingContextNote(offering: ProfessorCourseSummary): string | null {
+  if (offering.hasSectionPlanning) {
+    return "Schedule timing available for planner-style ranking.";
+  }
+  switch (offering.rankingMode) {
+    case "planner_fit":
+      return "Ranked with planner-style weighting when schedule data exists.";
+    case "ease_score":
+      return "Rank emphasizes difficulty and workload signals.";
+    default:
+      return null;
+  }
+}
+
 /** True when the row carries real institutional grade aggregates (not RMP-only). */
 export function offeringHasInstitutionalGradeEvidence(offering: ProfessorCourseSummary): boolean {
   return (

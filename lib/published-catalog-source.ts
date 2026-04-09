@@ -38,7 +38,11 @@ export function getPublishedCatalogReadTrace(): PublishedCatalogReadTrace {
 }
 
 function allowFileCatalogFallback() {
-  return process.env.NODE_ENV !== "production";
+  if (process.env.NODE_ENV !== "production") {
+    return true;
+  }
+
+  return process.env.ALLOW_PUBLISHED_CATALOG_FILE_FALLBACK !== "false";
 }
 
 export async function getPublishedCatalogSourceInfo(): Promise<PublishedCatalogSourceInfo> {

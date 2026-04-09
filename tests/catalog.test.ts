@@ -44,6 +44,9 @@ describe("catalog aggregates", () => {
     const profile = await getProfessorProfile("texas-am", "s-lupoli");
     expect(profile?.offerings[0]?.departmentDelta?.classifyScoreDelta).not.toBeNull();
     expect(profile?.offerings[0]?.departmentDelta?.baselineLabel).toContain("department");
+    expect(profile?.nameAliasFootnote).toEqual([]);
+    expect(Array.isArray(profile?.sections)).toBe(true);
+    expect(profile?.gradeSeriesByOfferingId).toBeTruthy();
   });
 
   it("builds professor directory rows separately from course-level offerings", async () => {

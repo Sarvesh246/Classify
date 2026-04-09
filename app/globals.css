@@ -45,6 +45,11 @@
     0 8px 22px rgba(7, 17, 31, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
   --radius-xl: 28px;
+  /* Shared radii — use `rounded-[var(--radius-menu)]` etc. in Tailwind for consistency. */
+  --radius-menu: 20px;
+  --radius-card-sm: 24px;
+  --radius-card: 30px;
+  --radius-panel: 34px;
   --z-sticky: 40;
   /* Sticky site chrome: must exceed `--z-search-surface` or page content paints over the header on scroll. */
   --z-nav: 120;
@@ -62,8 +67,11 @@
   --mobile-route-offset: 5.75rem;
   --mobile-install-offset: calc(var(--mobile-nav-height) + var(--safe-bottom) + 1rem);
   /* Content max width scales up on large monitors; `100%` (not `100vw`) reflows cleanly when zooming. */
-  --page-shell-max: 1180px;
   --section-shell-max: 1200px;
+  /* Keep header grid and app pages on the same horizontal measure. */
+  --page-shell-max: var(--section-shell-max);
+  /* Fluid horizontal inset: comfortable on phones, scales out on ultrawide instead of pinching. */
+  --shell-gutter: clamp(0.625rem, 0.42rem + 1.65vw, 4rem);
   /* Shared motion tokens (panels, sheets, nav). Prefer `transition-[property] duration-[var(--motion-duration-*)]`. */
   --motion-duration-fast: 150ms;
   --motion-duration-normal: 220ms;
@@ -74,29 +82,32 @@
 
 @media (min-width: 1280px) {
   :root {
-    --page-shell-max: 1360px;
     --section-shell-max: 1380px;
   }
 }
 
 @media (min-width: 1536px) {
   :root {
-    --page-shell-max: 1560px;
     --section-shell-max: 1580px;
   }
 }
 
 @media (min-width: 1920px) {
   :root {
-    --page-shell-max: 1760px;
     --section-shell-max: 1780px;
   }
 }
 
 @media (min-width: 2560px) {
   :root {
-    --page-shell-max: min(1920px, 92vw);
-    --section-shell-max: min(1960px, 93vw);
+    /* Cap content width so line-length / cards stay sane on super-wide monitors. */
+    --section-shell-max: min(1980px, 92vw);
+  }
+}
+
+@media (min-width: 3840px) {
+  :root {
+    --section-shell-max: min(2240px, 88vw);
   }
 }
 
@@ -342,18 +353,40 @@ html.dark ::selection {
 }
 
 .section-shell {
-  width: min(var(--section-shell-max), calc(100% - 2rem));
+  width: min(var(--section-shell-max), calc(100% - 2 * var(--shell-gutter)));
   max-width: 100%;
   margin-inline: auto;
   box-sizing: border-box;
 }
 
 .page-shell {
-  width: min(var(--page-shell-max), calc(100% - 2rem));
+  width: min(var(--page-shell-max), calc(100% - 2 * var(--shell-gutter)));
   max-width: 100%;
   margin-inline: auto;
   padding-bottom: 5rem;
   box-sizing: border-box;
+}
+
+/* Inner widths that track the shell on ultrawide (narrower columns stay readable). */
+.shell-inner-narrow {
+  width: 100%;
+  max-width: min(48rem, calc(var(--section-shell-max) * 0.88));
+  margin-inline: auto;
+}
+
+.shell-inner-wide {
+  width: 100%;
+  max-width: min(64rem, calc(var(--section-shell-max) * 0.96));
+  margin-inline: auto;
+}
+
+/** Mobile top bar: same horizontal measure as `.section-shell` without duplicating rules. */
+.mobile-bar-inner {
+  width: min(var(--section-shell-max), calc(100% - 2 * var(--shell-gutter)));
+  max-width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .display-title {
@@ -409,7 +442,7 @@ html.dark ::selection {
 }
 
 .measure-copy {
-  max-width: 66ch;
+  max-width: min(66ch, calc(var(--section-shell-max) * 0.58));
 }
 
 .overlay-layer {
@@ -528,15 +561,15 @@ html.dark ::selection {
 
 .app-page-title {
   font-family: var(--font-sora), sans-serif;
-  font-size: clamp(2.3rem, 4vw, 4rem);
+  font-size: clamp(2.3rem, 3.2vw + 1.1rem, 4.25rem);
   line-height: 0.96;
   letter-spacing: -0.06em;
   text-wrap: balance;
 }
 
 .app-lead {
-  max-width: 64ch;
-  font-size: clamp(1rem, 1vw + 0.85rem, 1.125rem);
+  max-width: min(64ch, calc(var(--section-shell-max) * 0.55));
+  font-size: clamp(1rem, 0.65vw + 0.88rem, 1.2rem);
   line-height: 1.8;
   color: color-mix(in srgb, var(--ink) 76%, var(--muted));
 }
@@ -559,7 +592,7 @@ html.dark ::selection {
 @media (max-width: 640px) {
   .section-shell,
   .page-shell {
-    width: calc(100% - 1.25rem);
+    width: min(var(--section-shell-max), calc(100% - 2 * var(--shell-gutter)));
   }
 
   .page-shell {

@@ -228,6 +228,13 @@ export interface ProfessorProfile {
   offerings: ProfessorCourseSummary[];
   professor: ProfessorDirectoryRow;
   displayProfessorName?: string;
+  /** Other formatted name spellings seen in sources (not the primary display name). */
+  nameAliasFootnote: string[];
+  /** Catalog sections tied to this professor (same snapshot as offerings). */
+  sections: SectionRecord[];
+  sectionMeetings: SectionMeeting[];
+  /** Published grade distribution rows keyed by offering id. */
+  gradeSeriesByOfferingId: Record<string, GradeDistributionSeries[]>;
 }
 
 export interface ScoreBreakdownRow {

@@ -22,13 +22,13 @@ function parseFilterType(raw: string | undefined): SearchHitType | "all" {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  await connection();
   const params = await searchParams;
   // Legacy web-app shortcuts may still launch with `/search?source=pwa`.
   // Home is the intended standalone entry surface.
   if (params.source === "pwa" && !params.q && !params.school && !params.type && !params.page) {
     redirect("/");
   }
+  await connection();
   const query = params.q?.trim() ?? "";
   const schoolParam = params.school?.trim() || undefined;
   const filterType = parseFilterType(params.type?.trim());
@@ -146,7 +146,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           <h3 className="text-base font-semibold text-ink sm:text-lg">{item.label}</h3>
                           <p className="text-xs text-muted sm:text-sm">{item.school}</p>
                         </div>
-                        <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+                        <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" methodologyLink={false} />
                       </div>
                       {item.rankHints?.length ? (
                         <div className="flex flex-wrap gap-2">

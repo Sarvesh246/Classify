@@ -1,13 +1,9 @@
 import type { ReactNode } from "react";
-import { connection } from "next/server";
 
-export default async function SearchLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  // Direct mobile opens were still tripping a production-only insertion error under PPR.
-  // Holding the whole /search subtree behind the request boundary keeps the streamed tree stable.
-  await connection();
+/**
+ * Layout is a thin passthrough: `await connection()` already runs on `page.tsx`.
+ * Duplicating it here added an extra await on every `/search` navigation with no benefit.
+ */
+export default function SearchLayout({ children }: { children: ReactNode }) {
   return children;
 }

@@ -9,6 +9,13 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type {
+  CoverageTier,
+  ProfessorCourseSummary,
+  ProfessorDirectoryRow,
+  PublishedCatalogSnapshot,
+  School,
+} from "../lib/types";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -33,7 +40,7 @@ function writeLargeJson(
     updatedAt: string;
     schools: unknown[];
     offerings: unknown[];
-    professorDirectory: unknown[];
+    professorDirectory?: unknown[];
   },
 ) {
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
@@ -45,7 +52,7 @@ function writeLargeJson(
     fs.writeSync(fd, `  "offerings": ${JSON.stringify(payload.offerings, null, 2).replace(/\n/g, "\n  ")},\n`);
     fs.writeSync(
       fd,
-      `  "professorDirectory": ${JSON.stringify(payload.professorDirectory, null, 2).replace(/\n/g, "\n  ")}\n`,
+      `  "professorDirectory": ${JSON.stringify(payload.professorDirectory ?? [], null, 2).replace(/\n/g, "\n  ")}\n`,
     );
     fs.writeSync(fd, "}\n");
   } finally {
@@ -74,61 +81,8 @@ function writeExpansionReportJson(
   }
 }
 
-type CoverageTier =
-  | "institutional_plus_rmp"
-  | "institutional_only"
-  | "rmp_only";
-
-type SchoolRecord = {
-  slug: string;
-  name?: string;
-  shortName?: string;
-  coverageTier: CoverageTier;
-  directoryCount: number;
-  sourceStatus: {
-    primary: string;
-    fallback: string;
-    freshness: string;
-    note: string;
-  };
-};
-
-type OfferingRecord = {
-  schoolSlug: string;
-  professorSlug: string;
-  coverageTier: CoverageTier;
-};
-
-type ProfessorDirectoryRow = {
-  id: string;
-  schoolSlug: string;
-  schoolName: string;
-  professorSlug: string;
-  professorName: string;
-  professorTitle: string;
-  departments: string[];
-  coursePrefixes: string[];
-  courseCodes: string[];
-  courseCount: number;
-  sectionCount: number;
-  coverageTier: CoverageTier;
-  coverageLevel: "directory_only" | "instructor_directory_ready" | "stats_partial" | "stats_full";
-  statsAvailability: "none" | "rmp_only" | "partial" | "full";
-  evidenceFreshness: string;
-  sourceKinds: string[];
-  hasInstitutionalStats: boolean;
-  hasRmp: boolean;
-  hasSchedulePresence: boolean;
-  expectedGpa: number | null;
-  aRate: number | null;
-  classifyScore: number | null;
-  rmpRating: number | null;
-  rmpDifficulty: number | null;
-  sampleSize: number;
-  trend: Array<{ term: string; avgGpa: number | null; aPct: number | null; rmpRating: number | null; rmpDifficulty: number | null; classifyScore: number | null }>;
-  tags: string[];
-  summary: string;
-};
+type SchoolRecord = School;
+type OfferingRecord = ProfessorCourseSummary;
 
 type RmpRecord = {
   school_slug: string;
@@ -285,20 +239,16 @@ function buildRmpOnlyProfessorDirectory(
   return [...byKey.values()];
 }
 
-async function writeExpansionReportAfterMerge(outPath: string) {
+async function writeExpansionReportForSnapshot(snapshot: PublishedCatalogSnapshot) {
   try {
-    const { enrichSnapshotSchoolsWithSupport } = await import("../lib/catalog");
     const { buildExpansionReportRows, loadExpansionPriorityManifest } = await import(
       "../lib/expansion-priority",
     );
-    type PublishedCatalogSnapshot = import("../lib/types").PublishedCatalogSnapshot;
-    const mergedRaw = readJson<PublishedCatalogSnapshot>(outPath);
-    const enriched = enrichSnapshotSchoolsWithSupport(mergedRaw);
     const manifest = loadExpansionPriorityManifest();
     const report = {
       generatedAt: new Date().toISOString(),
       manifestVersion: manifest.version,
-      rows: buildExpansionReportRows(enriched.schools, enriched.offerings),
+      rows: buildExpansionReportRows(snapshot.schools, snapshot.offerings),
     };
     const reportPath = path.join(OUTPUT_ROOT, "expansion_report.json");
     writeExpansionReportJson(reportPath, report);
@@ -309,7 +259,7 @@ async function writeExpansionReportAfterMerge(outPath: string) {
 }
 
 async function main() {
-  const { buildSeedCatalogSnapshot } = await import("../lib/catalog");
+  const { buildSeedCatalogSnapshot, enrichSnapshotSchoolsWithSupport } = await import("../lib/catalog");
   const { canonicalScorecardSchoolSlug, loadScorecardDirectorySchools } = await import(
     "../lib/scorecard-directory",
   );
@@ -332,18 +282,18 @@ async function main() {
       seed.professorDirectory ?? [],
       canonicalScorecardSchoolSlug,
     );
-    const out = {
+    const out = enrichSnapshotSchoolsWithSupport({
       updatedAt: new Date().toISOString(),
       schools,
       offerings: seed.offerings,
       professorDirectory,
-    };
+    });
 
     writeLargeJson(OUT_PATH, out);
     console.warn(
       `Wrote ${OUT_PATH} with ${directoryExtras.length} directory-only schools (${out.schools.length} total schools, ${out.offerings.length} offerings).`,
     );
-    await writeExpansionReportAfterMerge(OUT_PATH);
+    await writeExpansionReportForSnapshot(out);
     return;
   }
 
@@ -381,18 +331,18 @@ async function main() {
     seed.professorDirectory ?? [],
     canonicalScorecardSchoolSlug,
   );
-  const out = {
+  const out = enrichSnapshotSchoolsWithSupport({
     updatedAt: new Date().toISOString(),
     schools: schoolsWithDirectory,
     offerings,
     professorDirectory,
-  };
+  });
 
   writeLargeJson(OUT_PATH, out);
   console.warn(
     `Wrote ${OUT_PATH} with ${incomingOfferings.length} reconciled rows across ${replacements.size} school slices (${offerings.length} offerings, ${schools.length} seed schools + ${directoryExtras.length} directory-only).`,
   );
-  await writeExpansionReportAfterMerge(OUT_PATH);
+  await writeExpansionReportForSnapshot(out);
 }
 
 main().catch((err) => {

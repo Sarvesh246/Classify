@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { SiteHeader } from "@/components/site-header";
 
@@ -8,19 +9,21 @@ export function RouteLoadingShell({
   body = "Pulling school coverage, instructor picks, and planner-ready options.",
   loadingLabel = "Building your launchpad",
   loadingDetail = "Search, compare, and saved work are getting ready.",
+  footer,
 }: {
   eyebrow?: string;
   title?: string;
   body?: string;
   loadingLabel?: string;
   loadingDetail?: string;
+  footer?: ReactNode;
 } = {}) {
   return (
-    <main className="min-h-screen bg-background md:bg-background">
+    <main className="min-h-screen min-w-0 overflow-x-clip bg-background md:bg-background">
       <SiteHeader tone="app" />
-      <div className="page-shell px-4 pb-20 pt-4 md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center md:pt-12">
-        <div className="mx-auto max-w-xl md:hidden">
-          <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-5 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
+      <div className="page-shell pb-20 pt-4 md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center md:pt-12">
+        <div className="shell-inner-narrow md:hidden">
+          <div className="rounded-[var(--radius-card)] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-5 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
             <p className="eyebrow text-white/72">{eyebrow}</p>
             <h1 className="display-title mt-2 text-[2rem] font-semibold leading-[0.96] tracking-[-0.08em] text-white">
               {title}
@@ -37,8 +40,8 @@ export function RouteLoadingShell({
             </div>
           </div>
         </div>
-        <div className="hidden max-w-xl md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center">
-          <div className="w-full rounded-[30px] border border-border-strong bg-surface-strong/90 p-6 text-ink shadow-classify-panel">
+        <div className="hidden shell-inner-narrow md:flex md:min-h-[min(70vh,540px)] md:flex-col md:items-center md:justify-center">
+          <div className="w-full rounded-[var(--radius-card)] border border-border-strong bg-surface-strong/90 p-6 text-ink shadow-classify-panel">
             <p className="eyebrow">{eyebrow}</p>
             <h1 className="display-title mt-2 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
               {title}
@@ -53,6 +56,11 @@ export function RouteLoadingShell({
             </div>
           </div>
         </div>
+        {footer ? (
+          <div className="shell-inner-wide w-full pb-8 pt-2 md:mt-4 md:max-w-none md:self-stretch">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </main>
   );

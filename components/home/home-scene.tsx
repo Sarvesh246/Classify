@@ -5,7 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Sphere, Torus } from "@react-three/drei";
 import { Group } from "three";
 
-function SignalCluster({ progress }: { progress: number }) {
+function SignalCluster({ progress, torusSegments }: { progress: number; torusSegments: number }) {
   const groupRef = useRef<Group>(null);
   const floatRef = useRef<Group>(null);
   const elapsedRef = useRef(0);
@@ -33,24 +33,32 @@ function SignalCluster({ progress }: { progress: number }) {
           <meshStandardMaterial color="#58C7B8" metalness={0.2} roughness={0.2} />
         </mesh>
       </group>
-      <Torus args={[2.4, 0.04, 32, 160]} rotation-x={Math.PI / 2}>
+      <Torus args={[2.4, 0.04, 32, torusSegments]} rotation-x={Math.PI / 2}>
         <meshStandardMaterial color="#F6F1E8" transparent opacity={0.6} />
       </Torus>
-      <Torus args={[3.1, 0.06, 32, 160]} rotation-z={Math.PI / 6}>
+      <Torus args={[3.1, 0.06, 32, torusSegments]} rotation-z={Math.PI / 6}>
         <meshStandardMaterial color="#C98A57" transparent opacity={0.55} />
       </Torus>
-      <Torus args={[3.8, 0.03, 32, 160]} rotation-x={Math.PI / 3}>
+      <Torus args={[3.8, 0.03, 32, torusSegments]} rotation-x={Math.PI / 3}>
         <meshStandardMaterial color="#58C7B8" transparent opacity={0.35} />
       </Torus>
     </group>
   );
 }
 
-function DataNodes({ progress }: { progress: number }) {
+function DataNodes({
+  progress,
+  count,
+  sphereSeg,
+}: {
+  progress: number;
+  count: number;
+  sphereSeg: number;
+}) {
   const groupRef = useRef<Group>(null);
   const nodes = useMemo(
     () =>
-      Array.from({ length: 20 }, (_, index) => ({
+      Array.from({ length: count }, (_, index) => ({
         key: index,
         position: [
           Math.sin(index * 1.7) * (3.6 + (index % 4)),
@@ -59,7 +67,7 @@ function DataNodes({ progress }: { progress: number }) {
         ] as const,
         scale: 0.12 + (index % 3) * 0.06,
       })),
-    [],
+    [count],
   );
 
   const elapsedRef = useRef(0);
@@ -77,7 +85,7 @@ function DataNodes({ progress }: { progress: number }) {
       {nodes.map((node, index) => (
         <Sphere
           key={node.key}
-          args={[node.scale, 24, 24]}
+          args={[node.scale, sphereSeg, sphereSeg]}
           position={node.position}
         >
           <meshStandardMaterial
@@ -93,14 +101,26 @@ function DataNodes({ progress }: { progress: number }) {
   );
 }
 
-export function HomeScene({ progress }: { progress: number }) {
+export function HomeScene({
+  progress,
+  eco = false,
+}: {
+  progress: number;
+  /** Lighter GPU load on mid-tier laptops (lower DPR, simpler geometry). */
+  eco?: boolean;
+}) {
+  const dpr: [number, number] = eco ? [1, 1.25] : [1, 1.75];
+  const torusSegments = eco ? 80 : 160;
+  const sphereSeg = eco ? 16 : 24;
+  const nodeCount = eco ? 12 : 20;
+
   return (
     <div className="absolute inset-0">
       <Canvas
         camera={{ position: [0, 0, 11], fov: 42 }}
         className="relative h-full w-full"
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
+        dpr={dpr}
+        gl={{ antialias: true, alpha: false, powerPreference: eco ? "low-power" : "high-performance" }}
       >
         <color attach="background" args={["#06172A"]} />
         <fog attach="fog" args={["#06172A", 8, 22]} />
@@ -108,8 +128,8 @@ export function HomeScene({ progress }: { progress: number }) {
         <directionalLight position={[6, 6, 5]} intensity={1.8} color="#FFFFFF" />
         <pointLight position={[-4, -2, 3]} intensity={16} color="#58C7B8" />
         <pointLight position={[4, 2, -1]} intensity={10} color="#C98A57" />
-        <SignalCluster progress={progress} />
-        <DataNodes progress={progress} />
+        <SignalCluster progress={progress} torusSegments={torusSegments} />
+        <DataNodes progress={progress} count={nodeCount} sphereSeg={sphereSeg} />
       </Canvas>
     </div>
   );

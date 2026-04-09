@@ -36,7 +36,7 @@ export function ThemeToggle({
       className={cn(
         "classify-pressable inline-flex shrink-0 items-center justify-center rounded-full border transition-colors",
         compact ? "h-11 w-11" : "h-11 min-w-[2.75rem] px-3",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:focus-visible:ring-offset-deep-ink",
         "motion-reduce:transition-none",
         isHome
           ? "border-white/20 bg-white/10 text-ivory hover:bg-white/16"

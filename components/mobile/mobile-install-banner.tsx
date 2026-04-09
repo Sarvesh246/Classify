@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Share2, X } from "lucide-react";
 import { useAppRuntime } from "@/hooks/use-app-runtime";
+import { IOS_INSTALL_BANNER_DISMISSED_KEY } from "@/lib/classify-client-storage";
 
-const STORAGE_KEY = "classify:ios-install-banner-dismissed";
+const STORAGE_KEY = IOS_INSTALL_BANNER_DISMISSED_KEY;
 const SURFACE_ROUTES = new Set(["/"]);
 
 export function MobileInstallBanner() {

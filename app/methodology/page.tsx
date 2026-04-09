@@ -48,12 +48,12 @@ When a signal is missing:
             </pre>
           </div>
 
-          <div className="soft-panel rounded-[30px] p-5 sm:p-6">
+          <div id="coverage-tiers" className="soft-panel scroll-mt-24 rounded-[var(--radius-card)] p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-3">
               <p className="eyebrow">Evidence profiles</p>
-              <CoverageBadge tier="institutional_plus_rmp" />
-              <CoverageBadge tier="institutional_only" />
-              <CoverageBadge tier="rmp_only" />
+              <CoverageBadge tier="institutional_plus_rmp" methodologyLink={false} />
+              <CoverageBadge tier="institutional_only" methodologyLink={false} />
+              <CoverageBadge tier="rmp_only" methodologyLink={false} />
             </div>
             <div className="mt-5 space-y-3 text-sm text-muted">
               <div className="rounded-[24px] classify-inner px-4 py-4">
@@ -88,7 +88,7 @@ When a signal is missing:
                 {example.courseCode} - {example.courseName}
               </p>
             </div>
-            <CoverageBadge tier={example.coverageTier} />
+            <CoverageBadge tier={example.coverageTier} methodologyLink={false} />
           </div>
           <div className="mt-6 space-y-3">
             {breakdown.map((row) => (

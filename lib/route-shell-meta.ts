@@ -88,6 +88,15 @@ export function getRouteShellMeta(pathname: string): RouteShellMeta {
     };
   }
 
+  if (pathname === "/settings") {
+    return {
+      kind: "deep",
+      title: "Settings",
+      subtitle: "Appearance and device options.",
+      backHref: "/profile",
+    };
+  }
+
   if (pathname.startsWith("/schools/")) {
     const schoolRoot = schoolRootFromPath(pathname);
     if (pathname.includes("/my-courses")) {

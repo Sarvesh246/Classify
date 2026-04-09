@@ -293,7 +293,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                         {item.courseCode} - {item.courseName}
                       </p>
                     </div>
-                    <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+                    <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" methodologyLink={false} />
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
                     <span className="rounded-full border border-border bg-background px-3 py-1.5">

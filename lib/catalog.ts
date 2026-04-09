@@ -934,90 +934,86 @@ function mergeByKey<T>(
 }
 
 let snapshotPromise: Promise<PublishedCatalogSnapshot> | null = null;
+let snapshotIndexesPromise: Promise<{
+  schoolsBySlug: Map<string, School>;
+  offeringsBySchool: Map<string, ProfessorCourseSummary[]>;
+  professorDirectoryBySchool: Map<string, ProfessorDirectoryRow[]>;
+  sectionMeetingsBySchool: Map<string, SectionMeeting[]>;
+  departmentAggregatesBySchool: Map<string, DepartmentAggregate[]>;
+}> | null = null;
+
+function groupBySchoolSlug<T extends { schoolSlug: string }>(items: T[] | undefined) {
+  const grouped = new Map<string, T[]>();
+  for (const item of items ?? []) {
+    const bucket = grouped.get(item.schoolSlug);
+    if (bucket) {
+      bucket.push(item);
+    } else {
+      grouped.set(item.schoolSlug, [item]);
+    }
+  }
+  return grouped;
+}
+
+function buildSnapshotIndexes(snapshot: PublishedCatalogSnapshot) {
+  return {
+    schoolsBySlug: new Map(snapshot.schools.map((school) => [school.slug, school])),
+    offeringsBySchool: groupBySchoolSlug(snapshot.offerings),
+    professorDirectoryBySchool: groupBySchoolSlug(snapshot.professorDirectory ?? []),
+    sectionMeetingsBySchool: groupBySchoolSlug(snapshot.sectionMeetings ?? []),
+    departmentAggregatesBySchool: groupBySchoolSlug(snapshot.departmentAggregates ?? []),
+  };
+}
+
+function buildPublishedSnapshotFastPath(
+  snapshot: PublishedCatalogSnapshot,
+): PublishedCatalogSnapshot {
+  const schools = snapshot.schools.map(normalizeSchoolDisplay);
+  const evidenceReadySchoolCount = schools.filter(
+    (item) => item.supportProfile?.plannerReadiness === "evidence_ready",
+  ).length;
+
+  return {
+    ...snapshot,
+    schools,
+    professorDirectory: snapshot.professorDirectory ?? [],
+    sections: snapshot.sections ?? [],
+    departmentAggregates: snapshot.departmentAggregates ?? [],
+    gradeDistributionSeries: snapshot.gradeDistributionSeries ?? [],
+    sectionMeetings: snapshot.sectionMeetings ?? [],
+    publishMetadata:
+      snapshot.publishMetadata ?? {
+        runId: "published-fast-path",
+        activatedAt: snapshot.updatedAt,
+        source: "file",
+        summary: {
+          schoolCount: schools.length,
+          offeringCount: snapshot.offerings.length,
+          sectionCount: (snapshot.sectionMeetings ?? []).length,
+          evidenceReadySchoolCount,
+        },
+      },
+  };
+}
 
 /** Clears the in-memory catalog snapshot (e.g. after republishing data to Supabase). Next request reloads. */
 export function invalidateCatalogSnapshotCache() {
   invalidateScorecardDirectoryCache();
   snapshotPromise = null;
+  snapshotIndexesPromise = null;
 }
 
 async function loadSnapshotUncached(): Promise<PublishedCatalogSnapshot> {
   try {
-    const fallback = buildSeedPlusDirectoryFallbackSnapshot();
     const snapshot = await readPublishedSnapshot();
     if (!snapshot) {
-      return fallback;
+      return buildSeedPlusDirectoryFallbackSnapshot();
     }
-
-      const schools = mergeByKey(fallback.schools, snapshot.schools, (item) => item.slug).map(
-        normalizeSchoolDisplay,
-      );
-      const sections = snapshot.sections ?? fallback.sections ?? [];
-      const sectionMeetings = snapshot.sectionMeetings ?? fallback.sectionMeetings ?? [];
-    const mergedOfferings = mergeByKey(
-      fallback.offerings,
-      snapshot.offerings,
-      (item) => item.id,
-    );
-    const { offerings, departmentAggregates, professorDirectory } = finalizeOfferingsPipeline(
-      schools,
-      mergedOfferings,
-      sectionMeetings,
-      snapshot.professorDirectory ?? [],
-    );
-      const schoolsWithSupport = schools.map((school) => {
-        const supportProfile = buildSchoolSupportProfile(
-          school,
-          offerings.filter((item) => item.schoolSlug === school.slug),
-          sections.filter((item) => item.schoolSlug === school.slug),
-          sectionMeetings.filter((item) => item.schoolSlug === school.slug),
-          professorDirectory.filter((item) => item.schoolSlug === school.slug),
-        );
-
-      return normalizeSchoolPresentation(
-        {
-          ...school,
-          supportProfile,
-        },
-        supportProfile,
-      );
-    });
-
-    return {
-      updatedAt: snapshot.updatedAt ?? fallback.updatedAt,
-        schools: schoolsWithSupport,
-        offerings,
-        professorDirectory,
-        sections,
-        departmentAggregates,
-        gradeDistributionSeries: deriveGradeDistributionSeries(offerings),
-      sectionMeetings,
-      publishMetadata:
-        snapshot.publishMetadata ?? {
-          runId: "merged-runtime-snapshot",
-          activatedAt: snapshot.updatedAt ?? fallback.updatedAt,
-          source: "db",
-          summary: {
-            schoolCount: schoolsWithSupport.length,
-            offeringCount: offerings.length,
-            sectionCount: sectionMeetings.length,
-            evidenceReadySchoolCount: schoolsWithSupport.filter(
-              (item) => item.supportProfile?.plannerReadiness === "evidence_ready",
-            ).length,
-          },
-        },
-    };
+    return buildPublishedSnapshotFastPath(snapshot);
   } catch (err) {
     serverLog.error("catalog_snapshot_failed", { error: String(err) });
     return buildSeedPlusDirectoryFallbackSnapshot();
   }
-}
-
-async function getCachedSnapshot(): Promise<PublishedCatalogSnapshot> {
-  "use cache";
-
-  applyCacheLife("minutes");
-  return loadSnapshotUncached();
 }
 
 async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
@@ -1025,9 +1021,18 @@ async function getSnapshot(): Promise<PublishedCatalogSnapshot> {
     return snapshotPromise;
   }
 
-  snapshotPromise = getCachedSnapshot();
+  snapshotPromise = loadSnapshotUncached();
 
   return snapshotPromise;
+}
+
+async function getSnapshotIndexes() {
+  if (snapshotIndexesPromise) {
+    return snapshotIndexesPromise;
+  }
+
+  snapshotIndexesPromise = getSnapshot().then(buildSnapshotIndexes);
+  return snapshotIndexesPromise;
 }
 
 export async function getCatalogSchools() {
@@ -1178,7 +1183,7 @@ export async function getFeaturedOfferings() {
 }
 
 export async function getCatalogSchoolBySlug(slug: string) {
-  return (await getCatalogSchools()).find((school) => school.slug === slug);
+  return (await getSnapshotIndexes()).schoolsBySlug.get(slug);
 }
 
 export async function getCatalogUpdatedAt() {
@@ -1209,7 +1214,7 @@ export async function getCatalogReadinessSummary() {
 }
 
 export async function getCatalogOfferingsForSchool(schoolSlug: string) {
-  return (await getCatalogOfferings()).filter((offering) => offering.schoolSlug === schoolSlug);
+  return (await getSnapshotIndexes()).offeringsBySchool.get(schoolSlug) ?? [];
 }
 
 export async function getCatalogOfferingsByIds(ids: string[]) {
@@ -1222,13 +1227,11 @@ export async function getCatalogOfferingsByIds(ids: string[]) {
 }
 
 export async function getProfessorDirectoryRowsForSchool(schoolSlug: string) {
-  return (await getProfessorDirectoryRows()).filter((row) => row.schoolSlug === schoolSlug);
+  return (await getSnapshotIndexes()).professorDirectoryBySchool.get(schoolSlug) ?? [];
 }
 
 export async function getCatalogSectionMeetingsForSchool(schoolSlug: string) {
-  return ((await getSnapshot()).sectionMeetings ?? []).filter(
-    (item) => item.schoolSlug === schoolSlug,
-  );
+  return (await getSnapshotIndexes()).sectionMeetingsBySchool.get(schoolSlug) ?? [];
 }
 
 export async function getCourseGroupsForSchool(schoolSlug: string): Promise<CourseGroup[]> {
@@ -1332,13 +1335,55 @@ export async function getProfessorProfile(
     ...relatedMeetingNames,
   ]);
 
-  return { school, offerings: matches, professor, displayProfessorName };
+  const displayNorm = (displayProfessorName ?? formatProfessorDisplayName(professor.professorName)).trim();
+  const aliasNameSources = [
+    professor.professorName,
+    ...relatedDirectoryAliases,
+    ...matches.map((item) => item.professorName),
+    ...relatedSections.map((section) => section.professorName).filter(Boolean),
+    ...relatedMeetingNames.filter((name): name is string => Boolean(name)),
+  ];
+  const nameAliasFootnote = [
+    ...new Set(
+      aliasNameSources
+        .filter(Boolean)
+        .map((value) => formatProfessorDisplayName(value).trim())
+        .filter((value) => value && value !== "Unknown instructor" && value !== displayNorm),
+    ),
+  ];
+
+  const sectionIdSet = new Set(relatedSections.map((section) => section.id));
+  const sectionMeetings = (snapshot.sectionMeetings ?? []).filter((meeting) =>
+    sectionIdSet.has(meeting.sectionId),
+  );
+
+  const matchOfferingIds = new Set(matches.map((row) => row.id));
+  const gradeSeriesByOfferingId: Record<string, GradeDistributionSeries[]> = {};
+  for (const row of snapshot.gradeDistributionSeries ?? []) {
+    if (!matchOfferingIds.has(row.offeringId)) {
+      continue;
+    }
+    const bucket = (gradeSeriesByOfferingId[row.offeringId] ??= []);
+    bucket.push(row);
+  }
+  for (const series of Object.values(gradeSeriesByOfferingId)) {
+    series.sort((left, right) => left.term.localeCompare(right.term));
+  }
+
+  return {
+    school,
+    offerings: matches,
+    professor,
+    displayProfessorName,
+    nameAliasFootnote,
+    sections: relatedSections,
+    sectionMeetings,
+    gradeSeriesByOfferingId,
+  };
 }
 
 export async function getDepartmentAggregatesForSchool(schoolSlug: string) {
-  return ((await getSnapshot()).departmentAggregates ?? []).filter(
-    (item) => item.schoolSlug === schoolSlug,
-  );
+  return (await getSnapshotIndexes()).departmentAggregatesBySchool.get(schoolSlug) ?? [];
 }
 
 export async function getDepartmentAggregate(

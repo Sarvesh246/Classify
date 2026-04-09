@@ -8,6 +8,7 @@ import {
   type SearchHit,
 } from "@/lib/types";
 import { enrichSummary } from "@/lib/scoring";
+import { resolveProfessorProfileName } from "@/lib/professor-display";
 
 const schools: School[] = [
   {
@@ -811,7 +812,20 @@ export function getProfessorProfile(
     tags: [...new Set(matches.flatMap((item) => item.tags))],
     summary: first.professorSummary,
   };
-  return { school, offerings: matches, professor };
+  const displayProfessorName = resolveProfessorProfileName(first.professorName, [
+    first.professorName,
+    ...matches.map((item) => item.professorName),
+  ]);
+  return {
+    school,
+    offerings: matches,
+    professor,
+    displayProfessorName,
+    nameAliasFootnote: [],
+    sections: [],
+    sectionMeetings: [],
+    gradeSeriesByOfferingId: {},
+  };
 }
 
 export function getOfferingById(id: string) {

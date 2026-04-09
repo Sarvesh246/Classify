@@ -852,7 +852,7 @@ function ResultContent({
           <span className="line-clamp-2 text-[0.96rem] font-medium leading-6 text-ink">
             {item.label}
           </span>
-          <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" />
+          <CoverageBadge tier={item.coverageTier} className="text-[0.62rem]" methodologyLink={false} />
         </div>
         <p className="mt-1 text-sm text-muted">{item.school}</p>
         <p className="mt-1 line-clamp-1 text-sm text-ink/78">{item.highlight}</p>

@@ -8,6 +8,11 @@ import {
   offeringSortLabels,
   type OfferingSortKey,
 } from "@/lib/offering-sort";
+import {
+  dataTrustSummaryLine,
+  formatMatchConfidenceLine,
+  formatRankingContextNote,
+} from "@/lib/data-trust";
 import type { ProfessorCourseSummary } from "@/lib/types";
 import { cn, formatScore, scoreToLabel } from "@/lib/utils";
 
@@ -48,29 +53,36 @@ export function ProfessorCoursesList({
         ))}
       </div>
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
-        {sorted.map((item) => (
-          <Link
-            key={item.id}
-            href={`/schools/${schoolSlug}/courses/${item.courseSlug}`}
-            className="relative rounded-[24px] classify-inner p-4"
-          >
-            <LinkPendingGlyph className="pointer-events-none absolute right-3 top-3 z-[1]" />
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-lg font-semibold text-ink">
-                  {item.courseCode} - {item.courseName}
-                </p>
-                <p className="text-sm text-muted">{item.summary}</p>
+        {sorted.map((item) => {
+          const matchLine = formatMatchConfidenceLine(item.matchConfidence);
+          const rankNote = formatRankingContextNote(item);
+          return (
+            <Link
+              key={item.id}
+              href={`/schools/${schoolSlug}/courses/${item.courseSlug}`}
+              className="relative rounded-[24px] classify-inner p-4"
+            >
+              <LinkPendingGlyph className="pointer-events-none absolute right-3 top-3 z-[1]" />
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-lg font-semibold text-ink">
+                    {item.courseCode} - {item.courseName}
+                  </p>
+                  <p className="text-sm text-muted">{item.summary}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-ink">
+                    {scoreToLabel(item.classifyScore)}
+                  </p>
+                  <p className="text-xs text-muted">score {formatScore(item.classifyScore)}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-ink">
-                  {scoreToLabel(item.classifyScore)}
-                </p>
-                <p className="text-xs text-muted">score {formatScore(item.classifyScore)}</p>
-              </div>
-            </div>
-          </Link>
-        ))}
+              <p className="mt-2 text-xs leading-relaxed text-muted">{dataTrustSummaryLine(item)}</p>
+              {matchLine ? <p className="mt-1 text-xs text-muted">{matchLine}</p> : null}
+              {rankNote ? <p className="mt-1 text-xs font-medium text-ink/80">{rankNote}</p> : null}
+            </Link>
+          );
+        })}
       </div>
     </>
   );

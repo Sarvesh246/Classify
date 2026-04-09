@@ -1,5 +1,5 @@
-import { formatCoverageTier } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { cn, formatCoverageTier } from "@/lib/utils";
 import { type CoverageTier } from "@/lib/types";
 
 const toneMap: Record<CoverageTier, string> = {
@@ -25,21 +25,42 @@ export function CoverageBadge({
   tier,
   className,
   variant = "default",
+  methodologyLink = true,
 }: {
   tier: CoverageTier;
   className?: string;
   variant?: "default" | "onDark";
+  /** When true, the badge links to Methodology (coverage tiers section). Set false on the methodology page. */
+  methodologyLink?: boolean;
 }) {
   const tones = variant === "onDark" ? toneMapOnDark : toneMap;
+  const label = formatCoverageTier(tier);
+  const tip = `${label} — how Classify defines coverage tiers (Methodology).`;
+
+  const badgeClass = cn(
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1 text-[0.72rem] font-medium uppercase tracking-[0.16em]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:focus-visible:ring-offset-deep-ink",
+    tones[tier],
+    methodologyLink && "transition hover:opacity-95",
+    className,
+  );
+
+  if (methodologyLink) {
+    return (
+      <Link
+        href="/methodology#coverage-tiers"
+        className={cn(badgeClass, "no-underline")}
+        title={tip}
+        aria-label={tip}
+      >
+        {label}
+      </Link>
+    );
+  }
+
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-3 py-1 text-[0.72rem] font-medium uppercase tracking-[0.16em]",
-        tones[tier],
-        className,
-      )}
-    >
-      {formatCoverageTier(tier)}
+    <span className={badgeClass} title={tip}>
+      {label}
     </span>
   );
 }

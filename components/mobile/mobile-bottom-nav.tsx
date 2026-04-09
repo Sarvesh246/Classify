@@ -21,9 +21,7 @@ export function MobileBottomNav() {
     <motion.nav
       initial={reduceMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={
-        reduceMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
-      }
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
       className="safe-bottom-pad fixed inset-x-0 bottom-0 z-[70] border-t border-border-strong bg-surface-strong/95 shadow-[0_-14px_44px_rgba(7,17,31,0.1)] backdrop-blur-xl dark:shadow-[0_-14px_44px_rgba(0,0,0,0.45)] md:hidden"
     >
       <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-2 px-3 pt-2">
@@ -38,6 +36,7 @@ export function MobileBottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch
               className={cn(
                 "relative flex min-h-[3.55rem] min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[1.35rem] px-1 py-1",
                 active ? "!text-ivory" : "text-muted",
@@ -51,7 +50,12 @@ export function MobileBottomNav() {
                   <motion.span
                     layoutId="mobile-nav-pill"
                     className="absolute inset-0 rounded-[1.35rem] bg-deep-ink shadow-[0_12px_30px_rgba(8,25,44,0.28)]"
-                    transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 720,
+                      damping: 38,
+                      mass: 0.65,
+                    }}
                   />
                 )
               ) : null}
@@ -75,7 +79,9 @@ export function MobileBottomNav() {
                         }
                   }
                   transition={
-                    reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 26 }
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 620, damping: 32 }
                   }
                   className={cn(active && "!text-ivory")}
                 >

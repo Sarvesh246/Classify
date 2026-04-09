@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DataTrustBanner } from "@/components/data-trust-banner";
 import { ProfessorCoursesList } from "@/components/professor/professor-courses-list";
 import { ProfessorGradeTabs } from "@/components/professor/professor-grade-tabs";
+import { ProfessorScheduleSnippets } from "@/components/professor/professor-schedule-snippets";
 import { TrendSparkline } from "@/components/charts/trend-sparkline";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SaveItemButton } from "@/components/saved/save-item-button";
@@ -17,6 +18,7 @@ import {
   formatRating,
   formatScore,
   scoreToLabel,
+  slugify,
 } from "@/lib/utils";
 import { metricHasTrend } from "@/components/charts/metric-trend-chart";
 
@@ -37,6 +39,19 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
   const showInstitutionalTrend =
     hasInstitutionalStats &&
     (metricHasTrend(primary.trend, "aPct") || metricHasTrend(primary.trend, "avgGpa"));
+  const offeringWithDeptDelta = profile.offerings.find((offering) => offering.departmentDelta);
+  const dd = offeringWithDeptDelta?.departmentDelta;
+  const gpaMeta = dd
+    ? [
+        dd.expectedGpaDelta != null
+          ? `Expected GPA ${dd.expectedGpaDelta >= 0 ? "+" : ""}${dd.expectedGpaDelta.toFixed(2)} vs ${dd.baselineLabel}`
+          : dd.baselineLabel,
+      ].join(" — ")
+    : `${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs illustrative baseline (not your school's real average)`;
+  const aMeta =
+    dd?.aRateDelta != null
+      ? `A-rate ${dd.aRateDelta >= 0 ? "+" : ""}${dd.aRateDelta.toFixed(1)} percentage points vs ${dd.baselineLabel}`
+      : `~${deptARateAvg}% illustrative baseline (context only)`;
 
   return (
     <main className="min-h-screen bg-background">
@@ -49,8 +64,29 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               <h1 className="app-page-title mt-3 font-semibold text-ink">
                 {profile.displayProfessorName ?? primary.professorName}
               </h1>
+              {profile.nameAliasFootnote.length ? (
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  Also appears as: {profile.nameAliasFootnote.join("; ")}
+                </p>
+              ) : null}
               <p className="mt-2 text-base text-muted">{primary.professorTitle}</p>
               <p className="app-lead mt-4">{primary.summary}</p>
+              {primary.departments.length ? (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                    Departments
+                  </span>
+                  {primary.departments.map((dept) => (
+                    <Link
+                      key={dept}
+                      href={`/schools/${slug}/departments/${slugify(dept)}`}
+                      className="rounded-full classify-chip-surface px-3 py-1.5 text-sm font-medium text-ink underline-offset-2 hover:bg-surface-raised-top/90 hover:underline"
+                    >
+                      {dept}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="flex shrink-0 flex-col items-end gap-3">
               <SaveItemButton
@@ -87,6 +123,16 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                 value={formatProfessorStatsAvailability(primary.statsAvailability)}
                 meta={formatProfessorCoverageLevel(primary.coverageLevel)}
               />
+              <StatCard
+                label="Courses in catalog"
+                value={String(primary.courseCount)}
+                meta="Distinct course rows for this instructor"
+              />
+              <StatCard
+                label="Sections in catalog"
+                value={String(primary.sectionCount)}
+                meta="Linked section rows in the published snapshot"
+              />
             </div>
 
             {hasInstitutionalStats ? (
@@ -98,12 +144,12 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
                   <StatCard
                     label="Expected GPA"
                     value={formatGpa(primary.expectedGpa)}
-                    meta={`${formatDepartmentDelta(primary.expectedGpa, deptGpaAvg)} vs illustrative baseline (not your school's real average)`}
+                    meta={gpaMeta}
                   />
                   <StatCard
                     label="A-rate"
                     value={formatPercent(primary.aRate)}
-                    meta={`~${deptARateAvg}% illustrative baseline (context only)`}
+                    meta={aMeta}
                   />
                 </div>
               </div>
@@ -149,7 +195,10 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
 
         {profile.offerings.length ? (
           <div className="mt-8">
-            <ProfessorGradeTabs offerings={profile.offerings} />
+            <ProfessorGradeTabs
+              offerings={profile.offerings}
+              gradeSeriesByOfferingId={profile.gradeSeriesByOfferingId}
+            />
           </div>
         ) : (
           <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
@@ -178,6 +227,16 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               ))}
             </div>
           </section>
+        ) : null}
+
+        {profile.sections.length || profile.sectionMeetings.length ? (
+          <div className="mt-8">
+            <ProfessorScheduleSnippets
+              sections={profile.sections}
+              meetings={profile.sectionMeetings}
+              schoolSlug={slug}
+            />
+          </div>
         ) : null}
 
         <section className="mt-8 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
@@ -254,6 +313,25 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
         <section className="mt-8 soft-panel rounded-[30px] p-5 sm:p-6">
           <p className="eyebrow">Courses taught</p>
           <ProfessorCoursesList offerings={profile.offerings} schoolSlug={slug} />
+          {!profile.offerings.length &&
+          (primary.coursesTaught?.length || primary.courseCodes.length) ? (
+            <div className="mt-4 rounded-[22px] border border-border/70 bg-background/50 px-4 py-4">
+              <p className="text-sm font-semibold text-ink">Directory course coverage</p>
+              <p className="mt-1 text-xs text-muted">
+                No merged offering rows yet; these codes come from the instructor directory snapshot.
+              </p>
+              <ul className="mt-3 list-inside list-disc space-y-1.5 text-sm text-ink/90">
+                {(primary.coursesTaught?.length
+                  ? primary.coursesTaught.map(
+                      (course) => `${course.courseCode} — ${course.courseName}`,
+                    )
+                  : primary.courseCodes
+                ).map((line, index) => (
+                  <li key={`${line}-${index}`}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {!profile.offerings.length ? (
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted">
               {primary.departments.map((department) => (

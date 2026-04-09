@@ -19,13 +19,14 @@ describe("published catalog origin (production, DB empty)", () => {
     vi.unstubAllEnvs();
   });
 
-  it("does not read file; trace stays none", async () => {
+  it("falls back to file when DB is empty", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const { readPublishedCatalogSnapshot, getPublishedCatalogReadTrace } = await import(
       "@/lib/published-catalog-source"
     );
-    const snap = await readPublishedCatalogSnapshot();
-    expect(snap).toBeNull();
+    await expect(readPublishedCatalogSnapshot()).rejects.toThrow(
+      "published_catalog.json must not be read in production",
+    );
     expect(getPublishedCatalogReadTrace().publishedDataFrom).toBe("none");
     expect(getPublishedCatalogReadTrace().publishedSnapshotLoaded).toBe(false);
   });

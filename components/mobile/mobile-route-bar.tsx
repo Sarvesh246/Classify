@@ -23,17 +23,17 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
   return (
     <div
       className={cn(
-        "safe-top-pad sticky top-0 z-[var(--z-nav)] border-b px-3 pb-3 pt-2 backdrop-blur-2xl md:hidden",
+        "safe-top-pad sticky top-0 z-[var(--z-nav)] min-w-0 border-b pb-3 pt-2 backdrop-blur-2xl md:hidden",
         tone === "home"
           ? "border-white/10 bg-deep-ink/52 text-ivory"
           : "border-border-strong bg-surface-strong/95 text-ink shadow-[0_10px_32px_rgba(7,17,31,0.06)] dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)]",
       )}
     >
-      <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+      <div className="mobile-bar-inner flex min-w-0 items-center justify-between gap-3 px-[max(0.5rem,var(--shell-gutter))]">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             {pathname === "/" ? (
-              <Link href="/" className="shrink-0" aria-label="Classify home">
+              <Link href="/" prefetch className="shrink-0" aria-label="Classify home">
                 <ClassifyLogo compact />
               </Link>
             ) : (
@@ -58,6 +58,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
           {meta.actionHref ? (
             <Link
               href={meta.actionHref}
+              prefetch
               className={cn(
                 "inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 text-sm font-medium",
                 tone === "home"

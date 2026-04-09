@@ -37,22 +37,22 @@ export function SiteHeaderInner({ tone = "app", backSlot }: SiteHeaderInnerProps
       <div className="section-shell flex min-h-18 items-center justify-between gap-4 py-3 md:py-4">
         <div className="flex min-w-0 items-center gap-3">
           {backSlot}
-          <Link href="/" aria-label="Classify home" className="shrink-0">
+          <Link href="/" prefetch aria-label="Classify home" className="shrink-0">
             <ClassifyLogo />
           </Link>
         </div>
         <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
-          <Link href="/search" className={navLinkClassName}>
+          <Link href="/search" prefetch className={navLinkClassName}>
             Search
           </Link>
-          <Link href="/compare" className={navLinkClassName}>
+          <Link href="/compare" prefetch className={navLinkClassName}>
             Compare
           </Link>
-          <NavSavedLink className={navLinkClassName} />
-          <Link href="/methodology" className={navLinkClassName}>
+          <NavSavedLink className={navLinkClassName} prefetch />
+          <Link href="/methodology" prefetch className={navLinkClassName}>
             Methodology
           </Link>
-          <Link href="/search?type=school" className={navLinkClassName}>
+          <Link href="/search?type=school" prefetch className={navLinkClassName}>
             Schools
           </Link>
         </nav>
@@ -60,6 +60,7 @@ export function SiteHeaderInner({ tone = "app", backSlot }: SiteHeaderInnerProps
           <ThemeToggle tone={isHome ? "home" : "app"} />
           <Link
             href="/search"
+            prefetch
             className={cn(
               "hidden min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out sm:inline-flex",
               "hover:-translate-y-px active:translate-y-0",

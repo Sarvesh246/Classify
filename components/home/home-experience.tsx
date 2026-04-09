@@ -135,6 +135,8 @@ export function HomeExperience({
   const [clientReady, setClientReady] = useState(false);
   /** Must be set in the browser — SSR/initial state has no `window`, and lazy useState can hydrate as false forever. */
   const [canRenderPremiumScene, setCanRenderPremiumScene] = useState(false);
+  /** Simpler WebGL detail on 4–8 GB devices that still pass the premium gate. */
+  const [ecoScene, setEcoScene] = useState(false);
   /** New key on each mount so R3F/WebGL fully remounts after client-side navigation (avoids stuck or empty canvas). */
   const [canvasMountKey] = useState(() =>
     typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Math.random()),
@@ -147,6 +149,11 @@ export function HomeExperience({
     const frame = window.requestAnimationFrame(() => {
       setClientReady(true);
       setCanRenderPremiumScene(supportsPremiumScene());
+      const nav = navigator as Navigator & { deviceMemory?: number };
+      const mem = nav.deviceMemory;
+      if (mem != null && mem > 0 && mem < 8) {
+        setEcoScene(true);
+      }
     });
 
     return () => {
@@ -202,7 +209,7 @@ export function HomeExperience({
         {useCanvas ? (
           <HomeWebglErrorBoundary fallback={<AmbientBackdrop />}>
             <Suspense fallback={<AmbientBackdrop />}>
-              <HomeScene key={canvasMountKey} progress={progress} />
+              <HomeScene key={canvasMountKey} progress={progress} eco={ecoScene} />
             </Suspense>
           </HomeWebglErrorBoundary>
         ) : (
@@ -213,7 +220,7 @@ export function HomeExperience({
 
       <div className="relative z-10">
         <section className="section-shell flex flex-col justify-start py-5 sm:py-8 md:min-h-[calc(100svh-4.5rem)] md:justify-center md:py-14">
-          <div className="mx-auto w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
+          <div className="mx-auto w-full">
             <MobileHomeLaunchpad
               searchableSchools={coverage.searchableSchools}
               plannerReadySchools={coverage.plannerReadySchools}
@@ -272,13 +279,13 @@ export function HomeExperience({
                     glyphTone="onDark"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-lg font-semibold text-white">{item.professorName}</p>
                         <p className="text-sm text-white/75">
                           {item.courseCode} - {item.courseName}
                         </p>
                       </div>
-                      <CoverageBadge tier={item.coverageTier} variant="onDark" />
+                      <CoverageBadge tier={item.coverageTier} variant="onDark" methodologyLink={false} />
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2 text-sm text-white/90">
                       <span className="rounded-full border border-white/10 px-3 py-1">

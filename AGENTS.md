@@ -41,6 +41,7 @@ The final result should feel like a distinct, original product built specificall
 - Default site experience is dark mode; users can set their preferred default theme in profile (including light if they want).
 - For UI/UX-scoped product work, do not change ETL, catalog merge pipelines, scrape/source engines, or data quality.
 - Keep GitHub/Vercel publishes to app source and shared config; ignore (and `git rm --cached` if already tracked) local build caches, Playwright/e2e output, scratch logs, temp screenshots, and IDE hook state under `.cursor/hooks/state/`.
+- Coverage/evidence tier pills in dense rows (e.g. home featured picks) should stay on one line; avoid multi-line wrapped badge labels.
 
 ## Learned Workspace Facts
 
@@ -52,3 +53,4 @@ The final result should feel like a distinct, original product built specificall
 - Step-by-step catalog depth (directory → RMP national → institutional): [docs/catalog-support-runbook.md](docs/catalog-support-runbook.md).
 - When the published DB snapshot is missing or empty on the server, school directory fallback reads the committed College Scorecard bundle `data/college_scorecard_schools.json` (`SCORECARD_DIRECTORY_DATA_BUNDLE_PATH` in `lib/scorecard-directory.ts`); relying only on `etl/output/college_scorecard_schools.json` fails on Vercel because that ETL output path is not in the deployment bundle.
 - School search performance: narrow directory candidates with `prefilterSchoolsByTextQuery` (`lib/school-search-prefilter.ts`) before heavy scoring, and for school-only flows avoid mapping the full offerings list (e.g. distinct school slugs / lighter paths instead of `getCatalogOfferings()` for every row).
+- Expanding RMP-backed national breadth: add verified `directory-slug` → numeric legacy id mappings in `data/rmp_school_legacy_ids.json` from each school’s RateMyProfessors page; do not guess ids (mis-mapped ids produce bad professor matches).

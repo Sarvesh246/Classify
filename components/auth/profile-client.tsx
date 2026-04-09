@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ArrowRight,
   Bookmark,
   Home,
   LogOut,
   Mail,
-  Palette,
   Scale,
   Search,
+  Settings,
   Sparkles,
   UserRound,
 } from "lucide-react";
 import { ClassifyLoadingMark } from "@/components/loading/classify-loading-mark";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
-import { applyThemeClass, THEME_STORAGE_KEY, type ThemePreference } from "@/lib/theme";
 import { signOutAll } from "@/utils/supabase/sign-out";
 import { cn } from "@/lib/utils";
 
@@ -25,41 +24,6 @@ export function ProfileClient() {
   const router = useRouter();
   const { user, hydrated } = useCombinedAuth();
   const [signingOut, setSigningOut] = useState(false);
-  const [themePreference, setThemePreference] = useState<ThemePreference>(() => {
-    if (typeof document === "undefined") return "dark";
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
-  });
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const root = document.documentElement;
-    const observer = new MutationObserver(() => {
-      setThemePreference(root.classList.contains("dark") ? "dark" : "light");
-    });
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== THEME_STORAGE_KEY) return;
-      if (event.newValue === "light" || event.newValue === "dark") {
-        setThemePreference(event.newValue);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  function onThemePreference(next: ThemePreference) {
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, next);
-    } catch {
-      /* ignore storage failures */
-    }
-    applyThemeClass(next);
-    setThemePreference(next);
-  }
 
   async function onSignOut() {
     setSigningOut(true);
@@ -116,9 +80,13 @@ export function ProfileClient() {
                 Continue browsing without signing in
               </Link>
             </p>
+            <p className="mt-4 text-sm text-muted">
+              <Link href="/settings" className="font-medium text-ink underline-offset-2 hover:underline">
+                Settings — appearance, search history, and device options
+              </Link>
+            </p>
           </div>
         </div>
-        <ThemePreferenceSection themePreference={themePreference} onThemePreference={onThemePreference} />
       </div>
     );
   }
@@ -244,7 +212,23 @@ export function ProfileClient() {
           </dl>
         </section>
 
-        <ThemePreferenceSection themePreference={themePreference} onThemePreference={onThemePreference} />
+        <Link
+          href="/settings"
+          className="flex h-full flex-col rounded-[28px] border border-border/80 bg-surface-strong/50 p-6 transition hover:border-teal/35 hover:bg-surface-raised-top hover:shadow-classify-pill sm:p-7 dark:bg-surface-raised-bottom/40 dark:hover:bg-white/5"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-deep-ink text-ivory">
+              <Settings className="h-5 w-5" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-ink">Settings</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted">
+                Default theme, recent search history, local planner cache, and methodology.
+              </p>
+            </div>
+          </div>
+          <span className="mt-4 text-sm font-semibold text-teal">Open settings →</span>
+        </Link>
       </div>
 
       <section
@@ -328,50 +312,3 @@ function WorkspaceLink({
   );
 }
 
-function ThemePreferenceSection({
-  themePreference,
-  onThemePreference,
-}: {
-  themePreference: ThemePreference;
-  onThemePreference: (next: ThemePreference) => void;
-}) {
-  return (
-    <div className="flex h-full flex-col rounded-[28px] classify-inner p-6 sm:p-7">
-      <div className="flex items-start gap-3">
-        <Palette className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden />
-        <div className="min-w-0">
-          <h3 className="text-lg font-semibold text-ink">Appearance</h3>
-          <p className="mt-1 text-sm leading-relaxed text-muted">
-            Default theme on this device. You can still toggle from the header anytime.
-          </p>
-        </div>
-      </div>
-      <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
-        <button
-          type="button"
-          onClick={() => onThemePreference("dark")}
-          aria-pressed={themePreference === "dark"}
-          className={`inline-flex min-h-11 min-w-[5.5rem] items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition ${
-            themePreference === "dark"
-              ? "border-deep-ink bg-deep-ink text-ivory shadow-sm"
-              : "classify-chip-surface text-ink hover:bg-surface-raised-top/90"
-          }`}
-        >
-          Dark
-        </button>
-        <button
-          type="button"
-          onClick={() => onThemePreference("light")}
-          aria-pressed={themePreference === "light"}
-          className={`inline-flex min-h-11 min-w-[5.5rem] items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition ${
-            themePreference === "light"
-              ? "border-deep-ink bg-deep-ink text-ivory shadow-sm"
-              : "classify-chip-surface text-ink hover:bg-surface-raised-top/90"
-          }`}
-        >
-          Light
-        </button>
-      </div>
-    </div>
-  );
-}
