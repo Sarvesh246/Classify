@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { estimateGradeBuckets } from "../lib/grade-distribution-estimate";
@@ -486,7 +487,88 @@ export function readSnapshot(snapshotPath = SNAPSHOT_PATH): PublishedCatalogSnap
     throw new Error(`Published catalog snapshot not found at ${snapshotPath}`);
   }
 
-  return JSON.parse(fs.readFileSync(snapshotPath, "utf8")) as PublishedCatalogSnapshot;
+  try {
+    return JSON.parse(fs.readFileSync(snapshotPath, "utf8")) as PublishedCatalogSnapshot;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/string longer than|invalid string length/i.test(message)) {
+      throw error;
+    }
+    return readLargeSnapshotViaPython(snapshotPath);
+  }
+}
+
+function readLargeSnapshotViaPython(snapshotPath: string): PublishedCatalogSnapshot {
+  const script = `
+import json
+import sys
+from pathlib import Path
+
+snapshot_path = Path(sys.argv[1])
+snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+tmp_dir = snapshot_path.parent / ".publish_snapshot_parts"
+tmp_dir.mkdir(parents=True, exist_ok=True)
+parts = {
+    "meta": {
+        "updatedAt": snapshot.get("updatedAt"),
+        "publishMetadata": snapshot.get("publishMetadata"),
+        "sections": snapshot.get("sections") or [],
+    },
+    "schools": snapshot.get("schools") or [],
+    "offerings": snapshot.get("offerings") or [],
+    "professorDirectory": snapshot.get("professorDirectory") or [],
+}
+for name, payload in parts.items():
+    (tmp_dir / f"{name}.json").write_text(
+        json.dumps(payload, separators=(",", ":")),
+        encoding="utf-8",
+    )
+print(tmp_dir)
+`.trim();
+
+  const result = spawnSync("python", ["-c", script, snapshotPath], {
+    cwd: ROOT,
+    encoding: "utf8",
+    maxBuffer: 20 * 1024 * 1024,
+  });
+
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim();
+    throw new Error(
+      `Failed to split large published catalog snapshot via Python.${stderr ? ` ${stderr}` : ""}`,
+    );
+  }
+
+  const tempDir = result.stdout.trim();
+  if (!tempDir) {
+    throw new Error("Python large-snapshot fallback did not return a temp directory.");
+  }
+
+  const meta = JSON.parse(
+    fs.readFileSync(path.join(tempDir, "meta.json"), "utf8"),
+  ) as {
+    updatedAt: string;
+    publishMetadata?: PublishedCatalogSnapshot["publishMetadata"];
+    sections?: SectionRecord[];
+  };
+  const schools = JSON.parse(
+    fs.readFileSync(path.join(tempDir, "schools.json"), "utf8"),
+  ) as SchoolRecord[];
+  const offerings = JSON.parse(
+    fs.readFileSync(path.join(tempDir, "offerings.json"), "utf8"),
+  ) as OfferingRecord[];
+  const professorDirectory = JSON.parse(
+    fs.readFileSync(path.join(tempDir, "professorDirectory.json"), "utf8"),
+  ) as ProfessorDirectoryRow[];
+
+  return {
+    updatedAt: meta.updatedAt,
+    publishMetadata: meta.publishMetadata,
+    sections: meta.sections ?? [],
+    schools,
+    offerings,
+    professorDirectory,
+  };
 }
 
 function chunk<T>(items: T[], size = BATCH_SIZE) {
@@ -686,7 +768,7 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
     ]);
   }
 
-  const schoolIdBySlug = new Map(mergedSchools.map((school) => [school.slug, school.id]));
+  const schoolIdBySlug = new Map(mergedSchools.map((school) => [school.slug, school.slug]));
   const schools: DbSchoolRow[] = mergedSchools.map((school) => {
       const offerings = offeringsBySchool.get(school.slug) ?? [];
       const support = deriveSchoolSupport(
@@ -696,7 +778,7 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
         explicitSections.filter((item) => item.schoolSlug === school.slug),
       );
       return {
-        id: school.id,
+        id: school.slug,
       slug: school.slug,
       name: school.name,
       short_name: school.shortName,
@@ -1024,13 +1106,47 @@ async function upsertRows<T extends Record<string, unknown>>(
   onConflict: string,
 ) {
   if (!rows.length) return;
-  for (const batch of chunk(rows)) {
+  const conflictKeys = onConflict.split(",").map((key) => key.trim()).filter(Boolean);
+  const dedupedRows = conflictKeys.length
+    ? [...new Map(rows.map((row) => [
+        conflictKeys.map((key) => String(row[key] ?? "")).join("|"),
+        row,
+      ])).values()]
+    : rows;
+  if (dedupedRows.length !== rows.length) {
+    console.warn(
+      `Deduped ${table} publish batch from ${rows.length} to ${dedupedRows.length} rows by onConflict=${onConflict}.`,
+    );
+  }
+  for (const batch of chunk(dedupedRows)) {
     const { error } = await client.from(table).upsert(batch, {
       onConflict,
       ignoreDuplicates: false,
     });
     if (error) throw new Error(`Upsert failed for ${table}: ${error.message}`);
   }
+}
+
+async function getExistingSchoolIdsBySlug(
+  client: SupabaseClient,
+  slugs: string[],
+): Promise<Map<string, string>> {
+  const bySlug = new Map<string, string>();
+  for (const batch of chunk([...new Set(slugs)], 500)) {
+    const { data, error } = await client
+      .from("schools")
+      .select("id,slug")
+      .in("slug", batch);
+    if (error) {
+      throw new Error(`Failed to read existing schools: ${error.message}`);
+    }
+    for (const row of data ?? []) {
+      if (row?.slug && row?.id) {
+        bySlug.set(String(row.slug), String(row.id));
+      }
+    }
+  }
+  return bySlug;
 }
 
 function toLegacySchoolRows(rows: DbSchoolRow[]): LegacyDbSchoolRow[] {
@@ -1062,8 +1178,16 @@ function toLegacySchoolRows(rows: DbSchoolRow[]): LegacyDbSchoolRow[] {
 }
 
 async function upsertSchoolRows(client: SupabaseClient, rows: DbSchoolRow[]) {
+  const existingIdsBySlug = await getExistingSchoolIdsBySlug(
+    client,
+    rows.map((row) => row.slug),
+  );
+  const normalizedRows = rows.map((row) => ({
+    ...row,
+    id: existingIdsBySlug.get(row.slug) ?? row.id,
+  }));
   try {
-    await upsertRows(client, "schools", rows, "id");
+    await upsertRows(client, "schools", normalizedRows, "slug");
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!LEGACY_SCHOOL_SCHEMA_REGEX.test(message)) {
@@ -1073,7 +1197,7 @@ async function upsertSchoolRows(client: SupabaseClient, rows: DbSchoolRow[]) {
     console.warn(
       "schools table is on the legacy schema; retrying publish without readiness completeness columns.",
     );
-    await upsertRows(client, "schools", toLegacySchoolRows(rows), "id");
+    await upsertRows(client, "schools", toLegacySchoolRows(normalizedRows), "slug");
   }
 }
 

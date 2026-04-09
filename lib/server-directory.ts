@@ -31,6 +31,86 @@ import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
 import { prefilterSchoolsByTextQuery } from "@/lib/school-search-prefilter";
 import { applyCacheLife, applyCacheLifeSearch } from "@/lib/cache-utils";
 
+function patchSchoolForPublishedOfferings(
+  school: School,
+  offerings: ProfessorCourseSummary[],
+): School {
+  if (!offerings.length) {
+    return school;
+  }
+
+  const currentProfile = school.supportProfile;
+  if (currentProfile?.plannerReadiness && currentProfile.plannerReadiness !== "directory_ready") {
+    return school;
+  }
+
+  const hasOfficialGrades = offerings.some(
+    (item) => item.expectedGpa != null || item.aRate != null,
+  );
+  const hasRmp = offerings.some(
+    (item) =>
+      item.rmpRating != null ||
+      item.rmpDifficulty != null ||
+      item.sourceLabels.some((label) => /rate my professors|rmp/i.test(label)),
+  );
+
+  return {
+    ...school,
+    coverageTier:
+      school.coverageTier === "rmp_only"
+        ? "rmp_only"
+        : hasOfficialGrades
+          ? "institutional_plus_rmp"
+          : "rmp_only",
+    descriptor: hasOfficialGrades
+      ? "Published course and instructor data with evidence-backed ranking signals."
+      : "Published course and instructor data with a live planning workflow.",
+    sourceStatus: {
+      ...school.sourceStatus,
+      note: hasOfficialGrades
+        ? "Evidence-backed course and instructor rows are already live for this school."
+        : "Course and instructor rows are already live for this school.",
+    },
+    supportProfile: {
+      plannerReadiness: "catalog_ready",
+      hasCatalog: true,
+      hasSections: currentProfile?.hasSections ?? false,
+      hasInstructorDirectory:
+        currentProfile?.hasInstructorDirectory ?? offerings.length > 0,
+      professorCoverageLevel:
+        currentProfile?.professorCoverageLevel === "directory_only"
+          ? "instructor_directory_ready"
+          : (currentProfile?.professorCoverageLevel ?? "instructor_directory_ready"),
+      hasPlanner: true,
+      hasOfficialGrades,
+      hasRmp,
+      hasCommunityEvidence: currentProfile?.hasCommunityEvidence ?? false,
+      evidenceFreshness: currentProfile?.evidenceFreshness ?? school.sourceStatus.freshness,
+      sourceAvailability: [
+        "catalog",
+        ...(hasOfficialGrades ? (["official_grades"] as const) : []),
+        ...(hasRmp ? (["rmp"] as const) : []),
+      ],
+      catalogCompletenessPct: 100,
+      sectionCompletenessPct: currentProfile?.sectionCompletenessPct ?? 0,
+      meetingTimeCompletenessPct: currentProfile?.meetingTimeCompletenessPct ?? 0,
+      evidenceCompletenessPct:
+        currentProfile?.evidenceCompletenessPct ??
+        (offerings.filter(
+          (item) =>
+            item.expectedGpa != null ||
+            item.aRate != null ||
+            item.rmpRating != null ||
+            item.rmpDifficulty != null,
+        ).length /
+          Math.max(offerings.length, 1)) *
+          100,
+      readinessReason:
+        "Courses and instructors are published, but section timing is still incomplete.",
+    },
+  };
+}
+
 type ScoredSearchRow = {
   hit: SearchHit;
   score: number;
@@ -806,14 +886,17 @@ export async function getSchoolHub(slug: string): Promise<
   if (!school) return undefined;
 
   if (!catalogSchool) {
-    return {
-      school,
-      offerings: [],
-      courses: [],
-      trending: [],
-      departments: [],
-      hiddenGems: [],
-    };
+    const schoolOfferings = await getCatalogOfferingsForSchool(slug);
+    if (!schoolOfferings.length) {
+      return {
+        school,
+        offerings: [],
+        courses: [],
+        trending: [],
+        departments: [],
+        hiddenGems: [],
+      };
+    }
   }
 
   const [schoolOfferings, spotlight, hiddenGems] = await Promise.all([
@@ -821,9 +904,10 @@ export async function getSchoolHub(slug: string): Promise<
     getSchoolTrendSpotlight(slug),
     getHiddenGemsForSchool(slug),
   ]);
+  const displaySchool = patchSchoolForPublishedOfferings(catalogSchool ?? school, schoolOfferings);
 
   return {
-    school,
+    school: displaySchool,
     offerings: schoolOfferings,
     courses: spotlight?.courses ?? [],
     trending: spotlight?.trending ?? [],

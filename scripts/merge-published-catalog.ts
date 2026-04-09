@@ -27,6 +27,53 @@ const MATCH_ROOT = path.join(OUTPUT_ROOT, "matches");
 const TAMU_PATH = path.join(OUTPUT_ROOT, "tamu_offerings.json");
 const OUT_PATH = path.join(OUTPUT_ROOT, "published_catalog.json");
 
+function writeLargeJson(
+  outPath: string,
+  payload: {
+    updatedAt: string;
+    schools: unknown[];
+    offerings: unknown[];
+    professorDirectory: unknown[];
+  },
+) {
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const fd = fs.openSync(outPath, "w");
+  try {
+    fs.writeSync(fd, "{\n");
+    fs.writeSync(fd, `  "updatedAt": ${JSON.stringify(payload.updatedAt)},\n`);
+    fs.writeSync(fd, `  "schools": ${JSON.stringify(payload.schools, null, 2).replace(/\n/g, "\n  ")},\n`);
+    fs.writeSync(fd, `  "offerings": ${JSON.stringify(payload.offerings, null, 2).replace(/\n/g, "\n  ")},\n`);
+    fs.writeSync(
+      fd,
+      `  "professorDirectory": ${JSON.stringify(payload.professorDirectory, null, 2).replace(/\n/g, "\n  ")}\n`,
+    );
+    fs.writeSync(fd, "}\n");
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function writeExpansionReportJson(
+  outPath: string,
+  payload: {
+    generatedAt: string;
+    manifestVersion: number;
+    rows: unknown[];
+  },
+) {
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const fd = fs.openSync(outPath, "w");
+  try {
+    fs.writeSync(fd, "{\n");
+    fs.writeSync(fd, `  "generatedAt": ${JSON.stringify(payload.generatedAt)},\n`);
+    fs.writeSync(fd, `  "manifestVersion": ${JSON.stringify(payload.manifestVersion)},\n`);
+    fs.writeSync(fd, `  "rows": ${JSON.stringify(payload.rows, null, 2).replace(/\n/g, "\n  ")}\n`);
+    fs.writeSync(fd, "}\n");
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 type CoverageTier =
   | "institutional_plus_rmp"
   | "institutional_only"
@@ -254,7 +301,7 @@ async function writeExpansionReportAfterMerge(outPath: string) {
       rows: buildExpansionReportRows(enriched.schools, enriched.offerings),
     };
     const reportPath = path.join(OUTPUT_ROOT, "expansion_report.json");
-    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+    writeExpansionReportJson(reportPath, report);
     console.warn(`Wrote expansion report: ${reportPath}`);
   } catch (reportErr) {
     console.warn(`Expansion report skipped: ${reportErr}`);
@@ -292,8 +339,7 @@ async function main() {
       professorDirectory,
     };
 
-    fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-    fs.writeFileSync(OUT_PATH, `${JSON.stringify(out, null, 2)}\n`, "utf8");
+    writeLargeJson(OUT_PATH, out);
     console.warn(
       `Wrote ${OUT_PATH} with ${directoryExtras.length} directory-only schools (${out.schools.length} total schools, ${out.offerings.length} offerings).`,
     );
@@ -342,8 +388,7 @@ async function main() {
     professorDirectory,
   };
 
-  fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-  fs.writeFileSync(OUT_PATH, `${JSON.stringify(out, null, 2)}\n`, "utf8");
+  writeLargeJson(OUT_PATH, out);
   console.warn(
     `Wrote ${OUT_PATH} with ${incomingOfferings.length} reconciled rows across ${replacements.size} school slices (${offerings.length} offerings, ${schools.length} seed schools + ${directoryExtras.length} directory-only).`,
   );
