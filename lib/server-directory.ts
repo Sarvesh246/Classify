@@ -29,7 +29,7 @@ import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
 import { prefilterSchoolsByTextQuery } from "@/lib/school-search-prefilter";
-import { applyCacheLife, applyCacheLifeSearch } from "@/lib/cache-utils";
+import { applyCacheLifeSearch } from "@/lib/cache-utils";
 
 function patchSchoolForPublishedOfferings(
   school: School,
@@ -254,37 +254,108 @@ interface SearchDirectoryOptions {
   surface?: "combobox" | "page";
 }
 
-export async function getDirectorySchools() {
-  "use cache";
+let directorySchoolsPromise: Promise<School[]> | null = null;
+let catalogSearchIndexPromise: Promise<{
+  catalogSchools: School[];
+  catalogOfferings: ProfessorCourseSummary[];
+  professorDirectory: ProfessorDirectoryRow[];
+  schoolLookup: Map<string, School>;
+  offeringLookup: Map<string, ProfessorCourseSummary>;
+  courseLookup: Map<string, ProfessorCourseSummary>;
+  professorLookup: Map<string, ProfessorDirectoryRow>;
+  schoolsWithCatalogRows: Set<string>;
+  catalogHits: SearchHit[];
+  catalogHitSearchText: Map<string, string>;
+}> | null = null;
 
-  applyCacheLife("hours");
-  const merged = new Map<string, School>();
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  for (const school of loadScorecardDirectorySchools()) {
-    merged.set(school.slug, school);
+function prefilterCatalogHitsByQuery(
+  hits: SearchHit[],
+  searchTextById: Map<string, string>,
+  query: string,
+) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) {
+    return hits;
   }
 
-  for (const school of await getCatalogSchools()) {
-    const existing = merged.get(school.slug);
-    if (!existing) {
-      merged.set(school.slug, school);
+  const tokens = normalizedQuery.split(" ").filter(Boolean);
+  const strongTokens = tokens.filter((token) => token.length >= 2);
+  if (!strongTokens.length) {
+    return hits;
+  }
+
+  const ranked: Array<{ hit: SearchHit; quickScore: number }> = [];
+  for (const hit of hits) {
+    const haystack = searchTextById.get(hit.id) ?? "";
+    let matched = 0;
+    let starts = 0;
+    for (const token of strongTokens) {
+      if (haystack.includes(token)) {
+        matched += 1;
+      }
+      if (
+        haystack.startsWith(token) ||
+        haystack.includes(` ${token}`) ||
+        hit.label.toLowerCase().startsWith(token)
+      ) {
+        starts += 1;
+      }
+    }
+    if (!matched) {
       continue;
     }
-
-    merged.set(school.slug, {
-      ...school,
-      aliases: [...new Set([...school.aliases, ...existing.aliases])],
-      sourceStatus: school.sourceStatus,
+    ranked.push({
+      hit,
+      quickScore: matched * 100 + starts * 10 - Math.max(strongTokens.length - matched, 0) * 15,
     });
   }
 
-  return [...merged.values()].sort((left, right) => left.name.localeCompare(right.name));
+  return ranked
+    .sort((left, right) => right.quickScore - left.quickScore)
+    .slice(0, 4000)
+    .map((item) => item.hit);
+}
+
+export async function getDirectorySchools() {
+  if (!directorySchoolsPromise) {
+    directorySchoolsPromise = (async () => {
+      const merged = new Map<string, School>();
+
+      for (const school of loadScorecardDirectorySchools()) {
+        merged.set(school.slug, school);
+      }
+
+      for (const school of await getCatalogSchools()) {
+        const existing = merged.get(school.slug);
+        if (!existing) {
+          merged.set(school.slug, school);
+          continue;
+        }
+
+        merged.set(school.slug, {
+          ...school,
+          aliases: [...new Set([...school.aliases, ...existing.aliases])],
+          sourceStatus: school.sourceStatus,
+        });
+      }
+
+      return [...merged.values()].sort((left, right) => left.name.localeCompare(right.name));
+    })();
+  }
+
+  return directorySchoolsPromise;
 }
 
 export async function getDirectorySchoolBySlug(slug: string) {
-  "use cache";
-
-  applyCacheLife("hours");
   return (await getDirectorySchools()).find((school) => school.slug === slug);
 }
 
@@ -433,10 +504,14 @@ function buildSchoolSearchHits(allSchools: School[], catalogSchools: School[]): 
   });
 }
 
-async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]> {
-  const catalogSchools = await getCatalogSchools();
+function buildCatalogSearchHitsFromData(
+  catalogSchools: School[],
+  catalogOfferings: ProfessorCourseSummary[],
+  professorDirectoryRows: ProfessorDirectoryRow[],
+  schoolSlug?: string,
+): SearchHit[] {
   const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
-  const offerings = (await getCatalogOfferingsForSearch()).filter(
+  const offerings = catalogOfferings.filter(
     (item) => !schoolSlug || item.schoolSlug === schoolSlug,
   );
   const courseByKey = new Map<string, ProfessorCourseSummary>();
@@ -476,7 +551,7 @@ async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]>
     },
   }));
 
-  const professorDirectory = [...(await getProfessorDirectoryRows())]
+  const professorDirectory = [...professorDirectoryRows]
     .filter((row) => !schoolSlug || row.schoolSlug === schoolSlug);
 
   const professorHits = professorDirectory.map((professor) => {
@@ -525,6 +600,67 @@ async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]>
   });
 
   return [...courseHits, ...professorHits];
+}
+
+async function buildCatalogSearchHits(schoolSlug?: string): Promise<SearchHit[]> {
+  const [catalogSchools, catalogOfferings, professorDirectoryRows] = await Promise.all([
+    getCatalogSchools(),
+    getCatalogOfferingsForSearch(),
+    getProfessorDirectoryRows(),
+  ]);
+  return buildCatalogSearchHitsFromData(
+    catalogSchools,
+    catalogOfferings,
+    professorDirectoryRows,
+    schoolSlug,
+  );
+}
+
+async function getCatalogSearchIndex() {
+  if (!catalogSearchIndexPromise) {
+    catalogSearchIndexPromise = (async () => {
+      const [catalogSchools, catalogOfferings, professorDirectory] = await Promise.all([
+        getCatalogSchools(),
+        getCatalogOfferingsForSearch(),
+        getProfessorDirectoryRows(),
+      ]);
+      const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
+      const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
+      const courseLookup = new Map(
+        catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
+      );
+      const professorLookup = new Map(professorDirectory.map((item) => [item.id, item]));
+      const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
+      const catalogHits = buildCatalogSearchHitsFromData(
+        catalogSchools,
+        catalogOfferings,
+        professorDirectory,
+      );
+      const catalogHitSearchText = new Map(
+        catalogHits.map((hit) => [
+          hit.id,
+          normalizeSearchText(
+            `${hit.label} ${hit.school} ${hit.highlight} ${hit.context.contextLabel}`,
+          ),
+        ]),
+      );
+
+      return {
+        catalogSchools,
+        catalogOfferings,
+        professorDirectory,
+        schoolLookup,
+        offeringLookup,
+        courseLookup,
+        professorLookup,
+        schoolsWithCatalogRows,
+        catalogHits,
+        catalogHitSearchText,
+      };
+    })();
+  }
+
+  return catalogSearchIndexPromise;
 }
 
 /** One hit per professor when browsing (empty query); avoids filling the cap with the same person across courses. */
@@ -669,31 +805,38 @@ async function collectSortedSearchRows(
     trimmedQuery.length <= maxBroadChars &&
     !/\d/.test(trimmedQuery) &&
     !/\s/.test(trimmedQuery);
-  const [allSchoolsMerged, catalogSchools, catalogOfferings, professorDirectory] =
+  const [allSchoolsMerged, searchIndex] =
     await Promise.all([
       getDirectorySchools(),
-      getCatalogSchools(),
-      getCatalogOfferingsForSearch(),
-      getProfessorDirectoryRows(),
+      getCatalogSearchIndex(),
     ]);
+  const {
+    catalogSchools,
+    catalogOfferings,
+    professorDirectory,
+    schoolLookup,
+    offeringLookup,
+    courseLookup,
+    professorLookup,
+    schoolsWithCatalogRows,
+    catalogHits: allCatalogHits,
+    catalogHitSearchText,
+  } = searchIndex;
   const allSchools = prefilterSchoolsByTextQuery(allSchoolsMerged, query);
-  const schoolLookup = new Map(catalogSchools.map((school) => [school.slug, school]));
   const directorySchoolLookup = new Map(allSchoolsMerged.map((school) => [school.slug, school]));
-  const offeringLookup = new Map(catalogOfferings.map((item) => [item.id, item]));
-  const courseLookup = new Map(
-    catalogOfferings.map((item) => [`${item.schoolSlug}:${item.courseSlug}`, item]),
-  );
-  const professorLookup = new Map(
-    professorDirectory.map((item) => [item.id, item]),
-  );
-  const schoolsWithCatalogRows = new Set(catalogOfferings.map((item) => item.schoolSlug));
   const schoolHits = buildSchoolSearchHits(allSchools, catalogSchools).filter(
     (hit) => !schoolSlug || hit.slug === schoolSlug,
   );
   let catalogHits = broadSchoolOnlyQuery
     ? []
-    : (await buildCatalogSearchHits(schoolSlug)).filter(
-        (hit) => type === "all" || hit.type === type,
+    : prefilterCatalogHitsByQuery(
+        allCatalogHits.filter(
+          (hit) =>
+            (!schoolSlug || hit.context.schoolSlug === schoolSlug) &&
+            (type === "all" || hit.type === type),
+        ),
+        catalogHitSearchText,
+        query,
       );
   if (!query.trim() && (type === "professor" || type === "all")) {
     catalogHits = dedupeProfessorHitsForBrowse(catalogHits, offeringLookup);
@@ -859,9 +1002,6 @@ export async function searchDirectory(
 }
 
 export async function getSuggestedHits(options: SearchDirectoryOptions = {}) {
-  "use cache";
-
-  applyCacheLifeSearch();
   return searchDirectory("", { limit: 8, ...options });
 }
 
@@ -876,9 +1016,6 @@ export async function getSchoolHub(slug: string): Promise<
     }
   | undefined
 > {
-  "use cache";
-
-  applyCacheLife("minutes");
   const [school, catalogSchool] = await Promise.all([
     getDirectorySchoolBySlug(slug),
     getCatalogSchoolBySlug(slug),

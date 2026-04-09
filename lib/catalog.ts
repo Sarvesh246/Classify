@@ -71,6 +71,34 @@ function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+function isEquivalentProfessorAlias(primaryName: string, aliasName: string) {
+  const normalizedPrimary = formatProfessorDisplayName(primaryName).trim().toLowerCase();
+  const normalizedAlias = formatProfessorDisplayName(aliasName).trim().toLowerCase();
+  if (!normalizedPrimary || !normalizedAlias || normalizedPrimary === normalizedAlias) {
+    return true;
+  }
+
+  const primaryParts = normalizedPrimary.split(/\s+/).filter(Boolean);
+  const aliasParts = normalizedAlias.split(/\s+/).filter(Boolean);
+  if (!primaryParts.length || !aliasParts.length) {
+    return false;
+  }
+
+  const primaryLast = primaryParts.at(-1);
+  const aliasLast = aliasParts.at(-1);
+  if (!primaryLast || !aliasLast || primaryLast !== aliasLast) {
+    return false;
+  }
+
+  const primaryFirst = primaryParts[0];
+  const aliasFirst = aliasParts[0];
+  if (!primaryFirst || !aliasFirst) {
+    return false;
+  }
+
+  return primaryFirst[0] === aliasFirst[0];
+}
+
 function normalizeSchoolDisplay(school: School): School {
   const shortName = deriveSchoolShortName(school.name, school.shortName);
   return {
@@ -936,6 +964,7 @@ function mergeByKey<T>(
 let snapshotPromise: Promise<PublishedCatalogSnapshot> | null = null;
 let snapshotIndexesPromise: Promise<{
   schoolsBySlug: Map<string, School>;
+  normalizedOfferings: ProfessorCourseSummary[];
   offeringsBySchool: Map<string, ProfessorCourseSummary[]>;
   professorDirectoryBySchool: Map<string, ProfessorDirectoryRow[]>;
   sectionMeetingsBySchool: Map<string, SectionMeeting[]>;
@@ -956,9 +985,14 @@ function groupBySchoolSlug<T extends { schoolSlug: string }>(items: T[] | undefi
 }
 
 function buildSnapshotIndexes(snapshot: PublishedCatalogSnapshot) {
+  const normalizedOfferings = snapshot.offerings.map((item) => ({
+    ...item,
+    courseName: normalizeCourseNameDisplay(item.courseCode, item.courseName, item.courseSlug),
+  }));
   return {
     schoolsBySlug: new Map(snapshot.schools.map((school) => [school.slug, school])),
-    offeringsBySchool: groupBySchoolSlug(snapshot.offerings),
+    normalizedOfferings,
+    offeringsBySchool: groupBySchoolSlug(normalizedOfferings),
     professorDirectoryBySchool: groupBySchoolSlug(snapshot.professorDirectory ?? []),
     sectionMeetingsBySchool: groupBySchoolSlug(snapshot.sectionMeetings ?? []),
     departmentAggregatesBySchool: groupBySchoolSlug(snapshot.departmentAggregates ?? []),
@@ -996,6 +1030,77 @@ function buildPublishedSnapshotFastPath(
   };
 }
 
+function plannerReadinessRank(value: SchoolSupportProfile["plannerReadiness"] | undefined) {
+  switch (value) {
+    case "evidence_ready":
+      return 4;
+    case "schedule_ready":
+      return 3;
+    case "catalog_ready":
+      return 2;
+    case "directory_ready":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function overlaySeedInstitutionalCoverage(
+  snapshot: PublishedCatalogSnapshot,
+): PublishedCatalogSnapshot {
+  const fallback = buildFallbackSnapshot();
+  const seededSlugs = new Set(fallback.schools.map((school) => school.slug));
+  const mergeSeedRows = <T extends { schoolSlug: string }>(
+    base: T[] | undefined,
+    incoming: T[] | undefined,
+    getKey: (item: T) => string,
+  ) =>
+    mergeByKey(
+      base ?? [],
+      (incoming ?? []).filter((item) => seededSlugs.has(item.schoolSlug)),
+      getKey,
+    );
+
+  const schoolBySlug = new Map(snapshot.schools.map((school) => [school.slug, school]));
+  for (const seededSchool of fallback.schools) {
+    const current = schoolBySlug.get(seededSchool.slug);
+    if (
+      !current ||
+      plannerReadinessRank(seededSchool.supportProfile?.plannerReadiness) >
+        plannerReadinessRank(current.supportProfile?.plannerReadiness)
+    ) {
+      schoolBySlug.set(seededSchool.slug, seededSchool);
+    }
+  }
+
+  return {
+    ...snapshot,
+    schools: [...schoolBySlug.values()],
+    offerings: mergeSeedRows(snapshot.offerings, fallback.offerings, (item) => item.id),
+    professorDirectory: mergeSeedRows(
+      snapshot.professorDirectory,
+      fallback.professorDirectory,
+      (item) => item.id,
+    ),
+    sections: mergeSeedRows(snapshot.sections, fallback.sections, (item) => item.id),
+    departmentAggregates: mergeSeedRows(
+      snapshot.departmentAggregates,
+      fallback.departmentAggregates,
+      (item) => `${item.schoolSlug}:${item.departmentSlug}`,
+    ),
+    gradeDistributionSeries: mergeSeedRows(
+      snapshot.gradeDistributionSeries,
+      fallback.gradeDistributionSeries,
+      (item) => item.id,
+    ),
+    sectionMeetings: mergeSeedRows(
+      snapshot.sectionMeetings,
+      fallback.sectionMeetings,
+      (item) => `${item.sectionId}:${item.term}:${item.sourceKey}:${item.startTime ?? ""}:${item.endTime ?? ""}`,
+    ),
+  };
+}
+
 /** Clears the in-memory catalog snapshot (e.g. after republishing data to Supabase). Next request reloads. */
 export function invalidateCatalogSnapshotCache() {
   invalidateScorecardDirectoryCache();
@@ -1009,7 +1114,7 @@ async function loadSnapshotUncached(): Promise<PublishedCatalogSnapshot> {
     if (!snapshot) {
       return buildSeedPlusDirectoryFallbackSnapshot();
     }
-    return buildPublishedSnapshotFastPath(snapshot);
+    return buildPublishedSnapshotFastPath(overlaySeedInstitutionalCoverage(snapshot));
   } catch (err) {
     serverLog.error("catalog_snapshot_failed", { error: String(err) });
     return buildSeedPlusDirectoryFallbackSnapshot();
@@ -1078,10 +1183,7 @@ export function getCatalogDataOriginTrace() {
 }
 
 export async function getCatalogOfferings() {
-  return (await getSnapshot()).offerings.map((item) => ({
-    ...item,
-    courseName: normalizeCourseNameDisplay(item.courseCode, item.courseName, item.courseSlug),
-  }));
+  return (await getSnapshotIndexes()).normalizedOfferings;
 }
 
 /**
@@ -1173,9 +1275,6 @@ function topOfferingsByClassifyScore(
 }
 
 export async function getFeaturedOfferings() {
-  "use cache";
-
-  applyCacheLife("minutes");
   const offerings = (await getSnapshot()).offerings;
   return offerings.length
     ? topOfferingsByClassifyScore(offerings, 6)
@@ -1348,7 +1447,13 @@ export async function getProfessorProfile(
       aliasNameSources
         .filter(Boolean)
         .map((value) => formatProfessorDisplayName(value).trim())
-        .filter((value) => value && value !== "Unknown instructor" && value !== displayNorm),
+        .filter(
+          (value) =>
+            value &&
+            value !== "Unknown instructor" &&
+            value !== displayNorm &&
+            !isEquivalentProfessorAlias(displayNorm, value),
+        ),
     ),
   ];
 
