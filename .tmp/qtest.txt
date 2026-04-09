@@ -1,2 +1,0 @@
-h1="Search schools, courses, and professors in one place"
-ok=true

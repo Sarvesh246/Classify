@@ -10,8 +10,21 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# testing & e2e artifacts
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+
+# local tooling / scratch (never deploy)
+.playwright-cli/
+/output/
+.tmp/
+devserver.log
+/tmp-*.png
+
+# Cursor IDE — machine-local hook state only (not shared project config)
+.cursor/hooks/state/
 
 # next.js
 /.next/
@@ -23,6 +36,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -41,7 +55,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# ETL outputs
+# ETL outputs (generated; not app runtime on Vercel)
 /etl/output/
 
 # vercel

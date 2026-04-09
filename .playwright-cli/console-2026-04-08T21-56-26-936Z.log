@@ -1,4 +1,0 @@
-[   31528ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3200/api/search?query=Texas+A%26M&surface=combobox&limit=8:0
-[   33621ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3200/icon.svg?icon.17.705snerl-y.svg:0
-[   33636ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3200/favicon.ico?favicon.0x3dzn~oxb6tn.ico:0
-[   35680ms] Failed to update a ServiceWorker for scope ('http://127.0.0.1:3200/') with script ('http://127.0.0.1:3200/sw.js'): An unknown error occurred when fetching the script.

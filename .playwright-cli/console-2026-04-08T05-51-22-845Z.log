@@ -1,4 +1,0 @@
-[     259ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3000/_next/webpack-hmr?id=In54Qi0_afOW7rx_35E75' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:55
-[    8064ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3000/_next/webpack-hmr?id=In54Qi0_afOW7rx_35E75' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:55
-[   10270ms] Invalid or unexpected token
-[   14101ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/shared/forward-logs-shared.js:27

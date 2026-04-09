@@ -1,9 +1,0 @@
-[  288570ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/:0
-[  290604ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/search:0
-[  292623ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/schools/texas-am:0
-[  294675ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/schools/texas-am/instructors:0
-[  296710ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/schools/texas-am/professors/altemose-a:0
-[  298761ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/schools/texas-am/my-courses:0
-[  300806ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/login:0
-[  302826ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/saved:0
-[  304847ms] [ERROR] Failed to load resource: Could not connect to server @ http://127.0.0.1:3200/search:0
