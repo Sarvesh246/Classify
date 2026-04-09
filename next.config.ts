@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   experimental: {
     optimizePackageImports: ["lucide-react", "@floating-ui/react"],
+    /**
+     * Avoids a dev-only race where Fast Refresh can dispatch router actions before the
+     * app-router queue is ready ("Router action dispatched before initialization"), especially
+     * after slow HMR rebuilds with cache components enabled.
+     */
+    serverComponentsHmrCache: false,
   },
   // Dev-only (ignored in production): allow RSC / `/_next` / HMR when the site is opened via LAN IP, not localhost.
   allowedDevOrigins: [...privateLanDevOrigins],

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
   title: "Offline",
@@ -6,7 +7,9 @@ export const metadata = {
 
 export default function OfflinePage() {
   return (
-    <main className="page-shell flex min-h-[100dvh] items-center py-12">
+    <main className="min-h-[100dvh] bg-background">
+      <SiteHeader tone="app" />
+      <div className="page-shell flex min-h-[min(100dvh,48rem)] items-center py-12">
       <section className="soft-panel mx-auto max-w-xl rounded-[32px] p-8 text-center sm:p-10">
         <p className="eyebrow">Offline</p>
         <h1 className="display-title mt-4 text-4xl font-semibold text-ink">
@@ -31,6 +34,7 @@ export default function OfflinePage() {
           </Link>
         </div>
       </section>
+      </div>
     </main>
   );
 }

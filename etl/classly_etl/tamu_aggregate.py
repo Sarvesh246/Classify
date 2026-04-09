@@ -201,7 +201,7 @@ def aggregate_tamu_offerings(
                     else f"TAMU {normalized_course_code} outcomes in {dept_label} from published grade reports."
                 ),
                 "freshness": latest.term,
-                "sourceLabels": ["TAMU grade report PDF"],
+                "sourceLabels": ["TAMU Grade Report"],
                 "dataCompleteness": "institutional_full",
                 "sampleSize": max(total_n, latest.sample_size),
                 "trend": trend_raw,

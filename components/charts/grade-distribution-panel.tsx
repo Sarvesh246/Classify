@@ -12,6 +12,14 @@ const gradeColors: Record<string, string> = {
   F: "bg-[#d96b5f]",
 };
 
+/** User-facing copy for catalog / ETL source keys (legacy rows may still use older strings). */
+function formatGradeDistributionSourceLabel(raw: string): string {
+  if (/^TAMU grade report PDF$/i.test(raw.trim())) {
+    return "TAMU Grade Report";
+  }
+  return raw;
+}
+
 export function GradeDistributionPanel({
   series,
   className,
@@ -68,21 +76,28 @@ export function GradeDistributionPanel({
       </div>
 
       <div className="mt-5 rounded-[20px] bg-background p-3">
-        <div className="flex h-8 overflow-hidden rounded-full">
+        {/*
+          Proportional flex (not %-width with a per-segment min %) so shares always sum to the
+          track width — min % was overflowing and clipping the right end of the bar.
+          Labels use neutral-950, not text-deep-ink: dark mode maps deep-ink to --foreground (light),
+          which is unreadable on these fixed bright bar fills.
+        */}
+        <div className="flex h-8 w-full min-w-0 overflow-hidden rounded-full">
           {selected.buckets.map((bucket) => (
             <div
               key={bucket.grade}
               className={cn(
-                "flex h-full items-center justify-center text-[0.7rem] font-semibold text-deep-ink",
+                "flex min-h-full min-w-0 items-center justify-center overflow-hidden text-[0.7rem] font-semibold text-neutral-950",
                 gradeColors[bucket.grade],
               )}
               style={{
-                width: bucket.pct <= 0 ? 0 : `${Math.max(bucket.pct, 2)}%`,
-                minWidth: bucket.pct > 0 ? 2 : 0,
+                flexGrow: bucket.pct > 0 ? bucket.pct : 0,
+                flexShrink: 1,
+                flexBasis: 0,
               }}
               title={`${bucket.grade}: ${bucket.pct}%`}
             >
-              {bucket.grade}
+              <span className="truncate px-0.5">{bucket.grade}</span>
             </div>
           ))}
         </div>
@@ -109,7 +124,7 @@ export function GradeDistributionPanel({
           GPA {selected.avgGpa == null ? "Unavailable" : selected.avgGpa.toFixed(2)}
         </span>
         <span className="classify-well rounded-full px-3 py-1.5">
-          Source {selected.sourceLabel}
+          Source: {formatGradeDistributionSourceLabel(selected.sourceLabel)}
         </span>
       </div>
     </div>

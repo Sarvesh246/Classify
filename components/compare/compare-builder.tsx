@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PendingLink } from "@/components/navigation/pending-link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Plus, School, X } from "lucide-react";
@@ -447,33 +448,58 @@ export function CompareBuilder({
       </div>
 
       {!selected.length ? (
-        <div className="soft-panel rounded-[28px] p-4 lg:hidden">
-          <p className="eyebrow">How compare works</p>
-          <div className="mt-3 grid gap-2">
-            {[
-              "Pick a school to keep the compare set coherent.",
-              "Add professor-course rows that teach the class you care about.",
-              "Use compare first, then plan the winning option.",
-            ].map((step, index) => (
-              <div
-                key={step}
-                className="flex items-start gap-3 rounded-[22px] classify-inner px-4 py-3"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-ink text-xs font-semibold text-ivory">
-                  {index + 1}
-                </span>
-                <p className="text-sm leading-6 text-muted">{step}</p>
-              </div>
-            ))}
+        <>
+          <div className="soft-panel rounded-[28px] p-4 lg:hidden">
+            <p className="eyebrow">How compare works</p>
+            <div className="mt-3 grid gap-2">
+              {[
+                "Pick a school to keep the compare set coherent.",
+                "Add professor-course rows that teach the class you care about.",
+                "Use compare, then add your pick to the planner.",
+              ].map((step, index) => (
+                <div
+                  key={step}
+                  className="flex items-start gap-3 rounded-[22px] classify-inner px-4 py-3"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-ink text-xs font-semibold text-ivory">
+                    {index + 1}
+                  </span>
+                  <p className="text-sm leading-6 text-muted">{step}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+          <div className="soft-panel hidden rounded-[28px] p-6 lg:block">
+            <p className="eyebrow">How compare works</p>
+            <p className="mt-2 text-sm text-muted">
+              Add rows one at a time so each comparison is intentional.
+            </p>
+            <div className="mt-4 grid gap-2">
+              {[
+                "Pick a school to keep the compare set coherent.",
+                "Add professor-course rows that teach the class you care about.",
+                "Use compare, then add your pick to the planner.",
+              ].map((step, index) => (
+                <div
+                  key={`desktop-${step}`}
+                  className="flex items-start gap-3 rounded-[22px] classify-inner px-4 py-3"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-ink text-xs font-semibold text-ivory">
+                    {index + 1}
+                  </span>
+                  <p className="text-sm leading-6 text-muted">{step}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
         {selected.map((item) => (
           <article key={item.id} className="soft-panel rounded-[28px] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <CoverageBadge tier={item.coverageTier} />
                 <h3 className="mt-3 text-lg font-semibold text-ink sm:text-xl">{item.professorName}</h3>
                 <p className="text-sm text-muted">
@@ -526,18 +552,18 @@ export function CompareBuilder({
             </div>
 
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link
+              <PendingLink
                 href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
-                className="inline-flex text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
+                className="text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
               >
                 Open profile
-              </Link>
-              <Link
+              </PendingLink>
+              <PendingLink
                 href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
-                className="inline-flex text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
+                className="text-sm font-medium text-deep-ink underline-offset-4 hover:underline"
               >
                 Plan this course
-              </Link>
+              </PendingLink>
             </div>
           </article>
         ))}
@@ -692,12 +718,12 @@ export function CompareBuilder({
                                 ? "Limit reached"
                                 : "Add"}
                           </button>
-                          <Link
+                          <PendingLink
                             href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
-                            className="inline-flex items-center rounded-full border border-border px-4 py-2 font-medium text-ink"
+                            className="items-center rounded-full border border-border px-4 py-2 font-medium text-ink"
                           >
                             Plan
-                          </Link>
+                          </PendingLink>
                         </div>
                       </div>
                     );
@@ -939,12 +965,12 @@ export function CompareBuilder({
                                 ? "Limit reached"
                                 : "Add"}
                           </button>
-                          <Link
+                          <PendingLink
                             href={`/schools/${item.schoolSlug}/my-courses?courses=${encodeURIComponent(item.courseSlug)}`}
-                            className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
+                            className="min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink"
                           >
                             Plan
-                          </Link>
+                          </PendingLink>
                         </div>
                       </div>
                     );

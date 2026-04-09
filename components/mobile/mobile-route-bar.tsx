@@ -23,7 +23,7 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
   return (
     <div
       className={cn(
-        "safe-top-pad sticky top-0 z-[62] border-b px-3 pb-3 pt-2 backdrop-blur-2xl md:hidden",
+        "safe-top-pad sticky top-0 z-[var(--z-nav)] border-b px-3 pb-3 pt-2 backdrop-blur-2xl md:hidden",
         tone === "home"
           ? "border-white/10 bg-deep-ink/52 text-ivory"
           : "border-border-strong bg-surface-strong/95 text-ink shadow-[0_10px_32px_rgba(7,17,31,0.06)] dark:shadow-[0_10px_32px_rgba(0,0,0,0.35)]",
@@ -32,12 +32,12 @@ export function MobileRouteBar({ tone = "app" }: { tone?: "home" | "app" }) {
       <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
-            {meta.kind === "deep" ? (
-              <HeaderBackButton tone={tone === "home" ? "home" : "app"} />
-            ) : (
+            {pathname === "/" ? (
               <Link href="/" className="shrink-0" aria-label="Classify home">
                 <ClassifyLogo compact />
               </Link>
+            ) : (
+              <HeaderBackButton tone={tone === "home" ? "home" : "app"} />
             )}
             <div className="min-w-0">
               <p className="truncate text-[0.95rem] font-semibold">{meta.title}</p>

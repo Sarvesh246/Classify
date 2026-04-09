@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SearchHitLink } from "@/components/search/search-hit-link";
 import dynamic from "next/dynamic";
 import { Component, type ReactNode, Suspense,
   useEffect,
@@ -174,15 +175,15 @@ export function HomeExperience({
     () => [
       {
         title: "Outcome-driven",
-        body: "Classify anchors every ranking in expected GPA and A-rate first, then layers outside review signals as enrichment instead of pretending opinion is evidence.",
+        body: "Rankings weight reported GPA and A-rate first; review data is extra context where it exists.",
       },
       {
         title: "Course-specific",
-        body: "You can search the exact class you need and immediately see which instructor is most likely to protect your semester.",
+        body: "Search a course code to see who teaches it and how outcomes compare across sections.",
       },
       {
         title: "Planner-ready",
-        body: "Every searchable school lands in the same planning surface first. Catalog, schedule, and evidence depth expand without changing the workflow.",
+        body: "One workflow for every school; catalog, schedule, and grade depth grow without changing how you navigate.",
       },
     ],
     [],
@@ -225,10 +226,10 @@ export function HomeExperience({
 
             <div className="mx-auto mt-6 hidden max-w-3xl text-center md:block 2xl:max-w-4xl">
               <h1 className="display-title text-4xl font-semibold leading-[0.94] tracking-[-0.07em] text-balance sm:text-6xl">
-                Find the professor who actually gives A&apos;s.
+                Grade outcomes by course and instructor.
               </h1>
               <p className="mx-auto mt-3 max-w-2xl text-base leading-7 text-ivory/76 sm:text-lg">
-                Grade distributions, not just opinions, for {coverage.searchableSchools} searchable schools across the US.
+                {coverage.searchableSchools} searchable schools across the US.
               </p>
             </div>
 
@@ -243,7 +244,7 @@ export function HomeExperience({
         <section className="section-shell hidden py-12 sm:py-28 md:block">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
-              <p className="eyebrow">Why it beats RMP</p>
+              <p className="eyebrow">At a glance</p>
               <div className="mt-6 space-y-6">
                 {narrative.map((item, index) => (
                   <motion.div
@@ -264,10 +265,11 @@ export function HomeExperience({
               <p className="eyebrow">Featured picks</p>
               <div className="mt-5 space-y-3">
                 {featured.slice(0, 4).map((item) => (
-                  <Link
+                  <SearchHitLink
                     key={item.id}
                     href={`/schools/${item.schoolSlug}/professors/${item.professorSlug}`}
                     className="block rounded-[24px] border border-white/10 bg-white/6 p-4 transition hover:bg-white/10"
+                    glyphTone="onDark"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -290,7 +292,7 @@ export function HomeExperience({
                         A-rate {formatPercent(item.aRate)}
                       </span>
                     </div>
-                  </Link>
+                  </SearchHitLink>
                 ))}
               </div>
             </div>
@@ -302,13 +304,11 @@ export function HomeExperience({
             <div className="soft-panel rounded-[34px] p-6 text-ink sm:p-8">
               <p className="eyebrow">National school graph</p>
               <h2 className="display-title mt-4 text-4xl font-semibold">
-                One school graph, one planning workflow
+                Same workflow for every school
               </h2>
               <p className="mt-4 max-w-xl text-base leading-7 text-muted">
-                Every searchable institution lands in the same Classify surface:
-                school hub, instructor discovery, and planner entry point first. As
-                course catalogs, schedules, and outcome evidence arrive, the same
-                workflow simply gets deeper.
+                Hub, instructor search, and planner entry stay consistent as catalogs,
+                schedules, and grade evidence grow.
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
                 {spotlights.map((item) => (
@@ -407,10 +407,8 @@ export function HomeExperience({
                 Compare instructor options before you build your schedule
               </h2>
               <p className="mt-4 text-base leading-7 text-muted">
-                Evaluate expected GPA, A-rate, rating, difficulty, and trend in a
-                single, clean workspace. It is the missing step between &quot;I heard
-                they are good&quot; and &quot;I know which section protects my
-                semester.&quot;
+                Expected GPA, A-rate, rating, difficulty, and trend in one place before
+                you lock in a section.
               </p>
               <div className="mt-8 space-y-3">
                 {featured.slice(0, 3).map((item) => (
@@ -440,15 +438,13 @@ export function HomeExperience({
             </div>
 
             <div className="glass-line rounded-[34px] p-6">
-              <p className="eyebrow">What follows next</p>
+              <p className="eyebrow">Coverage</p>
               <h2 className="display-title mt-4 text-4xl font-semibold">
-                The product is built around a national planning graph
+                One surface, expanding depth
               </h2>
               <p className="mt-4 text-base leading-7 text-white/85">
-                Directory records, course catalogs, section schedules, official grade
-                outcomes, and confidence-aware enrichment all feed the same app model.
-                That is what lets Classify support every school with one consistent
-                planning surface before optimizer mode arrives later.
+                Directory, catalogs, schedules, and grade outcomes roll into the same
+                planning flow as each school&apos;s data matures.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

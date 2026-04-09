@@ -107,6 +107,7 @@ export function SearchCombobox({
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const lastSyncedHrefRef = useRef("");
+  const fetchResultCountRef = useRef(0);
   const showListLoading = useDelayedShown(isPending || isLoading, 380);
   const effectiveLimit =
     resultSurface === "combobox" ? Math.min(limit, COMBOBOX_RESULT_LIMIT) : limit;
@@ -276,6 +277,7 @@ export function SearchCombobox({
     const cacheEntry = searchResponseCache.get(endpoint);
 
     if (cacheEntry && cacheEntry.expiresAt > Date.now()) {
+      fetchResultCountRef.current = cacheEntry.results.length;
       setResults(cacheEntry.results);
       setActiveIndex(cacheEntry.results.length ? 0 : null);
       setFetchError(false);
@@ -304,6 +306,7 @@ export function SearchCombobox({
 
         if (!response.ok) {
           if (ignore) return;
+          fetchResultCountRef.current = list.length;
           setResults(list);
           setActiveIndex(list.length ? 0 : null);
           setFetchError(true);
@@ -311,6 +314,7 @@ export function SearchCombobox({
         }
 
         if (ignore) return;
+        fetchResultCountRef.current = list.length;
         searchResponseCache.set(endpoint, {
           expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
           results: list,
@@ -325,6 +329,7 @@ export function SearchCombobox({
           return;
         }
         if (!ignore) {
+          fetchResultCountRef.current = 0;
           setResults([]);
           setActiveIndex(null);
           setFetchError(true);
@@ -335,6 +340,7 @@ export function SearchCombobox({
           surface: resultSurface,
           search_type: searchType,
           school_slug: schoolSlug ?? "",
+          result_count: fetchResultCountRef.current,
         });
         if (!ignore) {
           setIsLoading(false);
@@ -535,6 +541,7 @@ export function SearchCombobox({
           )}
         </div>
         <input
+          data-testid="search-combobox-input"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -727,6 +734,7 @@ function SearchResultsPanel({
                 return linkResults ? (
                   <Link
                     key={item.id}
+                    data-testid="search-result-row"
                     ref={(node) => {
                       listRef.current[index] = node;
                     }}
@@ -747,6 +755,7 @@ function SearchResultsPanel({
                 ) : (
                   <button
                     key={item.id}
+                    data-testid="search-result-row"
                     ref={(node) => {
                       listRef.current[index] = node;
                     }}

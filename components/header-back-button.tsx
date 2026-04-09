@@ -5,6 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { getRouteShellMeta } from "@/lib/route-shell-meta";
 import { cn } from "@/lib/utils";
 
+function backFallbackHref(pathname: string, meta: ReturnType<typeof getRouteShellMeta>) {
+  if (meta.backHref) {
+    return meta.backHref;
+  }
+  if (pathname === "/search" || pathname === "/compare" || pathname === "/saved") {
+    return "/";
+  }
+  return "/search";
+}
+
 export function HeaderBackButton({
   tone = "app",
   className,
@@ -15,9 +25,9 @@ export function HeaderBackButton({
   const router = useRouter();
   const pathname = usePathname();
   const meta = getRouteShellMeta(pathname);
-  const fallback = meta.backHref ?? "/search";
+  const fallback = backFallbackHref(pathname, meta);
 
-  if (meta.kind !== "deep") {
+  if (pathname === "/") {
     return null;
   }
 

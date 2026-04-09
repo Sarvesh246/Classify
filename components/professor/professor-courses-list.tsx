@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { LinkPendingGlyph } from "@/components/navigation/link-pending-glyph";
 import {
   compareOfferings,
   offeringSortLabels,
@@ -51,8 +52,9 @@ export function ProfessorCoursesList({
           <Link
             key={item.id}
             href={`/schools/${schoolSlug}/courses/${item.courseSlug}`}
-            className="rounded-[24px] classify-inner p-4"
+            className="relative rounded-[24px] classify-inner p-4"
           >
+            <LinkPendingGlyph className="pointer-events-none absolute right-3 top-3 z-[1]" />
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-lg font-semibold text-ink">

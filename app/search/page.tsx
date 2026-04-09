@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { Search } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { SearchHitLink } from "@/components/search/search-hit-link";
 import { SearchEntrySurfaceIsland } from "@/components/search/search-entry-surface-island";
 import { SiteHeader } from "@/components/site-header";
 import { getDirectorySchoolBySlug, searchDirectoryWithTotal } from "@/lib/server-directory";
@@ -135,7 +136,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </div>
                 <div className="mt-5 space-y-2">
                   {grouped.school.map((item) => (
-                    <Link
+                    <SearchHitLink
                       key={item.id}
                       href={item.href}
                       className="classify-inner classify-inner--hover flex flex-col gap-3 rounded-[22px] px-4 py-3 transition sm:rounded-[24px] sm:py-4"
@@ -159,7 +160,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                           <MetricPill key={metric} metric={metric} />
                         ))}
                       </div>
-                    </Link>
+                    </SearchHitLink>
                   ))}
                 </div>
               </div>
@@ -191,7 +192,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                         </div>
                         <div className="space-y-2">
                           {items.map((item) => (
-                            <Link
+                            <SearchHitLink
                               key={item.id}
                               href={item.href}
                               className="classify-inner classify-inner--hover flex flex-col gap-2 rounded-[22px] px-4 py-3 transition sm:rounded-[24px]"
@@ -209,7 +210,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                                   <MetricPill key={metric} metric={metric} />
                                 ))}
                               </div>
-                            </Link>
+                            </SearchHitLink>
                           ))}
                         </div>
                       </div>

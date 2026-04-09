@@ -25,6 +25,64 @@ import type {
 } from "@/lib/types";
 import { serverLog } from "@/lib/server-logger";
 
+const EXACT_COURSE_NAME_DISPLAY_POLISH = new Map<string, string>([
+  ["AG LEADERSHIP EDUC AND COMM", "Agricultural Leadership, Education & Communication"],
+  ["TEACHING LEARNING AND CULTURE", "Teaching, Learning & Culture"],
+  ["VET PHYSIOLOGY AND PHARMACOLOGY", "Veterinary Physiology & Pharmacology"],
+  ["RANGELAND WILDLIFE AND FISH MGMT", "Rangeland, Wildlife & Fisheries Management"],
+]);
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function polishCourseNameDisplay(courseName: string) {
+  return EXACT_COURSE_NAME_DISPLAY_POLISH.get(courseName.toUpperCase()) ?? courseName;
+}
+
+function titleFromCourseSlug(courseSlug: string, courseCode: string) {
+  const codeTokens = new Set(
+    courseCode
+      .split(/[^A-Za-z0-9]+/)
+      .map((token) => token.trim().toLowerCase())
+      .filter(Boolean),
+  );
+  const titleTokens = courseSlug
+    .split("-")
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .filter((token) => !codeTokens.has(token.toLowerCase()));
+
+  return titleTokens
+    .map((token) =>
+      token.length <= 3 && /^[a-z]+$/i.test(token)
+        ? token.toUpperCase()
+        : token.charAt(0).toUpperCase() + token.slice(1),
+    )
+    .join(" ");
+}
+
+function normalizeCourseNameDisplay(courseCode: string, courseName: string, courseSlug: string) {
+  const normalizedName = normalizeWhitespace(courseName);
+  const normalizedCode = normalizeWhitespace(courseCode);
+
+  if (!normalizedName || normalizedName.toUpperCase() === normalizedCode.toUpperCase()) {
+    return titleFromCourseSlug(courseSlug, courseCode) || normalizedCode;
+  }
+
+  const repeatedPrefix = new RegExp(
+    `^${normalizedCode.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[-:]\\s*`,
+    "i",
+  );
+  const stripped = normalizeWhitespace(normalizedName.replace(repeatedPrefix, ""));
+
+  if (!stripped || stripped.toUpperCase() === normalizedCode.toUpperCase()) {
+    return titleFromCourseSlug(courseSlug, courseCode) || normalizedCode;
+  }
+
+  return polishCourseNameDisplay(stripped);
+}
+
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 type DbSchoolRow = {
@@ -808,7 +866,8 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
         );
         return sum + (gradeRow?.sample_size ?? 0);
       }, 0);
-      const copy = buildSummaryCopy(course.code, course.name, professor.name);
+      const courseName = normalizeCourseNameDisplay(course.code, course.name, course.slug);
+      const copy = buildSummaryCopy(course.code, courseName, professor.name);
 
       return [{
         id: row.id,
@@ -910,13 +969,14 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
         supportingOffering &&
           (supportingOffering.rmpRating != null || supportingOffering.rmpDifficulty != null),
       );
+      const courseName = normalizeCourseNameDisplay(course.code, course.name, course.slug);
 
       return [{
         id: row.id,
         schoolSlug: school.slug,
         courseSlug: course.slug,
         courseCode: course.code,
-        courseName: course.name,
+        courseName,
         professorSlug: professor?.slug ?? null,
         professorName: professor?.name ?? row.instructor_name_raw ?? primaryMeeting?.instructorName ?? null,
         term: row.term,

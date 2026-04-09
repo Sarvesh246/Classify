@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { PendingLink } from "@/components/navigation/pending-link";
 import { dataTrustSummaryLine, isSmallSample } from "@/lib/data-trust";
 import {
   compareOfferings,
@@ -88,12 +89,12 @@ export function CourseProfessorList({
             </div>
 
             <div className="flex flex-col gap-2 lg:items-end">
-              <Link
+              <PendingLink
                 href={`/schools/${schoolSlug}/professors/${item.professorSlug}`}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory lg:min-h-0"
+                className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-sm font-medium !text-ivory lg:min-h-0"
               >
                 Open profile
-              </Link>
+              </PendingLink>
               <Link
                 href={`/compare?ids=${item.id}&school=${item.schoolSlug}`}
                 className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium !text-ink lg:min-h-0"

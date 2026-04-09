@@ -114,6 +114,22 @@ function titleFromCourseSlug(courseSlug: string, courseCode: string) {
     .join(" ");
 }
 
+const EXACT_COURSE_NAME_DISPLAY_POLISH = new Map<string, string>([
+  ["AG LEADERSHIP EDUC AND COMM", "Agricultural Leadership, Education & Communication"],
+  ["TEACHING LEARNING AND CULTURE", "Teaching, Learning & Culture"],
+  ["VET PHYSIOLOGY AND PHARMACOLOGY", "Veterinary Physiology & Pharmacology"],
+  ["RANGELAND WILDLIFE AND FISH MGMT", "Rangeland, Wildlife & Fisheries Management"],
+]);
+
+function polishCourseNameDisplay(courseName: string) {
+  const exact = EXACT_COURSE_NAME_DISPLAY_POLISH.get(courseName.toUpperCase());
+  if (exact) {
+    return exact;
+  }
+
+  return courseName;
+}
+
 function normalizeCourseNameDisplay(
   courseCode: string,
   courseName: string,
@@ -140,7 +156,7 @@ function normalizeCourseNameDisplay(
     return titleFromCourseSlug(courseSlug, courseCode);
   }
 
-  return stripped;
+  return polishCourseNameDisplay(stripped);
 }
 
 function weightedAverage(items: number[], weights: number[]) {
@@ -1009,7 +1025,10 @@ export function getCatalogDataOriginTrace() {
 }
 
 export async function getCatalogOfferings() {
-  return (await getSnapshot()).offerings;
+  return (await getSnapshot()).offerings.map((item) => ({
+    ...item,
+    courseName: normalizeCourseNameDisplay(item.courseCode, item.courseName, item.courseSlug),
+  }));
 }
 
 export async function getProfessorDirectoryRows() {

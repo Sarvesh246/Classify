@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingLink } from "@/components/navigation/pending-link";
 import { notFound } from "next/navigation";
 import { CoverageBadge } from "@/components/coverage-badge";
 import { SiteHeader } from "@/components/site-header";
@@ -491,12 +492,12 @@ export default async function InstructorsDirectoryPage({ params, searchParams }:
                   </span>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:w-auto md:items-end">
-                  <Link
+                  <PendingLink
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-base font-medium text-ivory sm:min-h-0 sm:py-2 sm:text-sm"
+                    className="min-h-11 touch-manipulation rounded-full bg-deep-ink px-4 py-2.5 text-base font-medium text-ivory sm:min-h-0 sm:py-2 sm:text-sm"
                   >
                     Profile
-                  </Link>
+                  </PendingLink>
                   <Link
                     href={`/compare?ids=${item.id}`}
                     className="inline-flex min-h-11 items-center justify-center touch-manipulation rounded-full border border-border px-4 py-2.5 text-base font-medium text-ink sm:min-h-0 sm:py-2 sm:text-sm"

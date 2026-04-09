@@ -48,11 +48,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
               <h1 className="app-page-title mt-3 font-semibold text-ink">
                 {course.courseCode} - {course.courseName}
               </h1>
-              <p className="app-lead mt-4">
-                {course.summary}{" "}
-                This is the exact question RMP cannot answer well:
-                who teaches this required course and gives the most A&apos;s?
-              </p>
+              <p className="app-lead mt-4">{course.summary}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-3">
               <SaveItemButton

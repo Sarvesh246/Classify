@@ -28,7 +28,7 @@ export function SiteHeaderInner({ tone = "app", backSlot }: SiteHeaderInnerProps
   return (
     <header
       className={cn(
-        "safe-top-pad sticky top-0 z-[60] hidden border-b backdrop-blur-xl md:block",
+        "safe-top-pad sticky top-0 z-[var(--z-nav)] hidden border-b backdrop-blur-xl md:block",
         isHome
           ? "border-white/10 bg-deep-ink/34 text-ivory"
           : "border-border-strong bg-surface-strong/95 text-ink shadow-[0_10px_36px_rgba(7,17,31,0.07)] dark:shadow-[0_10px_36px_rgba(0,0,0,0.35)]",

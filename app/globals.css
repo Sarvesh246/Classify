@@ -46,7 +46,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
   --radius-xl: 28px;
   --z-sticky: 40;
-  --z-nav: 60;
+  /* Sticky site chrome: must exceed `--z-search-surface` or page content paints over the header on scroll. */
+  --z-nav: 120;
   /* In-flow search / typeahead blocks: above following .soft-panel siblings (painting order). */
   --z-search-surface: 100;
   /* Portaled combobox dropdown + anchor row; above page chrome, at/below modal overlay (240). */
@@ -63,6 +64,12 @@
   /* Content max width scales up on large monitors; `100%` (not `100vw`) reflows cleanly when zooming. */
   --page-shell-max: 1180px;
   --section-shell-max: 1200px;
+  /* Shared motion tokens (panels, sheets, nav). Prefer `transition-[property] duration-[var(--motion-duration-*)]`. */
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 220ms;
+  --motion-duration-slow: 380ms;
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (min-width: 1280px) {

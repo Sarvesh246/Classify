@@ -40,7 +40,6 @@ export const metadata: Metadata = {
     "college professor search",
     "grade distributions",
     "college course data",
-    "Rate My Professors alternative",
     "Classify",
   ],
   appleWebApp: {

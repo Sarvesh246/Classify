@@ -23,10 +23,10 @@ export function MobileHomeLaunchpad({
       <div className="home-dark-tile rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,25,44,0.74),rgba(8,25,44,0.58))] p-4 text-white shadow-[0_24px_50px_rgba(4,12,24,0.28)] backdrop-blur-xl">
         <p className="eyebrow">Classify</p>
         <h1 className="display-title mt-2 text-[2.3rem] font-semibold leading-[0.94] tracking-[-0.08em] text-white">
-          Find the professor who actually gives A&apos;s.
+          Grade outcomes by course and instructor.
         </h1>
         <p className="mt-2 text-sm leading-6 text-white/80">
-          Grade-backed outcomes and instructor context—search to get started.
+          Search a school, course, or professor to get started.
         </p>
         <div className="mt-4">
           <SearchCombobox placeholder="Search a school, course, or professor" />

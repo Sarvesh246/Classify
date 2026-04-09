@@ -106,8 +106,8 @@ export default async function ProfessorPage({ params }: ProfessorPageProps) {
               This profile is live before full grade aggregates
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted">
-              Identity, departments, course coverage, and any matched RMP-style signals are live.
-              GPA, A-rate, and compare-ready aggregates appear here as official local evidence is published.
+              Identity, departments, and course coverage are live. GPA, A-rate, and
+              compare-ready aggregates appear as official local evidence is published.
             </p>
           </section>
         )}

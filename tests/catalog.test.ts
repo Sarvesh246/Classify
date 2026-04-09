@@ -112,4 +112,22 @@ describe("catalog aggregates", () => {
     expect(repeatedNameRow?.courseName).not.toBe("COMM 230");
     expect(repeatedNameRow?.courseName?.toLowerCase()).toContain("communication");
   });
+
+  it("polishes a few known TAMU abbreviated course names for display", async () => {
+    const { getCatalogOfferingsForSchool } = catalog;
+    const offerings = await getCatalogOfferingsForSchool("texas-am");
+
+    expect(
+      offerings.find((item) => item.courseCode === "ALEC 670")?.courseName,
+    ).toBe("Agricultural Leadership, Education & Communication");
+    expect(
+      offerings.find((item) => item.courseCode === "LDTC 649")?.courseName,
+    ).toBe("Teaching, Learning & Culture");
+    expect(
+      offerings.find((item) => item.courseCode === "VTPP 605")?.courseName,
+    ).toBe("Veterinary Physiology & Pharmacology");
+    expect(
+      offerings.find((item) => item.courseCode === "RWFM 660")?.courseName,
+    ).toBe("Rangeland, Wildlife & Fisheries Management");
+  });
 });

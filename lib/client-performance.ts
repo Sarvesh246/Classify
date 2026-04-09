@@ -1,5 +1,7 @@
 "use client";
 
+/** Firebase/analytics event names use `sanitizeEventName` (alphanumeric + underscore). Common: `search_suggestion_latency`, `client_route_transition`, `web_vital_*`. */
+
 type PerfPayload = Record<string, string | number | boolean | null | undefined>;
 
 type ActiveMeasure = {

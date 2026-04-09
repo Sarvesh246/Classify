@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PendingLink } from "@/components/navigation/pending-link";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, BookOpen, Cloud, FolderHeart, Layers3 } from "lucide-react";
 import { useCombinedAuth } from "@/components/auth/use-combined-auth";
@@ -123,10 +124,10 @@ export function SavedHub() {
         <div className="rounded-[28px] classify-inner-soft px-5 py-5 text-sm text-muted">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="font-semibold text-ink">Turn on cloud saves</p>
+              <p className="font-semibold text-ink">Your library, everywhere</p>
               <p className="mt-1 leading-6">
-                Sign in with <strong className="text-ink">email</strong> to sync professors,
-                courses, compare sets, and planner drafts across devices.
+                Sign in with <strong className="text-ink">email</strong> to sync starred professors,
+                courses, compare sets, and planner drafts—same workspace on laptop and phone.
               </p>
             </div>
             <Link
@@ -175,10 +176,10 @@ export function SavedHub() {
     return (
       <div className="space-y-4">
         <div className="soft-panel rounded-[28px] px-6 py-8 text-left text-muted">
-          <p className="text-lg font-semibold text-ink">Nothing saved yet</p>
+          <p className="text-lg font-semibold text-ink">Your workspace is ready</p>
           <p className="mt-2 text-sm leading-6">
-            Star a professor or course, or save a compare set—everything you keep for registration
-            season shows up here.
+            Star professors or courses, or save a compare set—everything you curate for registration
+            season lands here in one calm list.
           </p>
           <div className="mt-5 grid grid-cols-2 gap-2">
             <Link
@@ -279,16 +280,16 @@ export function SavedHub() {
                   <p className="text-sm text-muted">{formatSavedSchool(item.school_slug)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Link
+                  <PendingLink
                     href={
                       item.item_type === "professor"
                         ? `/schools/${item.school_slug}/professors/${item.professor_slug}`
                         : `/schools/${item.school_slug}/courses/${item.course_slug}`
                     }
-                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
+                    className="min-h-11 rounded-full bg-deep-ink px-4 text-sm font-medium !text-ivory"
                   >
                     Open
-                  </Link>
+                  </PendingLink>
                   <button
                     type="button"
                     disabled={pendingItemIds.includes(item.id)}

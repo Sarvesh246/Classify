@@ -10,6 +10,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "npm run build && cross-env CI=true playwright test",
+    "test:e2e:visual": "cross-env PLAYWRIGHT_VISUAL=1 playwright test tests/e2e/visual-smoke.e2e.ts --project=chromium",
     "catalog:merge": "tsx scripts/merge-published-catalog.ts",
     "catalog:directory:fixture": "python -m etl.scripts.import_school_directory --fixture",
     "catalog:build-source-registry": "python -m etl.scripts.build_school_source_registry",
@@ -18,7 +21,8 @@
     "catalog:publish:supabase": "tsx scripts/publish-catalog-to-supabase.ts",
     "catalog:validate:supabase": "tsx scripts/validate-catalog-supabase.ts",
     "catalog:rollback:supabase": "tsx scripts/rollback-catalog-supabase.ts",
-    "catalog:doctor:supabase": "tsx scripts/doctor-published-catalog-supabase.ts"
+    "catalog:doctor:supabase": "tsx scripts/doctor-published-catalog-supabase.ts",
+    "auth:print-magic-link": "tsx scripts/print-auth-magic-link.ts"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
@@ -38,10 +42,12 @@
     "three": "0.182.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { PendingLink } from "@/components/navigation/pending-link";
 import { SiteHeader } from "@/components/site-header";
 import {
   getDepartmentAggregate,
@@ -147,12 +148,12 @@ export default async function DepartmentPage({
                   <MetricCard label="Sample" value={String(item.sampleSize)} compact />
                 </div>
                 <div className="flex flex-col gap-2 lg:items-end">
-                  <Link
+                  <PendingLink
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
-                    className="inline-flex min-h-11 items-center justify-center rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory lg:min-h-0"
+                    className="min-h-11 rounded-full bg-deep-ink px-4 py-2 text-sm font-medium text-ivory lg:min-h-0"
                   >
                     Open profile
-                  </Link>
+                  </PendingLink>
                   {item.departmentDelta ? (
                     <div className="rounded-[20px] border border-border bg-background px-4 py-3 text-xs text-muted">
                       <p>

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ArrowRight, Gem, Layers3 } from "lucide-react";
 import { CoverageBadge } from "@/components/coverage-badge";
+import { PendingLink } from "@/components/navigation/pending-link";
+import { SearchHitLink } from "@/components/search/search-hit-link";
 import { SiteHeader } from "@/components/site-header";
 import { getSchoolHub } from "@/lib/server-directory";
 import {
@@ -115,7 +117,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
           {courses.length ? (
             <div className="mt-5 space-y-3">
               {courses.slice(0, 6).map((course) => (
-                <Link
+                <SearchHitLink
                   key={course.courseSlug}
                   href={`/schools/${slug}/courses/${course.courseSlug}`}
                   className="classify-inner classify-inner--hover flex flex-col gap-2 rounded-[24px] px-4 py-4 transition"
@@ -140,23 +142,22 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                         : `${scoreToLabel(course.topClassifyScore)} | score ${formatScore(course.topClassifyScore)}`}
                     </span>
                   </div>
-                </Link>
+                </SearchHitLink>
               ))}
             </div>
           ) : (
             <EmptyCard>
               <p>
-                No local course catalog rows are published for this school yet. The planner
-                shell is still live, and this page will automatically deepen once catalog or
-                schedule imports are added.
+                Course-level rows are still filling in for this school. The planner stays open—use
+                scoped search below while catalog and schedule imports catch up.
               </p>
-              <p className="mt-4">
-                <Link
+                <p className="mt-4">
+                <PendingLink
                   href={`/schools/${slug}/my-courses`}
                   className="font-semibold text-ink underline underline-offset-2"
                 >
                   Open the planner surface
-                </Link>{" "}
+                </PendingLink>{" "}
                 or use scoped search while course-level publishing expands.
               </p>
             </EmptyCard>
@@ -169,7 +170,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             {topProfessors.length ? (
               <div className="mt-5 space-y-3">
                 {topProfessors.map((item) => (
-                  <Link
+                  <SearchHitLink
                     key={item.id}
                     href={`/schools/${slug}/professors/${item.professorSlug}`}
                     className="block rounded-[24px] classify-inner px-4 py-4"
@@ -191,15 +192,14 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                       </div>
                     </div>
                     <p className="mt-3 text-sm text-ink/78">{item.summary}</p>
-                  </Link>
+                  </SearchHitLink>
                 ))}
               </div>
             ) : (
               <EmptyCard>
                 <p>
-                  This school is live in the national directory, but no published instructor
-                  identities are attached yet. Classify will attach local catalog, section,
-                  and evidence rows here without changing the workflow students use.
+                  This school is live in the directory; instructor identities will appear here as
+                  catalog and evidence rows attach—your shortlist and search stay the same workflow.
                 </p>
                 <p className="mt-4">
                   <Link
@@ -229,7 +229,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
             {departments.length ? (
               <div className="mt-5 space-y-3">
                 {departments.slice(0, 6).map((department) => (
-                  <Link
+                  <SearchHitLink
                     key={department.departmentSlug}
                     href={`/schools/${slug}/departments/${department.departmentSlug}`}
                     className="classify-inner classify-inner--hover flex items-center justify-between gap-4 rounded-[22px] px-4 py-4 transition"
@@ -246,7 +246,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                       <p>Classify {formatScore(department.avgClassifyScore)}</p>
                       <p>GPA {formatGpa(department.avgExpectedGpa)}</p>
                     </div>
-                  </Link>
+                  </SearchHitLink>
                 ))}
               </div>
             ) : (
@@ -281,7 +281,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
           {hiddenGems.length ? (
             <div className="mt-5 grid gap-3 lg:grid-cols-2">
               {hiddenGems.map((item) => (
-                <Link
+                <SearchHitLink
                   key={item.id}
                   href={`/schools/${slug}/professors/${item.professorSlug}`}
                   className="rounded-[24px] classify-inner p-4"
@@ -309,7 +309,7 @@ export default async function SchoolPage({ params }: SchoolPageProps) {
                       Sample {item.sampleSize}
                     </span>
                   </div>
-                </Link>
+                </SearchHitLink>
               ))}
             </div>
           ) : (
