@@ -994,10 +994,20 @@ let snapshotPromise: Promise<PublishedCatalogSnapshot> | null = null;
 let snapshotIndexesPromise: Promise<{
   schoolsBySlug: Map<string, School>;
   normalizedOfferings: ProfessorCourseSummary[];
+  offeringById: Map<string, ProfessorCourseSummary>;
   offeringsBySchool: Map<string, ProfessorCourseSummary[]>;
+  offeringsBySchoolCourse: Map<string, ProfessorCourseSummary[]>;
+  offeringsBySchoolProfessor: Map<string, ProfessorCourseSummary[]>;
+  courseGroupsBySchool: Map<string, CourseGroup[]>;
+  courseGroupBySchoolCourse: Map<string, CourseGroup>;
   professorDirectoryBySchool: Map<string, ProfessorDirectoryRow[]>;
+  sectionsBySchool: Map<string, SectionRecord[]>;
+  sectionsBySchoolProfessor: Map<string, SectionRecord[]>;
   sectionMeetingsBySchool: Map<string, SectionMeeting[]>;
+  sectionMeetingsBySectionId: Map<string, SectionMeeting[]>;
   departmentAggregatesBySchool: Map<string, DepartmentAggregate[]>;
+  gradeDistributionSeriesByOfferingId: Map<string, GradeDistributionSeries[]>;
+  gradeDistributionSeriesBySchoolCourse: Map<string, GradeDistributionSeries[]>;
 }> | null = null;
 
 function groupBySchoolSlug<T extends { schoolSlug: string }>(items: T[] | undefined) {
@@ -1013,18 +1023,115 @@ function groupBySchoolSlug<T extends { schoolSlug: string }>(items: T[] | undefi
   return grouped;
 }
 
+function groupByKey<T>(items: T[] | undefined, getKey: (item: T) => string | null | undefined) {
+  const grouped = new Map<string, T[]>();
+  for (const item of items ?? []) {
+    const key = getKey(item);
+    if (!key) continue;
+    const bucket = grouped.get(key);
+    if (bucket) {
+      bucket.push(item);
+    } else {
+      grouped.set(key, [item]);
+    }
+  }
+  return grouped;
+}
+
 function buildSnapshotIndexes(snapshot: PublishedCatalogSnapshot) {
   const normalizedOfferings = snapshot.offerings.map((item) => ({
     ...item,
     courseName: normalizeCourseNameDisplay(item.courseCode, item.courseName, item.courseSlug),
   }));
+  const offeringById = new Map(normalizedOfferings.map((item) => [item.id, item]));
+  const offeringsBySchool = groupBySchoolSlug(normalizedOfferings);
+  const offeringsBySchoolCourse = groupByKey(
+    normalizedOfferings,
+    (item) => `${item.schoolSlug}:${item.courseSlug}`,
+  );
+  const offeringsBySchoolProfessor = groupByKey(
+    normalizedOfferings,
+    (item) => `${item.schoolSlug}:${item.professorSlug}`,
+  );
+  const courseGroupsBySchool = new Map<string, CourseGroup[]>();
+  const courseGroupBySchoolCourse = new Map<string, CourseGroup>();
+  for (const [schoolSlug, offerings] of offeringsBySchool.entries()) {
+    const groups = new Map<string, ProfessorCourseSummary[]>();
+    for (const offering of offerings) {
+      const bucket = groups.get(offering.courseSlug);
+      if (bucket) {
+        bucket.push(offering);
+      } else {
+        groups.set(offering.courseSlug, [offering]);
+      }
+    }
+    const schoolCourseGroups = [...groups.values()]
+      .map((items) => {
+          const top = [...items].sort(
+            (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
+          )[0];
+          return {
+            schoolSlug,
+            courseSlug: top.courseSlug,
+            courseCode: top.courseCode,
+            courseName: top.courseName,
+            department: top.department,
+            summary: top.courseSummary,
+            coverageTier: top.coverageTier,
+            offeringCount: items.length,
+            topClassifyScore: top.classifyScore,
+            topExpectedGpa: Math.max(...items.map((item) => item.expectedGpa ?? 0)) || null,
+            topProfessorName: top.professorName,
+            freshness: top.freshness,
+          };
+        })
+        .sort((left, right) => (right.topClassifyScore ?? 0) - (left.topClassifyScore ?? 0));
+    courseGroupsBySchool.set(schoolSlug, schoolCourseGroups);
+    for (const group of schoolCourseGroups) {
+      courseGroupBySchoolCourse.set(`${schoolSlug}:${group.courseSlug}`, group);
+    }
+  }
+  const sectionsBySchool = groupBySchoolSlug(snapshot.sections ?? []);
+  const sectionsBySchoolProfessor = groupByKey(
+    snapshot.sections ?? [],
+    (item) => (item.professorSlug ? `${item.schoolSlug}:${item.professorSlug}` : null),
+  );
+  const sectionMeetingsBySchool = groupBySchoolSlug(snapshot.sectionMeetings ?? []);
+  const sectionMeetingsBySectionId = groupByKey(
+    snapshot.sectionMeetings ?? [],
+    (item) => item.sectionId,
+  );
+  const gradeDistributionSeriesByOfferingId = groupByKey(
+    snapshot.gradeDistributionSeries ?? [],
+    (item) => item.offeringId,
+  );
+  for (const series of gradeDistributionSeriesByOfferingId.values()) {
+    series.sort((left, right) => left.term.localeCompare(right.term));
+  }
+  const gradeDistributionSeriesBySchoolCourse = groupByKey(
+    snapshot.gradeDistributionSeries ?? [],
+    (item) => `${item.schoolSlug}:${item.courseSlug}`,
+  );
+  for (const series of gradeDistributionSeriesBySchoolCourse.values()) {
+    series.sort((left, right) => left.term.localeCompare(right.term));
+  }
   return {
     schoolsBySlug: new Map(snapshot.schools.map((school) => [school.slug, school])),
     normalizedOfferings,
-    offeringsBySchool: groupBySchoolSlug(normalizedOfferings),
+    offeringById,
+    offeringsBySchool,
+    offeringsBySchoolCourse,
+    offeringsBySchoolProfessor,
+    courseGroupsBySchool,
+    courseGroupBySchoolCourse,
     professorDirectoryBySchool: groupBySchoolSlug(snapshot.professorDirectory ?? []),
-    sectionMeetingsBySchool: groupBySchoolSlug(snapshot.sectionMeetings ?? []),
+    sectionsBySchool,
+    sectionsBySchoolProfessor,
+    sectionMeetingsBySchool,
+    sectionMeetingsBySectionId,
     departmentAggregatesBySchool: groupBySchoolSlug(snapshot.departmentAggregates ?? []),
+    gradeDistributionSeriesByOfferingId,
+    gradeDistributionSeriesBySchoolCourse,
   };
 }
 
@@ -1350,8 +1457,10 @@ export async function getCatalogOfferingsByIds(ids: string[]) {
     return [];
   }
 
-  const wanted = new Set(ids);
-  return (await getCatalogOfferings()).filter((offering) => wanted.has(offering.id));
+  const lookup = (await getSnapshotIndexes()).offeringById;
+  return ids
+    .map((id) => lookup.get(id))
+    .filter((offering): offering is ProfessorCourseSummary => Boolean(offering));
 }
 
 export async function getProfessorDirectoryRowsForSchool(schoolSlug: string) {
@@ -1363,45 +1472,17 @@ export async function getCatalogSectionMeetingsForSchool(schoolSlug: string) {
 }
 
 export async function getCourseGroupsForSchool(schoolSlug: string): Promise<CourseGroup[]> {
-  const groups = new Map<string, ProfessorCourseSummary[]>();
-  for (const offering of await getCatalogOfferingsForSchool(schoolSlug)) {
-    groups.set(offering.courseSlug, [...(groups.get(offering.courseSlug) ?? []), offering]);
-  }
-
-  return [...groups.values()]
-    .map((items) => {
-      const top = [...items].sort(
-        (left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0),
-      )[0];
-      return {
-        schoolSlug,
-        courseSlug: top.courseSlug,
-        courseCode: top.courseCode,
-        courseName: top.courseName,
-        department: top.department,
-        summary: top.courseSummary,
-        coverageTier: top.coverageTier,
-        offeringCount: items.length,
-        topClassifyScore: top.classifyScore,
-        topExpectedGpa: Math.max(...items.map((item) => item.expectedGpa ?? 0)) || null,
-        topProfessorName: top.professorName,
-        freshness: top.freshness,
-      };
-    })
-    .sort((left, right) => (right.topClassifyScore ?? 0) - (left.topClassifyScore ?? 0));
+  return (await getSnapshotIndexes()).courseGroupsBySchool.get(schoolSlug) ?? [];
 }
 
 export async function getCourseGroup(schoolSlug: string, courseSlug: string) {
-  return (await getCourseGroupsForSchool(schoolSlug)).find((course) => course.courseSlug === courseSlug);
+  return (await getSnapshotIndexes()).courseGroupBySchoolCourse.get(`${schoolSlug}:${courseSlug}`);
 }
 
 export async function getCourseOfferings(schoolSlug: string, courseSlug: string) {
-  return (await getCatalogOfferings())
-    .filter(
-      (offering) =>
-        offering.schoolSlug === schoolSlug && offering.courseSlug === courseSlug,
-    )
-    .sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
+  const offerings =
+    (await getSnapshotIndexes()).offeringsBySchoolCourse.get(`${schoolSlug}:${courseSlug}`) ?? [];
+  return [...offerings].sort((left, right) => (right.classifyScore ?? 0) - (left.classifyScore ?? 0));
 }
 
 export async function getProfessorProfile(
@@ -1409,17 +1490,13 @@ export async function getProfessorProfile(
   professorSlug: string,
 ): Promise<ProfessorProfile | undefined> {
   const school = await getCatalogSchoolBySlug(schoolSlug);
-  const [directoryRows, offerings, snapshot] = await Promise.all([
+  const [directoryRows, indexes] = await Promise.all([
     getProfessorDirectoryRowsForSchool(schoolSlug),
-    getCatalogOfferings(),
-    getSnapshot(),
+    getSnapshotIndexes(),
   ]);
   const professor = directoryRows.find((row) => row.professorSlug === professorSlug);
-  const matches = offerings.filter(
-    (offering) =>
-      offering.schoolSlug === schoolSlug &&
-      offering.professorSlug === professorSlug,
-  );
+  const matches =
+    indexes.offeringsBySchoolProfessor.get(`${schoolSlug}:${professorSlug}`) ?? [];
   if (!school || !professor) {
     return undefined;
   }
@@ -1446,15 +1523,11 @@ export async function getProfessorProfile(
         ),
     )
     .map((row) => row.professorName);
-  const relatedSections = (snapshot.sections ?? []).filter(
-    (section) =>
-      section.schoolSlug === schoolSlug && section.professorSlug === professorSlug,
+  const relatedSections =
+    indexes.sectionsBySchoolProfessor.get(`${schoolSlug}:${professorSlug}`) ?? [];
+  const relatedMeetingNames = relatedSections.flatMap((section) =>
+    (indexes.sectionMeetingsBySectionId.get(section.id) ?? []).map((meeting) => meeting.instructorName),
   );
-  const relatedMeetingNames = (snapshot.sectionMeetings ?? [])
-    .filter((meeting) =>
-      relatedSections.some((section) => section.id === meeting.sectionId),
-    )
-    .map((meeting) => meeting.instructorName);
   const displayProfessorName = resolveProfessorProfileName(professor.professorName, [
     professor.professorName,
     ...relatedDirectoryAliases,
@@ -1487,21 +1560,16 @@ export async function getProfessorProfile(
   ];
 
   const sectionIdSet = new Set(relatedSections.map((section) => section.id));
-  const sectionMeetings = (snapshot.sectionMeetings ?? []).filter((meeting) =>
-    sectionIdSet.has(meeting.sectionId),
+  const sectionMeetings = [...sectionIdSet].flatMap(
+    (sectionId) => indexes.sectionMeetingsBySectionId.get(sectionId) ?? [],
   );
 
-  const matchOfferingIds = new Set(matches.map((row) => row.id));
   const gradeSeriesByOfferingId: Record<string, GradeDistributionSeries[]> = {};
-  for (const row of snapshot.gradeDistributionSeries ?? []) {
-    if (!matchOfferingIds.has(row.offeringId)) {
-      continue;
+  for (const row of matches) {
+    const series = indexes.gradeDistributionSeriesByOfferingId.get(row.id);
+    if (series?.length) {
+      gradeSeriesByOfferingId[row.id] = [...series];
     }
-    const bucket = (gradeSeriesByOfferingId[row.offeringId] ??= []);
-    bucket.push(row);
-  }
-  for (const series of Object.values(gradeSeriesByOfferingId)) {
-    series.sort((left, right) => left.term.localeCompare(right.term));
   }
 
   return {
@@ -1543,18 +1611,18 @@ export async function getDepartmentOfferingsForSchool(
 }
 
 export async function getGradeDistributionSeriesForOffering(offeringId: string) {
-  return ((await getSnapshot()).gradeDistributionSeries ?? [])
-    .filter((item) => item.offeringId === offeringId)
-    .sort((left, right) => left.term.localeCompare(right.term));
+  const series = (await getSnapshotIndexes()).gradeDistributionSeriesByOfferingId.get(offeringId) ?? [];
+  return [...series];
 }
 
 export async function getGradeDistributionSeriesForCourse(
   schoolSlug: string,
   courseSlug: string,
 ) {
-  const series = ((await getSnapshot()).gradeDistributionSeries ?? []).filter(
-    (item) => item.schoolSlug === schoolSlug && item.courseSlug === courseSlug,
-  );
+  const series =
+    (await getSnapshotIndexes()).gradeDistributionSeriesBySchoolCourse.get(
+      `${schoolSlug}:${courseSlug}`,
+    ) ?? [];
 
   const grouped = new Map<string, GradeDistributionSeries[]>();
   for (const item of series) {

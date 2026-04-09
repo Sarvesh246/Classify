@@ -258,6 +258,8 @@ interface SearchDirectoryOptions {
   surface?: "combobox" | "page";
 }
 
+const SEARCH_DIRECTORY_CACHE_TTL_MS = 120_000;
+
 let directorySchoolsPromise: Promise<School[]> | null = null;
 let catalogSearchIndexPromise: Promise<{
   catalogSchools: School[];
@@ -271,6 +273,28 @@ let catalogSearchIndexPromise: Promise<{
   catalogHits: SearchHit[];
   catalogHitSearchText: Map<string, string>;
 }> | null = null;
+const searchDirectoryResultCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    value: { results: SearchHit[]; total: number };
+  }
+>();
+const inflightSearchDirectoryRequests = new Map<
+  string,
+  Promise<{ results: SearchHit[]; total: number }>
+>();
+
+function buildSearchDirectoryCacheKey(query: string, options: SearchDirectoryOptions) {
+  return JSON.stringify([
+    query,
+    options.limit ?? 12,
+    options.offset ?? 0,
+    options.type ?? "all",
+    options.schoolSlug ?? "",
+    options.surface ?? "page",
+  ]);
+}
 
 function normalizeSearchText(value: string) {
   return value
@@ -1086,15 +1110,39 @@ export async function searchDirectoryWithTotal(
   "use cache";
 
   applyCacheLifeSearch();
+  const cacheKey = buildSearchDirectoryCacheKey(query, options);
+  const now = Date.now();
+  const cached = searchDirectoryResultCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+  const inflight = inflightSearchDirectoryRequests.get(cacheKey);
+  if (inflight) {
+    return inflight;
+  }
+
   const limit = options.limit ?? 12;
   const offset = options.offset ?? 0;
-  const { rows, schoolsWithCatalogRows } = await collectSortedSearchRows(query, options);
-  const total = rows.length;
-  const paged = rows.slice(offset, offset + limit);
-  const results = paged.map((row) =>
-    finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, query),
-  );
-  return { results, total };
+  const work = collectSortedSearchRows(query, options).then(({ rows, schoolsWithCatalogRows }) => {
+    const total = rows.length;
+    const paged = rows.slice(offset, offset + limit);
+    const results = paged.map((row) =>
+      finalizeSearchHit(row.hit, schoolsWithCatalogRows, row, query),
+    );
+    const value = { results, total };
+    searchDirectoryResultCache.set(cacheKey, {
+      expiresAt: Date.now() + SEARCH_DIRECTORY_CACHE_TTL_MS,
+      value,
+    });
+    inflightSearchDirectoryRequests.delete(cacheKey);
+    return value;
+  }).catch((error) => {
+    inflightSearchDirectoryRequests.delete(cacheKey);
+    throw error;
+  });
+
+  inflightSearchDirectoryRequests.set(cacheKey, work);
+  return work;
 }
 
 export async function searchDirectory(

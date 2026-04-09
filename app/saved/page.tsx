@@ -1,5 +1,4 @@
-import { SavedPageIntro } from "@/components/saved/saved-page-intro";
-import { SavedHubShell } from "@/components/saved/saved-hub-shell";
+import { SavedPageClientSurface } from "@/components/saved/saved-page-client-surface";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
@@ -15,11 +14,8 @@ export default function SavedPage() {
         <section className="soft-panel rounded-[30px] p-5 sm:rounded-[34px] sm:p-8">
           <p className="eyebrow">Your library</p>
           <h1 className="app-page-title mt-3 font-semibold text-ink">Saved</h1>
-          <SavedPageIntro />
         </section>
-        <div className="mt-6 sm:mt-8">
-          <SavedHubShell />
-        </div>
+        <SavedPageClientSurface />
       </div>
     </main>
   );

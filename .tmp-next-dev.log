@@ -1,0 +1,10 @@
+
+> classify@0.1.0 dev
+> next dev -H 0.0.0.0 --webpack --hostname 127.0.0.1 --port 3002
+
+▲ Next.js 16.2.2 (webpack)
+- Local:         http://127.0.0.1:3002
+- Network:       http://127.0.0.1:3002
+- Environments: .env.local
+✓ Ready in 421ms
+[?25h

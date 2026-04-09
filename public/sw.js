@@ -1,6 +1,6 @@
-const APP_SHELL_CACHE = "classify-shell-v2";
-const RUNTIME_CACHE = "classify-runtime-v2";
-const API_CACHE = "classify-api-v2";
+const APP_SHELL_CACHE = "classify-shell-v3";
+const RUNTIME_CACHE = "classify-runtime-v3";
+const API_CACHE = "classify-api-v3";
 const APP_SHELL_URLS = [
   "/",
   "/search",
@@ -54,6 +54,15 @@ async function networkFirst(request, cacheName, fallbackResponse, timeoutMs = 90
   }
 }
 
+function isNextStreamingRequest(request, url) {
+  return (
+    url.searchParams.has("_rsc") ||
+    request.headers.get("rsc") === "1" ||
+    request.headers.get("next-router-state-tree") != null ||
+    request.headers.get("accept")?.includes("text/x-component")
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -63,6 +72,13 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Never intercept streamed App Router payloads or Next internals.
+  // Caching/replaying these responses breaks the RSC stream and causes
+  // "Error in input stream" navigation failures on deployed builds.
+  if (isNextStreamingRequest(request, url) || url.pathname.startsWith("/_next/")) {
     return;
   }
 
