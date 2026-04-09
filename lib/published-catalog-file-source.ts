@@ -36,17 +36,20 @@ let publishedCatalogCache:
 
 function readPart<T>(fileName: string, fallback: T): T {
   const partPath = path.join(PUBLISHED_CATALOG_PARTS_DIR, fileName);
-  if (!fs.existsSync(partPath)) {
+  if (!fs.existsSync(/* turbopackIgnore: true */ partPath)) {
     return fallback;
   }
-  return JSON.parse(fs.readFileSync(partPath, "utf8")) as T;
+  return JSON.parse(fs.readFileSync(/* turbopackIgnore: true */ partPath, "utf8")) as T;
 }
 
 function hasFreshSnapshotParts(stat: fs.Stats) {
   const requiredParts = ["updatedAt.json", "schools.json", "offerings.json"];
   return requiredParts.every((fileName) => {
     const partPath = path.join(PUBLISHED_CATALOG_PARTS_DIR, fileName);
-    return fs.existsSync(partPath) && fs.statSync(partPath).mtimeMs >= stat.mtimeMs;
+    return (
+      fs.existsSync(/* turbopackIgnore: true */ partPath) &&
+      fs.statSync(/* turbopackIgnore: true */ partPath).mtimeMs >= stat.mtimeMs
+    );
   });
 }
 
@@ -74,7 +77,7 @@ function readSnapshotFromParts(stat: fs.Stats): PublishedCatalogSnapshot {
 }
 
 export function getPublishedCatalogFileSourceInfo(): PublishedCatalogFileSourceInfo {
-  const exists = fs.existsSync(PUBLISHED_CATALOG_PATH);
+  const exists = fs.existsSync(/* turbopackIgnore: true */ PUBLISHED_CATALOG_PATH);
   if (!exists && !publishedCatalogMissingWarningLogged) {
     publishedCatalogMissingWarningLogged = true;
     serverLog.warn("published_catalog_missing", {
@@ -95,7 +98,7 @@ export function readPublishedCatalogSnapshotFromFile<T>(): T | null {
     return null;
   }
 
-  const stat = fs.statSync(source.path);
+  const stat = fs.statSync(/* turbopackIgnore: true */ PUBLISHED_CATALOG_PATH);
   if (
     publishedCatalogCache &&
     publishedCatalogCache.path === source.path &&
@@ -115,7 +118,9 @@ export function readPublishedCatalogSnapshotFromFile<T>(): T | null {
   }
 
   try {
-    const snapshot = JSON.parse(fs.readFileSync(source.path, "utf8")) as PublishedCatalogSnapshot;
+    const snapshot = JSON.parse(
+      fs.readFileSync(/* turbopackIgnore: true */ PUBLISHED_CATALOG_PATH, "utf8"),
+    ) as PublishedCatalogSnapshot;
     publishedCatalogCache = {
       path: source.path,
       mtimeMs: stat.mtimeMs,
@@ -146,7 +151,7 @@ snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
 (parts_dir / "publishMetadata.json").write_text(json.dumps(snapshot.get("publishMetadata")), encoding="utf-8")
 `.trim();
         const result = spawnSync("python", ["-c", script, source.path, PUBLISHED_CATALOG_PARTS_DIR], {
-          cwd: process.cwd(),
+          cwd: /* turbopackIgnore: true */ process.cwd(),
           encoding: "utf8",
           maxBuffer: 1024 * 1024 * 1024,
         });

@@ -173,6 +173,12 @@ async function main() {
     for (const failure of requiredFailures) {
       console.error(`  - ${failure.table}: ${failure.error}`);
     }
+    console.error(
+      "\nRemediation (Supabase SQL Editor, idempotent):\n" +
+        "  1) db/supabase_published_catalog.sql — creates schools, professors, courses, published_professor_course_summaries, …\n" +
+        "  2) db/supabase_repair_current_drift.sql — user tables, publish control, schools column drift (after step 1).\n" +
+        "Then load data: npm run catalog:publish:supabase (after merge) and npm run catalog:validate:supabase.",
+    );
   }
 
   if (publishedOptionalFailures.length) {

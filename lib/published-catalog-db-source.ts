@@ -763,6 +763,8 @@ export async function readPublishedCatalogSnapshotFromDb(): Promise<PublishedCat
         credentialKind: health.credentialKind,
         missingRequiredTables: health.missingRequiredTables,
         missingOptionalTables: health.missingOptionalTables,
+        remediation:
+          "Apply db/supabase_published_catalog.sql then db/supabase_repair_current_drift.sql in Supabase SQL Editor; publish with npm run catalog:publish:supabase.",
       });
       return null;
     }

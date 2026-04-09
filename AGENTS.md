@@ -42,6 +42,7 @@ The final result should feel like a distinct, original product built specificall
 - For UI/UX-scoped product work, do not change ETL, catalog merge pipelines, scrape/source engines, or data quality.
 - Keep GitHub/Vercel publishes to app source and shared config; ignore (and `git rm --cached` if already tracked) local build caches, Playwright/e2e output, scratch logs, temp screenshots, and IDE hook state under `.cursor/hooks/state/`.
 - Coverage/evidence tier pills in dense rows (e.g. home featured picks) should stay on one line; avoid multi-line wrapped badge labels.
+- Expect snappy client-side navigation between major routes (e.g. home and search); avoid heavy synchronous work on each transition.
 
 ## Learned Workspace Facts
 
@@ -54,3 +55,4 @@ The final result should feel like a distinct, original product built specificall
 - When the published DB snapshot is missing or empty on the server, school directory fallback reads the committed College Scorecard bundle `data/college_scorecard_schools.json` (`SCORECARD_DIRECTORY_DATA_BUNDLE_PATH` in `lib/scorecard-directory.ts`); relying only on `etl/output/college_scorecard_schools.json` fails on Vercel because that ETL output path is not in the deployment bundle.
 - School search performance: narrow directory candidates with `prefilterSchoolsByTextQuery` (`lib/school-search-prefilter.ts`) before heavy scoring, and for school-only flows avoid mapping the full offerings list (e.g. distinct school slugs / lighter paths instead of `getCatalogOfferings()` for every row).
 - Expanding RMP-backed national breadth: add verified `directory-slug` → numeric legacy id mappings in `data/rmp_school_legacy_ids.json` from each school’s RateMyProfessors page; do not guess ids (mis-mapped ids produce bad professor matches).
+- Prerender can fail with "Filling a cache during prerender timed out" when `"use cache"` scopes are **nested** across the same heavy snapshot paths (e.g. a cached hub calling another cached directory helper); remove redundant inner boundaries and confirm with `next build`. Separately, avoid `cookies()`, `headers()`, or dynamic route args inside cached scopes—Next surfaces a similar error for those cases.

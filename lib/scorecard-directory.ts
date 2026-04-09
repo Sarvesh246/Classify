@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import type { School } from "@/lib/types";
 import {
@@ -8,9 +9,14 @@ import {
   normalizeSchoolText,
 } from "@/lib/school-display";
 
-/** Primary path used by local ETL (`import_school_directory`). */
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Primary path used by local ETL (`import_school_directory`).
+ * `turbopackIgnore` stops Turbopack/NFT from treating `process.cwd()` as “trace the whole repo” during builds.
+ */
 export const SCORECARD_DIRECTORY_JSON_PATH = path.join(
-  process.cwd(),
+  /* turbopackIgnore: true */ process.cwd(),
   "etl",
   "output",
   "college_scorecard_schools.json",
@@ -18,23 +24,71 @@ export const SCORECARD_DIRECTORY_JSON_PATH = path.join(
 
 /** Committed fallback bundled with the app (e.g. Vercel) when `etl/output` is absent. */
 export const SCORECARD_DIRECTORY_DATA_BUNDLE_PATH = path.join(
-  process.cwd(),
+  MODULE_DIR,
+  "..",
   "data",
   "college_scorecard_schools.json",
 );
 
-function resolveScorecardDirectoryJsonFile(): string | null {
+type ScorecardDirectorySource =
+  | { kind: "env"; path: string }
+  | { kind: "etl" }
+  | { kind: "bundle" };
+
+function resolveScorecardDirectorySource(): ScorecardDirectorySource | null {
   const fromEnv = process.env.SCORECARD_DIRECTORY_JSON_PATH?.trim();
-  if (fromEnv && fs.existsSync(fromEnv)) {
-    return fromEnv;
+  if (fromEnv && fs.existsSync(/* turbopackIgnore: true */ fromEnv)) {
+    return { kind: "env", path: fromEnv };
   }
-  if (fs.existsSync(SCORECARD_DIRECTORY_JSON_PATH)) {
-    return SCORECARD_DIRECTORY_JSON_PATH;
+  if (process.env.NODE_ENV === "production") {
+    if (fs.existsSync(SCORECARD_DIRECTORY_DATA_BUNDLE_PATH)) {
+      return { kind: "bundle" };
+    }
+    return null;
+  }
+  if (fs.existsSync(/* turbopackIgnore: true */ SCORECARD_DIRECTORY_JSON_PATH)) {
+    return { kind: "etl" };
   }
   if (fs.existsSync(SCORECARD_DIRECTORY_DATA_BUNDLE_PATH)) {
-    return SCORECARD_DIRECTORY_DATA_BUNDLE_PATH;
+    return { kind: "bundle" };
   }
   return null;
+}
+
+function readScorecardDirectoryRecords(source: ScorecardDirectorySource): ScorecardDirectoryRecord[] {
+  switch (source.kind) {
+    case "env":
+      return JSON.parse(
+        fs.readFileSync(/* turbopackIgnore: true */ source.path, "utf8"),
+      ) as ScorecardDirectoryRecord[];
+    case "etl":
+      return JSON.parse(
+        fs.readFileSync(/* turbopackIgnore: true */ SCORECARD_DIRECTORY_JSON_PATH, "utf8"),
+      ) as ScorecardDirectoryRecord[];
+    case "bundle":
+      return JSON.parse(
+        fs.readFileSync(SCORECARD_DIRECTORY_DATA_BUNDLE_PATH, "utf8"),
+      ) as ScorecardDirectoryRecord[];
+    default: {
+      const _exhaustive: never = source;
+      return _exhaustive;
+    }
+  }
+}
+
+function sourceDebugPath(source: ScorecardDirectorySource) {
+  switch (source.kind) {
+    case "env":
+      return source.path;
+    case "etl":
+      return SCORECARD_DIRECTORY_JSON_PATH;
+    case "bundle":
+      return SCORECARD_DIRECTORY_DATA_BUNDLE_PATH;
+    default: {
+      const _exhaustive: never = source;
+      return _exhaustive;
+    }
+  }
 }
 
 /** Raw row shape written by `etl.scripts.import_school_directory`. */
@@ -822,8 +876,8 @@ export function loadScorecardDirectorySchools(): School[] {
     return scorecardSchoolsCache;
   }
 
-  const resolved = resolveScorecardDirectoryJsonFile();
-  if (!resolved) {
+  const source = resolveScorecardDirectorySource();
+  if (!source) {
     if (!scorecardSchoolsMissingLogged) {
       scorecardSchoolsMissingLogged = true;
       console.warn(
@@ -843,9 +897,7 @@ export function loadScorecardDirectorySchools(): School[] {
   }
 
   try {
-    const payload = JSON.parse(
-      fs.readFileSync(resolved, "utf8"),
-    ) as ScorecardDirectoryRecord[];
+    const payload = readScorecardDirectoryRecords(source);
 
     scorecardSchoolsCache = payload.map(scorecardRecordToSchool);
     return scorecardSchoolsCache;
@@ -854,7 +906,7 @@ export function loadScorecardDirectorySchools(): School[] {
       JSON.stringify({
         level: "warn",
         event: "directory_schools_read_failed",
-        path: resolved,
+        path: sourceDebugPath(source),
         error: String(err),
       }),
     );

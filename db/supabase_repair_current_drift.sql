@@ -1,15 +1,29 @@
 -- Targeted repair for the currently detected Supabase schema drift on 2026-04-05.
 -- Safe to run multiple times in Supabase SQL Editor.
+--
+-- Prerequisite: core published-catalog tables must exist (`public.schools`, professors, courses, summaries).
+-- If `npm run catalog:doctor:supabase` reports missing required published tables, run
+-- `db/supabase_published_catalog.sql` in the SQL Editor first, then return here.
 
 create extension if not exists pgcrypto;
 
-alter table public.schools
-  add column if not exists aliases jsonb not null default '[]'::jsonb,
-  add column if not exists catalog_completeness_pct integer not null default 0,
-  add column if not exists section_completeness_pct integer not null default 0,
-  add column if not exists meeting_time_completeness_pct integer not null default 0,
-  add column if not exists evidence_completeness_pct integer not null default 0,
-  add column if not exists readiness_reason text;
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'schools'
+  ) then
+    alter table public.schools
+      add column if not exists aliases jsonb not null default '[]'::jsonb,
+      add column if not exists catalog_completeness_pct integer not null default 0,
+      add column if not exists section_completeness_pct integer not null default 0,
+      add column if not exists meeting_time_completeness_pct integer not null default 0,
+      add column if not exists evidence_completeness_pct integer not null default 0,
+      add column if not exists readiness_reason text;
+  end if;
+end $$;
 
 create table if not exists public.raw_source_snapshots (
   id text primary key,

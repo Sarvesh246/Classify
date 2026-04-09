@@ -63,3 +63,15 @@ Treat a school as **`dataTier: "institutional"`** in `data/expansion-priority.js
 
 - **RMP bulk sync:** `RMP_GRAPHQL_ENDPOINT` (see `.env.example` if present).
 - **Supabase publish:** follow existing publish scripts and project env (service role / URL as already documented for the repo).
+
+## 6. Supabase published schema (DB-first reads)
+
+If logs show `published_catalog_db_required_tables_unavailable` or `npm run catalog:doctor:supabase` reports missing **required** tables (`schools`, `professors`, `courses`, `published_professor_course_summaries`), the app falls back to `published_catalog.json` / seed until the database matches the app’s expectations.
+
+**Repair order (SQL Editor; all scripts are safe to re-run where noted):**
+
+1. **`db/supabase_published_catalog.sql`** — creates the published-catalog tables, indexes, RLS policies for read-mostly public data.
+2. **`db/supabase_repair_current_drift.sql`** — control/user/helper tables and `schools` column drift; requires `public.schools` from step 1.
+3. **`npm run catalog:publish:supabase`** — load rows from a merged catalog (after `npm run catalog:merge`). Validate with **`npm run catalog:validate:supabase`**.
+
+Optional: **`db/supabase_user_data.sql`** if auth-scoped user tables are not yet applied.

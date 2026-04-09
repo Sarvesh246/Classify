@@ -752,7 +752,10 @@ function deriveSchoolSupport(
   };
 }
 
-export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload {
+export function buildPayload(
+  snapshot: PublishedCatalogSnapshot,
+  existingSchoolIdsBySlug?: Map<string, string>,
+): PublishPayload {
   const mergedSchools = mergeDirectorySchools(snapshot).schools;
   const explicitProfessorDirectory = snapshot.professorDirectory ?? [];
   const explicitSections = snapshot.sections ?? [];
@@ -768,7 +771,9 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
     ]);
   }
 
-  const schoolIdBySlug = new Map(mergedSchools.map((school) => [school.slug, school.slug]));
+  const schoolIdBySlug = new Map(
+    mergedSchools.map((school) => [school.slug, existingSchoolIdsBySlug?.get(school.slug) ?? school.slug]),
+  );
   const schools: DbSchoolRow[] = mergedSchools.map((school) => {
       const offerings = offeringsBySchool.get(school.slug) ?? [];
       const support = deriveSchoolSupport(
@@ -777,8 +782,9 @@ export function buildPayload(snapshot: PublishedCatalogSnapshot): PublishPayload
         explicitProfessorDirectory.filter((item) => item.schoolSlug === school.slug),
         explicitSections.filter((item) => item.schoolSlug === school.slug),
       );
+      const schoolId = schoolIdBySlug.get(school.slug) ?? school.slug;
       return {
-        id: school.slug,
+        id: schoolId,
       slug: school.slug,
       name: school.name,
       short_name: school.shortName,
@@ -1104,6 +1110,7 @@ async function upsertRows<T extends Record<string, unknown>>(
   table: TableKey,
   rows: T[],
   onConflict: string,
+  batchSize = BATCH_SIZE,
 ) {
   if (!rows.length) return;
   const conflictKeys = onConflict.split(",").map((key) => key.trim()).filter(Boolean);
@@ -1118,7 +1125,7 @@ async function upsertRows<T extends Record<string, unknown>>(
       `Deduped ${table} publish batch from ${rows.length} to ${dedupedRows.length} rows by onConflict=${onConflict}.`,
     );
   }
-  for (const batch of chunk(dedupedRows)) {
+  for (const batch of chunk(dedupedRows, batchSize)) {
     const { error } = await client.from(table).upsert(batch, {
       onConflict,
       ignoreDuplicates: false,
@@ -1131,20 +1138,32 @@ async function getExistingSchoolIdsBySlug(
   client: SupabaseClient,
   slugs: string[],
 ): Promise<Map<string, string>> {
+  const wanted = new Set(slugs);
   const bySlug = new Map<string, string>();
-  for (const batch of chunk([...new Set(slugs)], 500)) {
-    const { data, error } = await client
-      .from("schools")
-      .select("id,slug")
-      .in("slug", batch);
+  let offset = 0;
+
+  while (wanted.size > bySlug.size) {
+    const { data, error } = await retrySupabaseWrite(
+      "Reading existing schools",
+      async () =>
+        await client
+          .from("schools")
+          .select("id,slug")
+          .range(offset, offset + BATCH_SIZE - 1),
+      5,
+    );
     if (error) {
       throw new Error(`Failed to read existing schools: ${error.message}`);
     }
     for (const row of data ?? []) {
-      if (row?.slug && row?.id) {
+      if (row?.slug && row?.id && wanted.has(String(row.slug))) {
         bySlug.set(String(row.slug), String(row.id));
       }
     }
+    if (!data?.length || data.length < BATCH_SIZE) {
+      break;
+    }
+    offset += BATCH_SIZE;
   }
   return bySlug;
 }
@@ -1178,16 +1197,8 @@ function toLegacySchoolRows(rows: DbSchoolRow[]): LegacyDbSchoolRow[] {
 }
 
 async function upsertSchoolRows(client: SupabaseClient, rows: DbSchoolRow[]) {
-  const existingIdsBySlug = await getExistingSchoolIdsBySlug(
-    client,
-    rows.map((row) => row.slug),
-  );
-  const normalizedRows = rows.map((row) => ({
-    ...row,
-    id: existingIdsBySlug.get(row.slug) ?? row.id,
-  }));
   try {
-    await upsertRows(client, "schools", normalizedRows, "slug");
+    await upsertRows(client, "schools", rows, "slug", 100);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!LEGACY_SCHOOL_SCHEMA_REGEX.test(message)) {
@@ -1197,7 +1208,7 @@ async function upsertSchoolRows(client: SupabaseClient, rows: DbSchoolRow[]) {
     console.warn(
       "schools table is on the legacy schema; retrying publish without readiness completeness columns.",
     );
-    await upsertRows(client, "schools", toLegacySchoolRows(normalizedRows), "slug");
+    await upsertRows(client, "schools", toLegacySchoolRows(rows), "slug", 100);
   }
 }
 
@@ -1511,7 +1522,11 @@ export async function publishSnapshotToSupabase(
   options?: { snapshotId?: string },
 ) {
   const materializedSnapshot = mergeDirectorySchools(snapshot);
-  const payload = buildPayload(materializedSnapshot);
+  const existingSchoolIdsBySlug = await getExistingSchoolIdsBySlug(
+    client,
+    materializedSnapshot.schools.map((school) => school.slug),
+  );
+  const payload = buildPayload(materializedSnapshot, existingSchoolIdsBySlug);
   const schoolIds = payload.schools.map((row) => row.id);
   const runId = options?.snapshotId ?? `published-catalog:${new Date().toISOString()}`;
 
