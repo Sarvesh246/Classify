@@ -23,8 +23,9 @@ export function normalizeSchoolSearchText(value: string | null | undefined) {
     .trim();
 }
 
-function buildSchoolInitialism(value: string | null | undefined) {
-  const tokens = normalizeSchoolSearchText(value)
+function buildSchoolInitialisms(value: string | null | undefined) {
+  const normalized = normalizeSchoolSearchText(value);
+  const tokens = normalized
     .split(" ")
     .filter(
       (token) =>
@@ -32,22 +33,70 @@ function buildSchoolInitialism(value: string | null | undefined) {
         !SCHOOL_STOP_WORDS.has(token) &&
         !/^\d+$/.test(token),
     );
+  const forms = new Set<string>();
+
   if (tokens.length < 2) {
-    return "";
+    return forms;
   }
-  return tokens.map((token) => token[0]).join("");
+
+  forms.add(tokens.map((token) => token[0]).join(""));
+
+  const universityOfMatch = normalized.match(/^university of ([a-z0-9]+)/);
+  if (universityOfMatch?.[1]) {
+    const initial = universityOfMatch[1][0];
+    forms.add(`u${initial}`);
+    forms.add(`${initial}u`);
+  }
+
+  if (tokens[0] === "university" && tokens.length === 2) {
+    forms.add(`${tokens[0][0]}${tokens[1][0]}`);
+    forms.add(`${tokens[1][0]}${tokens[0][0]}`);
+  }
+
+  if (normalized.includes("a and m")) {
+    forms.add("a and m");
+    forms.add("a m");
+    forms.add("am");
+  }
+
+  return forms;
 }
 
-export function buildSchoolSearchText(school: School) {
+function buildSchoolQueryVariants(value: string | null | undefined) {
+  const normalized = normalizeSchoolSearchText(value);
+  const forms = new Set<string>();
+
+  if (!normalized) {
+    return forms;
+  }
+
+  forms.add(normalized);
+
+  for (const initialism of buildSchoolInitialisms(value)) {
+    if (initialism) {
+      forms.add(initialism);
+    }
+  }
+
+  const universityOfMatch = normalized.match(/^university of ([a-z0-9]+)/);
+  if (universityOfMatch?.[1]) {
+    forms.add(`u of ${universityOfMatch[1]}`);
+  }
+
+  if (normalized.includes("a and m")) {
+    forms.add("a and m");
+    forms.add("a m");
+    forms.add("am");
+  }
+
+  return forms;
+}
+
+export function buildSchoolSearchTerms(school: School) {
   const parts = new Set<string>();
   const add = (value: string | null | undefined) => {
-    const normalized = normalizeSchoolSearchText(value);
-    if (normalized) {
-      parts.add(normalized);
-    }
-    const initialism = buildSchoolInitialism(value);
-    if (initialism) {
-      parts.add(initialism);
+    for (const variant of buildSchoolQueryVariants(value)) {
+      parts.add(variant);
     }
   };
 
@@ -60,7 +109,11 @@ export function buildSchoolSearchText(school: School) {
   add(school.state);
   add(`${school.city} ${school.state}`);
 
-  return [...parts].join(" ");
+  return [...parts];
+}
+
+export function buildSchoolSearchText(school: School) {
+  return buildSchoolSearchTerms(school).join(" ");
 }
 
 /**

@@ -29,6 +29,7 @@ import { SMALL_SAMPLE_THRESHOLD } from "@/lib/data-trust";
 import { professorLastNameSortKey } from "@/lib/professor-sort";
 import { loadScorecardDirectorySchools } from "@/lib/scorecard-directory";
 import {
+  buildSchoolSearchTerms,
   buildSchoolSearchText,
   normalizeSchoolSearchText,
   prefilterSchoolsByTextQuery,
@@ -463,7 +464,7 @@ function schoolMatchBoost(query: string, hit: SearchHit, school: School | undefi
   }
 
   const canonicalLabel = normalizeSchoolSearchText(hit.label);
-  const aliases = (school?.aliases ?? [])
+  const aliases = (school ? buildSchoolSearchTerms(school) : school?.aliases ?? [])
     .map((value) => normalizeSchoolSearchText(value))
     .filter((value) => value !== canonicalLabel);
 

@@ -63,11 +63,31 @@ const sample: School[] = [
     descriptor: "d",
     programs: [],
   },
+  {
+    id: "4",
+    slug: "oklahoma",
+    name: "University of Oklahoma",
+    shortName: "Oklahoma",
+    city: "Norman",
+    state: "OK",
+    kind: "Public",
+    coverageTier: "rmp_only",
+    aliases: [],
+    directoryCount: 1,
+    sourceStatus: {
+      primary: "x",
+      fallback: "y",
+      freshness: "z",
+      note: "n",
+    },
+    descriptor: "d",
+    programs: [],
+  },
 ];
 
 describe("prefilterSchoolsByTextQuery", () => {
   it("returns all schools for empty query", () => {
-    expect(prefilterSchoolsByTextQuery(sample, "")).toHaveLength(3);
+    expect(prefilterSchoolsByTextQuery(sample, "")).toHaveLength(4);
   });
 
   it("narrows to schools containing every significant token", () => {
@@ -77,12 +97,12 @@ describe("prefilterSchoolsByTextQuery", () => {
 
   it("falls back to full list when no AND match (fuzzy path handled later)", () => {
     const out = prefilterSchoolsByTextQuery(sample, "xyzabc");
-    expect(out).toHaveLength(3);
+    expect(out).toHaveLength(4);
   });
 
   it("ignores single-character tokens for narrowing", () => {
     const out = prefilterSchoolsByTextQuery(sample, "a b");
-    expect(out).toHaveLength(3);
+    expect(out).toHaveLength(4);
   });
 
   it("normalizes ampersands so Texas A and M still narrows correctly", () => {
@@ -92,6 +112,16 @@ describe("prefilterSchoolsByTextQuery", () => {
 
   it("matches acronym-style school queries via initialism text", () => {
     const out = prefilterSchoolsByTextQuery(sample, "tamu");
+    expect(out.map((s) => s.slug)).toContain("texas-am");
+  });
+
+  it("matches common reversed acronym shorthand for University of X schools", () => {
+    const out = prefilterSchoolsByTextQuery(sample, "ou");
+    expect(out.map((s) => s.slug)).toContain("oklahoma");
+  });
+
+  it("matches ampersand shorthand for A and M schools", () => {
+    const out = prefilterSchoolsByTextQuery(sample, "a&m");
     expect(out.map((s) => s.slug)).toContain("texas-am");
   });
 });
